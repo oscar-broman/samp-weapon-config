@@ -23,6 +23,10 @@ It's pretty much plug-and-play if you don't have any filterscripts that interfer
     }
     ```
 
+## Requirements
+
+This include file requires the [SKY](https://github.com/oscar-broman/SKY/) plugin.
+
 # Features
 
 - **Server-side health**
