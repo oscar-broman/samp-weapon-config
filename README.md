@@ -286,6 +286,11 @@ SetVehiclePassengerDamage(bool:toggle);
 Allow vehicles to be damaged when they have a passenger and no driver
 
 ```pawn
+SetVehicleUnoccupiedDamage(bool:toggle);
+```
+Allow vehicles to be damaged when they don't have any players inside them
+
+```pawn
 SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...);
 ```
 Modify a weapon's damage
