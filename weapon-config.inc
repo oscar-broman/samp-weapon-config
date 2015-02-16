@@ -734,6 +734,7 @@ static s_DamageFeed = true;
 static s_DamageFeedHideDelay = 3000;
 static s_DamageFeedMaxUpdateRate = 250;
 static s_VehiclePassengerDamage = false;
+static s_VehicleUnoccupiedDamage = false;
 static Float:s_FallDeathVelocity = -0.6;
 static s_DamageTakenSound = 1190;
 static s_DamageGivenSound = 17802;
@@ -979,6 +980,11 @@ stock SetCustomVendingMachines(bool:toggle)
 stock SetVehiclePassengerDamage(bool:toggle)
 {
 	s_VehiclePassengerDamage = toggle;
+}
+
+stock SetVehicleUnoccupiedDamage(bool:toggle)
+{
+	s_VehicleUnoccupiedDamage = toggle;
 }
 
 stock SetDamageFeed(bool:toggle)
@@ -2814,6 +2820,40 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			}
 
 			if (!has_driver && has_passenger) {
+				new Float:health;
+
+				GetVehicleHealth(hitid, health);
+
+				if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
+					health -= 120.0;
+				} else {
+					health -= s_WeaponDamage[weaponid] * 3.0;
+				}
+
+				if (health <= 0.0) {
+					health = 0.0;
+				}
+
+				SetVehicleHealth(hitid, health);
+			}
+		}
+		
+		if (s_VehicleUnoccupiedDamage) {
+			new has_occupent = false;
+
+			for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+				if (otherid == playerid || !IsPlayerConnected(otherid)) {
+					continue;
+				}
+
+				if (GetPlayerVehicleID(otherid) != hitid) {
+					continue;
+				}
+
+				has_occupent = true;
+			}
+
+			if (!has_occupent) {
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
