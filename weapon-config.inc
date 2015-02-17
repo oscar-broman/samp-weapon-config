@@ -44,6 +44,35 @@
 	#error streamer.inc is required when WC_USE_STREAMER=true
 #endif
 
+#if defined WC_USEGRADIENT
+static WC_HEALTH_GRADIENT[100] =
+{
+	0xBA0915FF,0xBA0D14FF,0xBB1114FF,0xBB1514FF,0xBC1914FF,0xBC1D14FF,0xBD2114FF,0xBD2514FF,0xBE2914FF,0xBE2D14FF,
+	0xBF3114FF,0xBF3514FF,0xC03914FF,0xC03D14FF,0xC14114FF,0xC14514FF,0xC24914FF,0xC24E14FF,0xC35214FF,0xC35614FF,
+	0xC45A14FF,0xC45E14FF,0xC56214FF,0xC56614FF,0xC66A14FF,0xC76E14FF,0xC77213FF,0xC87613FF,0xC87A13FF,0xC97E13FF,
+	0xC98213FF,0xCA8613FF,0xCA8A13FF,0xCB8E13FF,0xCB9313FF,0xCC9713FF,0xCC9B13FF,0xCD9F13FF,0xCDA313FF,0xCEA713FF,
+	0xCEAB13FF,0xCFAF13FF,0xCFB313FF,0xD0B713FF,0xD0BB13FF,0xD1BF13FF,0xD1C313FF,0xD2C713FF,0xD2CB13FF,0xD3CF13FF,
+	0xD4D413FF,0xCFD112FF,0xCBCF12FF,0xC7CD12FF,0xC2CB12FF,0xBEC812FF,0xBAC612FF,0xB5C412FF,0xB1C212FF,0xADBF12FF,
+	0xA8BD12FF,0xA4BB12FF,0xA0B912FF,0x9CB712FF,0x97B412FF,0x93B212FF,0x8FB012FF,0x8AAE12FF,0x86AB12FF,0x82A912FF,
+	0x7DA712FF,0x79A512FF,0x75A312FF,0x70A012FF,0x6C9E12FF,0x689C11FF,0x649A11FF,0x5F9711FF,0x5B9511FF,0x579311FF,
+	0x529111FF,0x4E8F11FF,0x4A8C11FF,0x458A11FF,0x418811FF,0x3D8611FF,0x388311FF,0x348111FF,0x307F11FF,0x2C7D11FF,
+	0x277B11FF,0x237811FF,0x1F7611FF,0x1A7411FF,0x167211FF,0x126F11FF,0x0D6D11FF,0x096B11FF,0x056911FF,0x016711FF
+};/*
+static WC_HEALTH_GRADIENT[100] =
+{
+	0xFF0000FF,0xFF0500FF,0xFF0A00FF,0xFF0F00FF,0xFF1400FF,0xFF1900FF,0xFF1E00FF,0xFF2300FF,0xFF2800FF,0xFF2D00FF,
+	0xFF3300FF,0xFF3800FF,0xFF3D00FF,0xFF4200FF,0xFF4700FF,0xFF4C00FF,0xFF5100FF,0xFF5600FF,0xFF5B00FF,0xFF6000FF,
+	0xFF6600FF,0xFF6B00FF,0xFF7000FF,0xFF7500FF,0xFF7A00FF,0xFF7F00FF,0xFF8400FF,0xFF8900FF,0xFF8E00FF,0xFF9300FF,
+	0xFF9900FF,0xFF9E00FF,0xFFA300FF,0xFFA800FF,0xFFAD00FF,0xFFB200FF,0xFFB700FF,0xFFBC00FF,0xFFC100FF,0xFFC600FF,
+	0xFFCC00FF,0xFFD100FF,0xFFD600FF,0xFFDB00FF,0xFFE000FF,0xFFE500FF,0xFFEA00FF,0xFFEF00FF,0xFFF400FF,0xFFF900FF,
+	0xFFFF00FF,0xF9FF00FF,0xF4FF00FF,0xEFFF00FF,0xEAFF00FF,0xE4FF00FF,0xDFFF00FF,0xDAFF00FF,0xD5FF00FF,0xD0FF00FF,
+	0xCAFF00FF,0xC5FF00FF,0xC0FF00FF,0xBBFF00FF,0xB6FF00FF,0xB0FF00FF,0xABFF00FF,0xA6FF00FF,0xA1FF00FF,0x9CFF00FF,
+	0x96FF00FF,0x91FF00FF,0x8CFF00FF,0x87FF00FF,0x82FF00FF,0x7CFF00FF,0x77FF00FF,0x72FF00FF,0x6DFF00FF,0x68FF00FF,
+	0x62FF00FF,0x5DFF00FF,0x58FF00FF,0x53FF00FF,0x4EFF00FF,0x48FF00FF,0x43FF00FF,0x3EFF00FF,0x39FF00FF,0x34FF00FF,
+	0x2EFF00FF,0x29FF00FF,0x24FF00FF,0x1FFF00FF,0x1AFF00FF,0x14FF00FF,0x0FFF00FF,0x0AFF00FF,0x05FF00FF,0x00FF00FF
+};*/
+#endif
+
 // https://github.com/oscar-broman/SKY/blob/master/SKY.inc
 #if !defined _INC_SKY
 	#tryinclude <SKY>
@@ -761,8 +790,8 @@ static s_BeingResynced[MAX_PLAYERS];
 static s_KnifeTimeout[MAX_PLAYERS] = {-1, ...};
 static s_SyncData[MAX_PLAYERS][E_RESYNC_DATA];
 static Text:s_HealthBarBorder = Text:INVALID_TEXT_DRAW;
-static Text:s_HealthBarBackground = Text:INVALID_TEXT_DRAW;
 static PlayerText:s_HealthBarForeground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
+static PlayerText:s_HealthBarBackground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static s_DamageRangeSteps[55];
 static Float:s_DamageRangeRanges[55][WC_MAX_DAMAGE_RANGES];
 static Float:s_DamageRangeValues[55][WC_MAX_DAMAGE_RANGES];
@@ -1769,6 +1798,12 @@ public OnPlayerDisconnect(playerid, reason)
 		PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
 		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
 		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		PlayerTextDrawDestroy(playerid, s_HealthBarBackground[playerid]);
+		s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = false;
+		s_HealthBarBackground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
 	if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
@@ -2953,19 +2988,6 @@ static ScriptInit()
 		TextDrawBoxColor  (s_HealthBarBorder, 0x000000FF);
 	}
 
-	s_HealthBarBackground = TextDrawCreate(608.01, 70.25, "\1");
-
-	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
-		printf("(wc) WARN: Unable to create healthbar background textdraw");
-	} else {
-		s_InternalTextDraw[s_HealthBarBackground] = true;
-
-		TextDrawUseBox    (s_HealthBarBackground, 1);
-		TextDrawLetterSize(s_HealthBarBackground, 0.0, 0.2);
-		TextDrawTextSize  (s_HealthBarBackground, 545.75, 0.0);
-		TextDrawBoxColor  (s_HealthBarBackground, 0x5A0C10FF);
-	}
-
 	if (s_CustomVendingMachines) {
 		CreateVendingMachines();
 	}
@@ -3071,6 +3093,12 @@ static ScriptExit()
 			s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 		}
 
+		if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_HealthBarBackground[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = false;
+			s_HealthBarBackground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+		}
+
 		if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 			PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
 			s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
@@ -3087,11 +3115,6 @@ static ScriptExit()
 	if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
 		TextDrawDestroy(s_HealthBarBorder);
 		s_InternalTextDraw[s_HealthBarBorder] = false;
-	}
-
-	if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-		TextDrawDestroy(s_HealthBarBackground);
-		s_InternalTextDraw[s_HealthBarBackground] = false;
 	}
 }
 
@@ -3169,6 +3192,34 @@ static UpdateHealthBar(playerid, bool:force = false)
 		SetPlayerHealth(playerid, 8000000.0 + float(health));
 
 		if (s_HealthBarVisible[playerid] && !s_IsDying[playerid]) {
+			if (s_HealthBarBackground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+				s_HealthBarBackground[playerid] = CreatePlayerTextDraw(playerid, 608.01, 70.25, "\1");
+
+				if (s_HealthBarBackground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+					printf("(wc) WARN: Unable to create healthbar background textdraw");
+				} else {
+					s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = true;
+
+					PlayerTextDrawUseBox    	(playerid, s_HealthBarBackground[playerid], 1);
+					PlayerTextDrawLetterSize	(playerid, s_HealthBarBackground[playerid], 0.0, 0.2);
+					PlayerTextDrawTextSize  	(playerid, s_HealthBarBackground[playerid], 545.75, 0.0);
+					
+					#if defined WC_USEGRADIENT
+						PlayerTextDrawBoxColor  (playerid, s_HealthBarBackground[playerid], (WC_HEALTH_GRADIENT[health-1] & 0xFFFFFF00) | (0x66 & ((WC_HEALTH_GRADIENT[health-1] & 0x000000FF) / 2)));
+					#else
+						PlayerTextDrawBoxColor  (playerid, s_HealthBarBackground[playerid], 0x5A0C10FF);
+					#endif
+					
+					PlayerTextDrawShow(playerid, s_HealthBarBackground[playerid]);
+				}
+			} else {
+				#if defined WC_USEGRADIENT
+					PlayerTextDrawBoxColor  (playerid, s_HealthBarBackground[playerid], (WC_HEALTH_GRADIENT[health - 1] & 0xFFFFFF00) | (0x66 & ((WC_HEALTH_GRADIENT[health - 1] & 0x000000FF) / 2)));
+				#else
+					PlayerTextDrawBoxColor  (playerid, s_HealthBarBackground[playerid], 0x5A0C10FF);
+				#endif
+				PlayerTextDrawShow(playerid, s_HealthBarBackground[playerid]);
+			}
 			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
 					playerid,
@@ -3185,11 +3236,21 @@ static UpdateHealthBar(playerid, bool:force = false)
 					PlayerTextDrawUseBox    (playerid, s_HealthBarForeground[playerid], 1);
 					PlayerTextDrawLetterSize(playerid, s_HealthBarForeground[playerid], 0.0, 0.2);
 					PlayerTextDrawTextSize  (playerid, s_HealthBarForeground[playerid], 545.75, 0.0);
-					PlayerTextDrawBoxColor  (playerid, s_HealthBarForeground[playerid], 0xB51821FF);
+					
+					#if defined WC_USEGRADIENT
+						PlayerTextDrawBoxColor  (playerid, s_HealthBarForeground[playerid], WC_HEALTH_GRADIENT[health - 1]);
+					#else
+						PlayerTextDrawBoxColor  (playerid, s_HealthBarForeground[playerid], 0xB51821FF);
+					#endif
 
 					PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 				}
 			} else {
+				#if defined WC_USEGRADIENT
+					PlayerTextDrawBoxColor  (playerid, s_HealthBarForeground[playerid], WC_HEALTH_GRADIENT[health - 1]);
+				#else
+					PlayerTextDrawBoxColor  (playerid, s_HealthBarForeground[playerid], 0xB51821FF);
+				#endif
 				PlayerTextDrawSetPosition(playerid, s_HealthBarForeground[playerid], 551.5 + float(health) * 0.5651, 70.25);
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
@@ -3221,22 +3282,18 @@ static SetHealthBarVisible(playerid, bool:toggle)
 			TextDrawShowForPlayer(playerid, s_HealthBarBorder);
 		}
 
-		if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-			TextDrawShowForPlayer(playerid, s_HealthBarBackground);
-		}
-
 		UpdateHealthBar(playerid, true);
 	} else {
 		if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 			PlayerTextDrawHide(playerid, s_HealthBarForeground[playerid]);
 		}
+		
+		if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawHide(playerid, s_HealthBarBackground[playerid]);
+		}
 
 		if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
 			TextDrawHideForPlayer(playerid, s_HealthBarBorder);
-		}
-
-		if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-			TextDrawHideForPlayer(playerid, s_HealthBarBackground);
 		}
 	}
 }
@@ -3878,6 +3935,13 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 1, respawn_t
 
 	s_DeathTimer[playerid] = SetTimerEx("WC_PlayerDeathRespawn", respawn_time, false, "i", playerid);
 
+	#if defined WC_USEGRADIENT
+		PlayerTextDrawBoxColor(playerid, s_HealthBarBackground[playerid], (WC_HEALTH_GRADIENT[0] & 0xFFFFFF00) | (0x66 & ((WC_HEALTH_GRADIENT[0] & 0x000000FF) / 2)));
+	#else
+		PlayerTextDrawBoxColor(playerid, s_HealthBarBackground[playerid], 0x5A0C10FF);
+	#endif
+	PlayerTextDrawShow(playerid, s_HealthBarBackground[playerid]);
+					
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawHide(playerid, s_HealthBarForeground[playerid]);
 	}
