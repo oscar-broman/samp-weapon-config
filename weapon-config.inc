@@ -2078,7 +2078,12 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx*vx + vy*vy + vz*vz <= 0.05) {
-				WC_SpawnForStreamedIn(playerid);
+				for (new i = 0; i < MAX_PLAYERS; i++) {
+					if (i != playerid && IsPlayerConnected(i) && IsPlayerStreamedIn(playerid, i)) {
+						SendLastSyncData(playerid, i);
+						ClearAnimationsForPlayer(playerid, i);
+					}
+				}
 			}
 		}
 	}
