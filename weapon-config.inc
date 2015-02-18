@@ -3033,6 +3033,8 @@ static ScriptInit()
 				SetHealthBarVisible(playerid, false);
 			}
 		}
+
+		RemoveDefaultVendingMachines(playerid);
 	}
 }
 
