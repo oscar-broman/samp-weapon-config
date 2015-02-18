@@ -53,6 +53,13 @@
 	#endif
 #endif
 
+// Used in SetBarColorMode
+enum {
+	WC_GRADIENT,
+	WC_PER_PLAYER,
+	WC_GLOBAL
+}
+
 // Given in OnInvalidWeaponDamage
 enum {
 	WC_NO_ERROR,
@@ -222,6 +229,7 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #define WEAPON_EXPLOSION 51
 #define WEAPON_CARPARK 52
 #define WEAPON_UNKNOWN 55
+#define COLOR_HEALTH_DEFAULT 0xB51821FF
 
 #if WC_DEBUG_SILENT
 	static s_DebugMsgBuf[512];
@@ -726,6 +734,9 @@ static s_LastSentArmour[MAX_PLAYERS];
 static s_PlayerTeam[MAX_PLAYERS] = {NO_TEAM, ...};
 static s_IsDying[MAX_PLAYERS];
 static s_DeathTimer[MAX_PLAYERS] = {-1, ...};
+static s_BarColorMode = WC_GRADIENT;
+static s_BarGlobalColor = COLOR_HEALTH_DEFAULT;
+static s_HealthBarColor[MAX_PLAYERS] = {COLOR_HEALTH_DEFAULT, ...};
 static bool:s_HealthBarVisible[MAX_PLAYERS];
 static bool:s_SpawnForStreamedIn[MAX_PLAYERS];
 static s_RespawnTime = 3000;
@@ -761,8 +772,8 @@ static s_BeingResynced[MAX_PLAYERS];
 static s_KnifeTimeout[MAX_PLAYERS] = {-1, ...};
 static s_SyncData[MAX_PLAYERS][E_RESYNC_DATA];
 static Text:s_HealthBarBorder = Text:INVALID_TEXT_DRAW;
-static Text:s_HealthBarBackground = Text:INVALID_TEXT_DRAW;
 static PlayerText:s_HealthBarForeground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
+static PlayerText:s_HealthBarBackground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static s_DamageRangeSteps[55];
 static Float:s_DamageRangeRanges[55][WC_MAX_DAMAGE_RANGES];
 static Float:s_DamageRangeValues[55][WC_MAX_DAMAGE_RANGES];
@@ -1673,6 +1684,9 @@ public OnGameModeExit()
 
 public OnFilterScriptInit()
 {
+	for (new playerid = 0; playerid < MAX_PLAYERS; playerid++)
+		RemoveDefaultVendingMachines(playerid);
+	
 	ScriptInit();
 
 	#if defined WC_OnFilterScriptInit
@@ -1771,6 +1785,12 @@ public OnPlayerDisconnect(playerid, reason)
 		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
+	if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		PlayerTextDrawDestroy(playerid, s_HealthBarBackground[playerid]);
+		s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = false;
+		s_HealthBarBackground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
 	if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
 		s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
@@ -1787,7 +1807,8 @@ public OnPlayerDisconnect(playerid, reason)
 		KillTimer(s_DamageFeedTimer[playerid]);
 		s_DamageFeedTimer[playerid] = -1;
 	}
-
+	
+	s_HealthBarColor[playerid] = COLOR_HEALTH_DEFAULT;
 	SetHealthBarVisible(playerid, false);
 
 	s_Spectating[playerid] = INVALID_PLAYER_ID;
@@ -2953,19 +2974,6 @@ static ScriptInit()
 		TextDrawBoxColor  (s_HealthBarBorder, 0x000000FF);
 	}
 
-	s_HealthBarBackground = TextDrawCreate(608.01, 70.25, "\1");
-
-	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
-		printf("(wc) WARN: Unable to create healthbar background textdraw");
-	} else {
-		s_InternalTextDraw[s_HealthBarBackground] = true;
-
-		TextDrawUseBox    (s_HealthBarBackground, 1);
-		TextDrawLetterSize(s_HealthBarBackground, 0.0, 0.2);
-		TextDrawTextSize  (s_HealthBarBackground, 545.75, 0.0);
-		TextDrawBoxColor  (s_HealthBarBackground, 0x5A0C10FF);
-	}
-
 	if (s_CustomVendingMachines) {
 		CreateVendingMachines();
 	}
@@ -3025,8 +3033,6 @@ static ScriptInit()
 				SetHealthBarVisible(playerid, false);
 			}
 		}
-
-		RemoveDefaultVendingMachines(playerid);
 	}
 }
 
@@ -3071,6 +3077,12 @@ static ScriptExit()
 			s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 		}
 
+		if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_HealthBarBackground[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = false;
+			s_HealthBarBackground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+		}
+
 		if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 			PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
 			s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
@@ -3087,11 +3099,6 @@ static ScriptExit()
 	if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
 		TextDrawDestroy(s_HealthBarBorder);
 		s_InternalTextDraw[s_HealthBarBorder] = false;
-	}
-
-	if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-		TextDrawDestroy(s_HealthBarBackground);
-		s_InternalTextDraw[s_HealthBarBackground] = false;
 	}
 }
 
@@ -3169,6 +3176,26 @@ static UpdateHealthBar(playerid, bool:force = false)
 		SetPlayerHealth(playerid, 8000000.0 + float(health));
 
 		if (s_HealthBarVisible[playerid] && !s_IsDying[playerid]) {
+			if (s_HealthBarBackground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+				s_HealthBarBackground[playerid] = CreatePlayerTextDraw(playerid, 608.01, 70.25, "\1");
+
+				if (s_HealthBarBackground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+					printf("(wc) WARN: Unable to create healthbar background textdraw");
+				} else {
+					s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = true;
+
+					PlayerTextDrawUseBox    	(playerid, s_HealthBarBackground[playerid], 1);
+					PlayerTextDrawLetterSize	(playerid, s_HealthBarBackground[playerid], 0.0, 0.2);
+					PlayerTextDrawTextSize  	(playerid, s_HealthBarBackground[playerid], 545.75, 0.0);
+					
+					PlayerTextDrawBoxColor  (playerid, s_HealthBarBackground[playerid], (WC_NewHealthBarColor(playerid, float(health)) & 0xFFFFFF00) | (0x66 & ((WC_NewHealthBarColor(playerid, float(health)) & 0x000000FF) / 2)));
+					
+					PlayerTextDrawShow(playerid, s_HealthBarBackground[playerid]);
+				}
+			} else {
+				PlayerTextDrawBoxColor  (playerid, s_HealthBarBackground[playerid], (WC_NewHealthBarColor(playerid, float(health)) & 0xFFFFFF00) | (0x66 & ((WC_NewHealthBarColor(playerid, float(health)) & 0x000000FF) / 2)));
+				PlayerTextDrawShow(playerid, s_HealthBarBackground[playerid]);
+			}
 			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
 					playerid,
@@ -3185,11 +3212,13 @@ static UpdateHealthBar(playerid, bool:force = false)
 					PlayerTextDrawUseBox    (playerid, s_HealthBarForeground[playerid], 1);
 					PlayerTextDrawLetterSize(playerid, s_HealthBarForeground[playerid], 0.0, 0.2);
 					PlayerTextDrawTextSize  (playerid, s_HealthBarForeground[playerid], 545.75, 0.0);
-					PlayerTextDrawBoxColor  (playerid, s_HealthBarForeground[playerid], 0xB51821FF);
+					
+					PlayerTextDrawBoxColor  (playerid, s_HealthBarForeground[playerid], WC_NewHealthBarColor(playerid, float(health)));
 
 					PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 				}
 			} else {
+				PlayerTextDrawBoxColor  (playerid, s_HealthBarForeground[playerid], WC_NewHealthBarColor(playerid, float(health)));
 				PlayerTextDrawSetPosition(playerid, s_HealthBarForeground[playerid], 551.5 + float(health) * 0.5651, 70.25);
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
@@ -3208,6 +3237,34 @@ static UpdateHealthBar(playerid, bool:force = false)
 	}
 }
 
+stock WC_NewHealthBarColor(playerid, Float:health) {
+	new color;
+	
+	switch(s_BarColorMode) {
+		case WC_GRADIENT: {
+			if (health == 0) {
+				color = 4278190335;
+			} else if (health <= 50.0) {
+				color = (floatround((health / 50) * 255) * 65536) + 4278190335;
+				//color = IntToHex(255, floatround((health / 50) * 255), 0, 255);
+			} else if (100.0 >= health > 50.0) {
+				color = ((floatround(255 / (health / 100)) - 255) * 16777216) + 16711935;
+				//color = IntToHex(floatround(255 / (health / 100)) - 255, 255, 0, 255);
+			} else {
+				color = 16711935;
+			}
+		}
+		case WC_PER_PLAYER: {
+			color = s_HealthBarColor[playerid];
+		}
+		case WC_GLOBAL: {
+			color = s_BarGlobalColor;
+		}
+	}
+	return color;
+}
+//stock IntToHex(RR,GG,BB,AA) return (RR*16777216)+(GG*65536)+(BB*256)+AA;
+
 static SetHealthBarVisible(playerid, bool:toggle)
 {
 	if (s_HealthBarVisible[playerid] == toggle) {
@@ -3221,22 +3278,18 @@ static SetHealthBarVisible(playerid, bool:toggle)
 			TextDrawShowForPlayer(playerid, s_HealthBarBorder);
 		}
 
-		if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-			TextDrawShowForPlayer(playerid, s_HealthBarBackground);
-		}
-
 		UpdateHealthBar(playerid, true);
 	} else {
 		if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 			PlayerTextDrawHide(playerid, s_HealthBarForeground[playerid]);
 		}
+		
+		if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawHide(playerid, s_HealthBarBackground[playerid]);
+		}
 
 		if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
 			TextDrawHideForPlayer(playerid, s_HealthBarBorder);
-		}
-
-		if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-			TextDrawHideForPlayer(playerid, s_HealthBarBackground);
 		}
 	}
 }
@@ -3334,6 +3387,16 @@ static DestroyVendingMachines()
 	}
 }
 
+stock SetPlayerBarColor(playerid, color = COLOR_HEALTH_DEFAULT) {
+	s_HealthBarColor[playerid] = color;
+}
+stock SetBarColorMode(mode, color = COLOR_HEALTH_DEFAULT) {
+	s_BarColorMode = mode;
+	s_BarGlobalColor = color;
+}
+stock GetBarColorMode() {
+	return s_BarColorMode;
+}
 
 forward WC_SpawnForStreamedIn(playerid);
 public WC_SpawnForStreamedIn(playerid)
@@ -3458,6 +3521,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 	// Collision damage should never be above 165
 	if (weaponid == WEAPON_COLLISION) {
 		if (amount > 165.0) {
+			print("165");
 			amount = 1.0;
 		} else {
 			amount /= 165.0;
@@ -3878,6 +3942,9 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 1, respawn_t
 
 	s_DeathTimer[playerid] = SetTimerEx("WC_PlayerDeathRespawn", respawn_time, false, "i", playerid);
 
+	PlayerTextDrawBoxColor(playerid, s_HealthBarBackground[playerid], (WC_NewHealthBarColor(playerid, 0) & 0xFFFFFF00) | (0x66 & ((WC_NewHealthBarColor(playerid, 0) & 0x000000FF) / 2)));
+	PlayerTextDrawShow(playerid, s_HealthBarBackground[playerid]);
+					
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawHide(playerid, s_HealthBarForeground[playerid]);
 	}
