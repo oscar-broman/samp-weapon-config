@@ -3523,7 +3523,6 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 	// Collision damage should never be above 165
 	if (weaponid == WEAPON_COLLISION) {
 		if (amount > 165.0) {
-			print("165");
 			amount = 1.0;
 		} else {
 			amount /= 165.0;
