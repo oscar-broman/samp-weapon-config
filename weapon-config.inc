@@ -1684,9 +1684,6 @@ public OnGameModeExit()
 
 public OnFilterScriptInit()
 {
-	for (new playerid = 0; playerid < MAX_PLAYERS; playerid++)
-		RemoveDefaultVendingMachines(playerid);
-	
 	ScriptInit();
 
 	#if defined WC_OnFilterScriptInit
