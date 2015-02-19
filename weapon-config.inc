@@ -2106,14 +2106,11 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		}
 	}
 	
-	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_PASSENGER || oldstate == PLAYER_STATE_PASSENGER))
-	{
-	    if(s_LastVehicleVelocity[playerid] != 0.0)
-	    {
-	    	new Float:health;
-	    	WC_GetPlayerHealth(playerid, health);
-	    	WC_SetPlayerHealth(playerid, health-(s_LastVehicleVelocity[playerid]*4.5));
-	    	s_LastVehicleVelocity[playerid] = 0.0;
+	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_PASSENGER || oldstate == PLAYER_STATE_PASSENGER)){
+		if(s_LastVehicleVelocity[playerid] != 0.0){
+	    
+	    		InflictDamage(playerid, s_LastVehicleVelocity[playerid]*4.5);
+	    		s_LastVehicleVelocity[playerid] = 0.0;
 		}
 	}
 
@@ -2220,8 +2217,7 @@ public OnPlayerUpdate(playerid)
 		}
 	}
 	
-	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER || GetPlayerState(playerid) == PLAYER_STATE_PASSENGER)
-	{
+	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER || GetPlayerState(playerid) == PLAYER_STATE_PASSENGER){
 		new Float:x, Float:y, Float:z;
 		GetVehicleVelocity(GetPlayerVehicleID(playerid), x, y, z);
 		s_LastVehicleVelocity[playerid] = floatsqroot((x*x)+(y*y)+(z*z));
