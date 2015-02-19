@@ -1736,6 +1736,14 @@ public OnPlayerConnect(playerid)
 	s_FirstSpawn[playerid] = true;
 	s_LastVehicleEnterTime[playerid] = 0;
 	s_LastVehicleVelocity[playerid] = 0.0;
+	s_FallVelX[playerid] = 0.0;
+	s_FallVelY[playerid] = 0.0;
+	s_FallVelZ[playerid] = 0.0;
+	s_FallVel[playerid] = 0.0;
+	s_FallParaX[playerid] = 0.0;
+	s_FallParaY[playerid] = 0.0;
+	s_FallParaZ[playerid] = 0.0;
+	s_FallPara[playerid] = 0.0;
 
 	for (new i = 0; i < sizeof(s_RejectedHits[]); i++) {
 		s_RejectedHits[playerid][i][e_Time] = 0;
@@ -1814,6 +1822,14 @@ public OnPlayerDisconnect(playerid, reason)
 	}
 	
 	s_LastVehicleVelocity[playerid] = 0.0;
+	s_FallVelX[playerid] = 0.0;
+	s_FallVelY[playerid] = 0.0;
+	s_FallVelZ[playerid] = 0.0;
+	s_FallVel[playerid] = 0.0;
+	s_FallParaX[playerid] = 0.0;
+	s_FallParaY[playerid] = 0.0;
+	s_FallParaZ[playerid] = 0.0;
+	s_FallPara[playerid] = 0.0;
 
 	#if defined WC_OnPlayerDisconnect
 		return WC_OnPlayerDisconnect(playerid, reason);
@@ -1828,6 +1844,15 @@ public OnPlayerSpawn(playerid)
 	s_LastStop[playerid] = GetTickCount();
 	
 	s_LastVehicleVelocity[playerid] = 0.0;
+	
+	s_FallVelX[playerid] = 0.0;
+	s_FallVelY[playerid] = 0.0;
+	s_FallVelZ[playerid] = 0.0;
+	s_FallVel[playerid] = 0.0;
+	s_FallParaX[playerid] = 0.0;
+	s_FallParaY[playerid] = 0.0;
+	s_FallParaZ[playerid] = 0.0;
+	s_FallPara[playerid] = 0.0;
 
 	if (s_BeingResynced[playerid]) {
 		s_BeingResynced[playerid] = false;
