@@ -53,9 +53,6 @@
 	#endif
 #endif
 
-// Variable for custom damage from vehicle fall
-new Float:_@magvel[MAX_PLAYERS];
-
 // Given in OnInvalidWeaponDamage
 enum {
 	WC_NO_ERROR,
@@ -773,6 +770,7 @@ static s_LastVehicleShooter[MAX_VEHICLES + 1] = {INVALID_PLAYER_ID, ...};
 static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
 static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
 static s_LastVehicleEnterTime[MAX_PLAYERS];
+static Float:s_LastVehicleVelocity[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1728,7 +1726,7 @@ public OnPlayerConnect(playerid)
 	s_LastStop[playerid] = tick;
 	s_FirstSpawn[playerid] = true;
 	s_LastVehicleEnterTime[playerid] = 0;
-	_@magvel[playerid] = 0.0;
+	s_LastVehicleVelocity[playerid] = 0.0;
 
 	for (new i = 0; i < sizeof(s_RejectedHits[]); i++) {
 		s_RejectedHits[playerid][i][e_Time] = 0;
@@ -1806,7 +1804,7 @@ public OnPlayerDisconnect(playerid, reason)
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
 	}
 	
-	_@magvel[playerid] = 0.0;
+	s_LastVehicleVelocity[playerid] = 0.0;
 
 	#if defined WC_OnPlayerDisconnect
 		return WC_OnPlayerDisconnect(playerid, reason);
@@ -1820,7 +1818,7 @@ public OnPlayerSpawn(playerid)
 	s_LastUpdate[playerid] = GetTickCount();
 	s_LastStop[playerid] = GetTickCount();
 	
-	_@magvel[playerid] = 0.0;
+	s_LastVehicleVelocity[playerid] = 0.0;
 
 	if (s_BeingResynced[playerid]) {
 		s_BeingResynced[playerid] = false;
@@ -2108,14 +2106,14 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		}
 	}
 	
-	if(newstate == 1 && (oldstate == 2 || oldstate == 3))
+	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_PASSENGER || oldstate == PLAYER_STATE_PASSENGER))
 	{
-	    if(_@magvel[playerid] != 0.0)
+	    if(s_LastVehicleVelocity[playerid] != 0.0)
 	    {
 	    	new Float:health;
-	    	GetPlayerHealth(playerid, health);
-	    	SetPlayerHealth(playerid, health-(_@magvel[playerid]*4.5));
-	    	_@magvel[playerid] = 0.0;
+	    	WC_GetPlayerHealth(playerid, health);
+	    	WC_SetPlayerHealth(playerid, health-(s_LastVehicleVelocity[playerid]*4.5));
+	    	s_LastVehicleVelocity[playerid] = 0.0;
 		}
 	}
 
@@ -2222,11 +2220,11 @@ public OnPlayerUpdate(playerid)
 		}
 	}
 	
-	if(GetPlayerState(playerid) == 2 || GetPlayerState(playerid) == 3)
+	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER || GetPlayerState(playerid) == PLAYER_STATE_PASSENGER)
 	{
-		new Float:_@x, Float:_@y, Float:_@z;
-		GetVehicleVelocity(GetPlayerVehicleID(playerid), _@x, _@y, _@z);
-		_@magvel[playerid] = floatsqroot((_@x*_@x)+(_@y*_@y)+(_@z*_@z));
+		new Float:x, Float:y, Float:z;
+		GetVehicleVelocity(GetPlayerVehicleID(playerid), x, y, z);
+		s_LastVehicleVelocity[playerid] = floatsqroot((x*x)+(y*y)+(z*z));
 	}
 
 	#if defined WC_OnPlayerUpdate
