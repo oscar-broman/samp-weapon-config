@@ -4,6 +4,7 @@
 #define _INC_WEAPON_CONFIG
 
 #include <a_samp>
+#include <CRF\c_stclib>
 
 // Print debug messages in the chat and server log
 #if !defined WC_DEBUG
@@ -771,6 +772,14 @@ static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
 static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
 static s_LastVehicleEnterTime[MAX_PLAYERS];
 static Float:s_LastVehicleVelocity[MAX_PLAYERS];
+static Float:s_FallVelX[MAX_PLAYERS];
+static Float:s_FallVelY[MAX_PLAYERS];
+static Float:s_FallVelZ[MAX_PLAYERS];
+static Float:s_FallVel[MAX_PLAYERS];
+static Float:s_FallParaX[MAX_PLAYERS];
+static Float:s_FallParaY[MAX_PLAYERS];
+static Float:s_FallParaZ[MAX_PLAYERS];
+static Float:s_FallPara[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -2221,6 +2230,34 @@ public OnPlayerUpdate(playerid)
 		new Float:x, Float:y, Float:z;
 		GetVehicleVelocity(GetPlayerVehicleID(playerid), x, y, z);
 		s_LastVehicleVelocity[playerid] = floatsqroot((x*x)+(y*y)+(z*z));
+	}
+	
+	if(IsPlayerFalling(playerid)){
+	
+	    GetPlayerVelocity(playerid,s_FallVelX[playerid],s_FallVelY[playerid],s_FallVelZ[playerid]);
+	    s_FallVel[playerid]=floatsqroot((s_FallVelX[playerid]*s_FallVelX[playerid])+(s_FallVelY[playerid]*s_FallVelY[playerid])+(s_FallVelZ[playerid]*s_FallVelZ[playerid]));
+	}
+	
+	if(GetPlayerParaState(playerid) == PARA_STATE_DIVING){
+	
+	    GetPlayerVelocity(playerid,s_FallParaX[playerid],s_FallParaY[playerid],s_FallParaZ[playerid]);
+	    s_FallPara[playerid]=floatsqroot((s_FallParaX[playerid]*s_FallParaX[playerid])+(s_FallParaY[playerid]*s_FallParaY[playerid])+(s_FallParaZ[playerid]*s_FallParaZ[playerid]));
+	}
+	
+	if(IsPlayerInWater(playerid)){
+	
+	    if(s_FallVel[playerid]>1.0){
+	    
+	        InflictDamage(playerid,(s_FallVel[playerid]*12.0));
+	        s_FallVel[playerid]=0.0;
+		}
+		
+	    else if(s_FallPara[playerid]>0.2){
+		
+		InflictDamage(playerid,(s_FallPara[playerid]*25.0));
+	        s_FallPara[playerid]=0.0;
+		}
+		
 	}
 
 	#if defined WC_OnPlayerUpdate
