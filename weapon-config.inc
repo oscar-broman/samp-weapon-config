@@ -772,13 +772,7 @@ static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
 static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
 static s_LastVehicleEnterTime[MAX_PLAYERS];
 static Float:s_LastVehicleVelocity[MAX_PLAYERS];
-static Float:s_FallVelX[MAX_PLAYERS];
-static Float:s_FallVelY[MAX_PLAYERS];
-static Float:s_FallVelZ[MAX_PLAYERS];
 static Float:s_FallVel[MAX_PLAYERS];
-static Float:s_FallParaX[MAX_PLAYERS];
-static Float:s_FallParaY[MAX_PLAYERS];
-static Float:s_FallParaZ[MAX_PLAYERS];
 static Float:s_FallPara[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
@@ -1736,13 +1730,7 @@ public OnPlayerConnect(playerid)
 	s_FirstSpawn[playerid] = true;
 	s_LastVehicleEnterTime[playerid] = 0;
 	s_LastVehicleVelocity[playerid] = 0.0;
-	s_FallVelX[playerid] = 0.0;
-	s_FallVelY[playerid] = 0.0;
-	s_FallVelZ[playerid] = 0.0;
 	s_FallVel[playerid] = 0.0;
-	s_FallParaX[playerid] = 0.0;
-	s_FallParaY[playerid] = 0.0;
-	s_FallParaZ[playerid] = 0.0;
 	s_FallPara[playerid] = 0.0;
 
 	for (new i = 0; i < sizeof(s_RejectedHits[]); i++) {
@@ -1822,13 +1810,7 @@ public OnPlayerDisconnect(playerid, reason)
 	}
 	
 	s_LastVehicleVelocity[playerid] = 0.0;
-	s_FallVelX[playerid] = 0.0;
-	s_FallVelY[playerid] = 0.0;
-	s_FallVelZ[playerid] = 0.0;
 	s_FallVel[playerid] = 0.0;
-	s_FallParaX[playerid] = 0.0;
-	s_FallParaY[playerid] = 0.0;
-	s_FallParaZ[playerid] = 0.0;
 	s_FallPara[playerid] = 0.0;
 
 	#if defined WC_OnPlayerDisconnect
@@ -1845,13 +1827,7 @@ public OnPlayerSpawn(playerid)
 	
 	s_LastVehicleVelocity[playerid] = 0.0;
 	
-	s_FallVelX[playerid] = 0.0;
-	s_FallVelY[playerid] = 0.0;
-	s_FallVelZ[playerid] = 0.0;
 	s_FallVel[playerid] = 0.0;
-	s_FallParaX[playerid] = 0.0;
-	s_FallParaY[playerid] = 0.0;
-	s_FallParaZ[playerid] = 0.0;
 	s_FallPara[playerid] = 0.0;
 
 	if (s_BeingResynced[playerid]) {
@@ -2259,14 +2235,16 @@ public OnPlayerUpdate(playerid)
 	
 	if(IsPlayerFalling(playerid)){
 	
-	    GetPlayerVelocity(playerid,s_FallVelX[playerid],s_FallVelY[playerid],s_FallVelZ[playerid]);
-	    s_FallVel[playerid]=floatsqroot((s_FallVelX[playerid]*s_FallVelX[playerid])+(s_FallVelY[playerid]*s_FallVelY[playerid])+(s_FallVelZ[playerid]*s_FallVelZ[playerid]));
+	    new Float:x, Float:y, Float:z;
+	    GetPlayerVelocity(playerid,x,y,z);
+	    s_FallVel[playerid]=floatsqroot((x*x)+(y*y)+(z*z));
 	}
 	
 	if(GetPlayerParaState(playerid) == PARA_STATE_DIVING){
 	
-	    GetPlayerVelocity(playerid,s_FallParaX[playerid],s_FallParaY[playerid],s_FallParaZ[playerid]);
-	    s_FallPara[playerid]=floatsqroot((s_FallParaX[playerid]*s_FallParaX[playerid])+(s_FallParaY[playerid]*s_FallParaY[playerid])+(s_FallParaZ[playerid]*s_FallParaZ[playerid]));
+	    new Float:x, Float:y, Float:z;
+	    GetPlayerVelocity(playerid,x,y,z);
+	    s_FallPara[playerid]=floatsqroot((x*x)+(y*y)+(z*z));
 	}
 	
 	if(IsPlayerInWater(playerid)){
