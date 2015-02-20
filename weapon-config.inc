@@ -2076,9 +2076,9 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
 	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER)){
-				if(s_LastVehicleVelocity[playerid] != 0.0){
-				InflictDamage(playerid,s_LastVehicleVelocity[playerid]*20.0);
-	    		s_LastVehicleVelocity[playerid] = 0.0;
+				if(s_LastVehicleVelocity[playerid] > 0.45){
+				InflictDamage(playerid,s_LastVehicleVelocity[playerid]*15.5);
+	    			s_LastVehicleVelocity[playerid] = 0.0;
 				}
 	}
 
