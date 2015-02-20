@@ -1355,7 +1355,6 @@ stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, 
 	if(id != INVALID_VEHICLE_ID)
 	{
 		s_Vehicle_Alive[id] = true; //Vehicle is alive
-		printf("Created");
 		return id;
 	}
 	return INVALID_VEHICLE_ID;
@@ -1368,7 +1367,6 @@ stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color
 	if(id != INVALID_VEHICLE_ID)
 	{
 		s_Vehicle_Alive[id] = true; //Vehicle is alive
-		printf("Created");
 		return id;
 	}
 	return INVALID_VEHICLE_ID;
@@ -1381,7 +1379,6 @@ stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, col
 	if(id != INVALID_VEHICLE_ID)
 	{
 		s_Vehicle_Alive[id] = true; //Vehicle is alive
-		printf("Created");
 		return id;
 	}
 	return INVALID_VEHICLE_ID;
