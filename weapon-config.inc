@@ -2078,8 +2078,8 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER)){
 				if(s_LastVehicleVelocity[playerid] > 0.45){
 				InflictDamage(playerid,s_LastVehicleVelocity[playerid]*15.5);
-	    			s_LastVehicleVelocity[playerid] = 0.0;
 				}
+				s_LastVehicleVelocity[playerid] = 0.0;
 	}
 
 	if (s_Spectating[playerid] != INVALID_PLAYER_ID && newstate != PLAYER_STATE_SPECTATING) {
@@ -2232,6 +2232,7 @@ public OnPlayerUpdate(playerid)
 		GetVehicleVelocity(GetPlayerVehicleID(playerid), x, y, z);
 		s_LastVehicleVelocity[playerid] = floatsqroot((x*x)+(y*y)+(z*z));
 	}
+	else s_LastVehicleVelocity[playerid] = 0.0;
 	
 	if(IsPlayerFalling(playerid)){
 	
