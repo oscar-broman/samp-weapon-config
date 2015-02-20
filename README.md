@@ -266,7 +266,7 @@ SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_vel
 Toggle custom falling damage
 
 ```pawn
-SetCustomFallDamageMachines(bool:toggle);
+SetCustomVendingMachines(bool:toggle);
 ```
 Toggle vending machines (they are removed and disabled by default)
 
