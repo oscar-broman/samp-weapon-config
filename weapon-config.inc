@@ -2075,6 +2075,13 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
+	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER)){
+				if(s_LastVehicleVelocity[playerid] != 0.0){
+				InflictDamage(playerid,s_LastVehicleVelocity[playerid]*20.0);
+	    		s_LastVehicleVelocity[playerid] = 0.0;
+				}
+	}
+
 	if (s_Spectating[playerid] != INVALID_PLAYER_ID && newstate != PLAYER_STATE_SPECTATING) {
 		s_Spectating[playerid] = INVALID_PLAYER_ID;
 	}
@@ -2116,13 +2123,6 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		}
 	}
 	
-	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_PASSENGER || oldstate == PLAYER_STATE_PASSENGER)){
-		if(s_LastVehicleVelocity[playerid] != 0.0){
-	    
-	    		InflictDamage(playerid, s_LastVehicleVelocity[playerid]*4.5);
-	    		s_LastVehicleVelocity[playerid] = 0.0;
-		}
-	}
 
 	#if defined WC_OnPlayerStateChange
 		return WC_OnPlayerStateChange(playerid, newstate, oldstate);
@@ -2258,7 +2258,7 @@ public OnPlayerUpdate(playerid)
 	    else if(s_FallPara[playerid]>0.2){
 		
 		InflictDamage(playerid,(s_FallPara[playerid]*25.0));
-	        s_FallPara[playerid]=0.0;
+	    s_FallPara[playerid]=0.0;
 		}
 		
 	}
