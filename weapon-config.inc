@@ -1091,6 +1091,16 @@ stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 	return 1;
 }
 
+stock CheckFallInAir(playerid)
+{
+    new animlib[32];
+	new animname[32];
+    GetAnimationName(GetPlayerAnimationIndex(playerid),animlib,32,animname,32);
+    return (!strcmp(animname,"FALL_FALL",false)||
+	!strcmp(animname,"FALL_GLIDE",false)||
+	!strcmp(animname,"FALL_COLLAPSE",false));
+}
+
 /*
  * Hooked natives
  */
@@ -2076,10 +2086,7 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
 	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER)){
-				if(s_LastVehicleVelocity[playerid] > 0.45){
-				InflictDamage(playerid,s_LastVehicleVelocity[playerid]*15.5);
-				}
-				s_LastVehicleVelocity[playerid] = 0.0;
+			SetTimerEx("WC_AnimCheck", 400, 0, "i", playerid);
 	}
 
 	if (s_Spectating[playerid] != INVALID_PLAYER_ID && newstate != PLAYER_STATE_SPECTATING) {
@@ -2232,7 +2239,6 @@ public OnPlayerUpdate(playerid)
 		GetVehicleVelocity(GetPlayerVehicleID(playerid), x, y, z);
 		s_LastVehicleVelocity[playerid] = floatsqroot((x*x)+(y*y)+(z*z));
 	}
-	else s_LastVehicleVelocity[playerid] = 0.0;
 	
 	if(IsPlayerFalling(playerid)){
 	
@@ -3417,6 +3423,18 @@ forward WC_SetSpawnForStreamedIn(playerid);
 public WC_SetSpawnForStreamedIn(playerid)
 {
 	s_SpawnForStreamedIn[playerid] = true;
+}
+
+forward WC_AnimCheck(playerid);
+public WC_AnimCheck(playerid)
+{
+	if(!CheckFallInAir(playerid)){
+		if(s_LastVehicleVelocity[playerid] > 0.45){
+				InflictDamage(playerid,s_LastVehicleVelocity[playerid]*15.5);
+		}
+		s_LastVehicleVelocity[playerid] = 0.0;
+	}
+	return 1;
 }
 
 static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, &Float:bullets)
