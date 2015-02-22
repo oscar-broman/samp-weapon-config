@@ -2253,6 +2253,10 @@ public OnPlayerUpdate(playerid)
 	    new Float:x, Float:y, Float:z;
 	    GetPlayerVelocity(playerid,x,y,z);
 	    s_FallVel[playerid]=floatsqroot((x*x)+(y*y)+(z*z));
+		new msg[128];
+        format(msg, 128, "Velocity %f", s_FallVel[playerid]);
+        SendClientMessage(playerid, 0xFFFFFFFF, msg);
+        printf(msg);
 	}
 	
 	if(GetPlayerParaState(playerid) == PARA_STATE_DIVING){
@@ -2260,24 +2264,24 @@ public OnPlayerUpdate(playerid)
 	    new Float:x, Float:y, Float:z;
 	    GetPlayerVelocity(playerid,x,y,z);
 	    s_FallPara[playerid]=floatsqroot((x*x)+(y*y)+(z*z));
-		new msg[128];
-        format(msg, 128, "Velocity %f", s_FallPara[playerid]);
-        SendClientMessage(playerid, 0xFFFFFFFF, msg);
-        printf(msg);
+		s_FallVel[playerid] = 0.0;
 	}
 	
 	if(IsPlayerInWater(playerid)){
 	    if(s_FallVel[playerid]>1.0){
 	        InflictDamage(playerid,(s_FallVel[playerid]*12.0));
-	        s_FallVel[playerid]=0.0;
+	        s_FallVel[playerid] = 0.0;
+			s_FallPara[playerid] = 0.0;
 		}
 	    else if(s_FallPara[playerid]>0.2){
 		InflictDamage(playerid,(s_FallPara[playerid]*35.0));
-	    s_FallPara[playerid]=0.0;
+	    s_FallPara[playerid] = 0.0;
+		s_FallVel[playerid] = 0.0;
 		}
 		else if(s_FallPara[playerid]>0.07){
 		InflictDamage(playerid,(s_FallPara[playerid]*150.0));
-	    s_FallPara[playerid]=0.0;
+	    s_FallPara[playerid] = 0.0;
+		s_FallVel[playerid] = 0.0;
 		}
 	}
 
