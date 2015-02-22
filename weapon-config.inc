@@ -772,6 +772,7 @@ static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
 static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
 static s_LastVehicleEnterTime[MAX_PLAYERS];
 static Float:s_LastVehicleVelocity[MAX_PLAYERS];
+static bool:s_VehicleExitDamage = false;
 static Float:s_FallVel[MAX_PLAYERS];
 static Float:s_FallPara[MAX_PLAYERS];
 
@@ -960,9 +961,10 @@ stock SetDamageSounds(taken, given)
 	s_DamageGivenSound = given;
 }
 
-stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
+stock SetCustomFallDamage(bool:toggle, bool:vehicle_exit_damage, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
 {
 	s_CustomFallDamage = toggle;
+	s_VehicleExitDamage = vehicle_exit_damage;
 
 	if (toggle) {
 		s_WeaponDamage[WEAPON_COLLISION] = damage_multiplier;
@@ -2085,8 +2087,10 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
-	if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER)){
-			SetTimerEx("WC_AnimCheck", 400, 0, "i", playerid);
+	if(s_VehicleExitDamage){
+		if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER)){
+				SetTimerEx("WC_AnimCheck", 400, 0, "i", playerid);
+		}
 	}
 
 	if (s_Spectating[playerid] != INVALID_PLAYER_ID && newstate != PLAYER_STATE_SPECTATING) {
@@ -2233,11 +2237,13 @@ public OnPlayerUpdate(playerid)
 			}
 		}
 	}
-	
-	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER || GetPlayerState(playerid) == PLAYER_STATE_PASSENGER){
-		new Float:x, Float:y, Float:z;
-		GetVehicleVelocity(GetPlayerVehicleID(playerid), x, y, z);
-		s_LastVehicleVelocity[playerid] = floatsqroot((x*x)+(y*y)+(z*z));
+
+	if(s_VehicleExitDamage){
+		if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER || GetPlayerState(playerid) == PLAYER_STATE_PASSENGER){
+			new Float:x, Float:y, Float:z;
+			GetVehicleVelocity(GetPlayerVehicleID(playerid), x, y, z);
+			s_LastVehicleVelocity[playerid] = floatsqroot((x*x)+(y*y)+(z*z));
+		}
 	}
 	
 	if(IsPlayerFalling(playerid)){
