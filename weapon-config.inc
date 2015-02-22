@@ -2253,10 +2253,6 @@ public OnPlayerUpdate(playerid)
 	    new Float:x, Float:y, Float:z;
 	    GetPlayerVelocity(playerid,x,y,z);
 	    s_FallVel[playerid]=floatsqroot((x*x)+(y*y)+(z*z));
-		new msg[128];
-        format(msg, 128, "Velocity %f", s_FallVel[playerid]);
-        SendClientMessage(playerid, 0xFFFFFFFF, msg);
-        printf(msg);
 	}
 	
 	if(GetPlayerParaState(playerid) == PARA_STATE_DIVING){
