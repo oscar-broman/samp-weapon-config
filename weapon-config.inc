@@ -1100,7 +1100,9 @@ stock CheckFallInAir(playerid)
     GetAnimationName(GetPlayerAnimationIndex(playerid),animlib,32,animname,32);
     return (!strcmp(animname,"FALL_FALL",false)||
 	!strcmp(animname,"FALL_GLIDE",false)||
-	!strcmp(animname,"FALL_COLLAPSE",false));
+	!strcmp(animname,"FALL_COLLAPSE",false)||
+	!strcmp(animname,"FALL_LAND",false)||
+	!strcmp(animname,"FALL_SKYDIVE",false));
 }
 
 /*
