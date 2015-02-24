@@ -4,7 +4,6 @@
 #define _INC_WEAPON_CONFIG
 
 #include <a_samp>
-#include <CRF\c_stclib>
 
 // Print debug messages in the chat and server log
 #if !defined WC_DEBUG
@@ -120,6 +119,13 @@ enum {
 	HIT_OWN_VEHICLE,
 	HIT_INVALID_VEHICLE,
 	HIT_DISCONNECTED
+}
+
+enum
+{
+	PARA_STATE_DIVING = 1,
+	PARA_STATE_DEPLOYING = 2,
+	PARA_STATE_DEPLOYED = 3
 }
 
 // Must be in sync with the enum above
@@ -371,7 +377,7 @@ static const s_ValidDamageTaken[] = {
 	2, // 51 - Explosion
 	0, // 52 - Car park (custom)
 	2, // 53 - Drowning
-	2  // 54 - Splat
+	2, // 54 - Splat
 };
 
 // Default weapon damage. Connected to s_DamageType.
@@ -596,7 +602,7 @@ static s_MaxWeaponShootRate[] = {
 };
 
 // That's right, it's called cuntgun
-stock const g_WeaponName[57][21] = {
+stock const g_WeaponName[60][24] = {
 	{"Fist"             }, {"Brass knuckles"}, {"Golf club"           },
 	{"Nightstick"       }, {"Knife"         }, {"Bat"                 },
 	{"Shovel"           }, {"Pool cue"      }, {"Katana"              },
@@ -615,7 +621,8 @@ stock const g_WeaponName[57][21] = {
 	{"Infrared goggles" }, {"Parachute"     }, {"Fake pistol"         },
 	{"Pistol whip"      }, {"Vehicle"       }, {"Helicopter blades"   },
 	{"Explosion"        }, {"Car parking"   }, {"Drowning"            },
-	{"Collision"        }, {"Splat"         }, {"Unknown"             }
+	{"Collision"        }, {"Splat"         }, {"Vehicle crash"       },
+	{"Vehicle bail"     }, {"Water Splash"  }, {"Unknown"             }
 };
 
 // Yes - this is every single one of them
@@ -775,6 +782,7 @@ static Float:s_LastVehicleVelocity[MAX_PLAYERS];
 static bool:s_VehicleExitDamage = false;
 static Float:s_FallVel[MAX_PLAYERS];
 static Float:s_FallPara[MAX_PLAYERS];
+static s_PlayerState[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -961,7 +969,7 @@ stock SetDamageSounds(taken, given)
 	s_DamageGivenSound = given;
 }
 
-stock SetCustomFallDamage(bool:toggle, bool:vehicle_exit_damage, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
+stock SetCustomFallDamage(bool:toggle, bool:vehicle_exit_damage = false, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
 {
 	s_CustomFallDamage = toggle;
 	s_VehicleExitDamage = vehicle_exit_damage;
@@ -1095,14 +1103,38 @@ stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 
 stock CheckFallInAir(playerid)
 {
+    new index = GetPlayerAnimationIndex(playerid);
+    return (index == 1130||
+	index == 1132||
+	index == 1129||
+	index == 1133||
+	index == 1134 ||
+	index == 958); //FALL_FALL, FALL_GLIDE, FALL_COLLAPSE, FALL_LAND, FALL_SKYDIVE
+}
+
+stock GetPlayerParaState(playerid)
+{
+	new index = GetPlayerAnimationIndex(playerid);
+    if(index == 965) return PARA_STATE_DEPLOYED; //PARA_FLOAT
+    else if(index == 971) return PARA_STATE_DEPLOYING; //PARA_OPEN
+    else if(index == 1134 || index == 958) return PARA_STATE_DIVING; //FALL_SKYDIVE
+    else return -1;
+}
+
+forward bool:IsPlayerFalling(playerid);
+stock bool:IsPlayerFalling(playerid)
+{
+    new index = GetPlayerAnimationIndex(playerid);
+    return (index == 1130||index == 1129||index == 1131); // FALL_FALL, FALL_COLLAPSE, FALL_FRONT
+}
+
+forward bool:IsPlayerInWater(playerid);
+stock bool:IsPlayerInWater(playerid)
+{
     new animlib[32];
 	new animname[32];
     GetAnimationName(GetPlayerAnimationIndex(playerid),animlib,32,animname,32);
-    return (!strcmp(animname,"FALL_FALL",false)||
-	!strcmp(animname,"FALL_GLIDE",false)||
-	!strcmp(animname,"FALL_COLLAPSE",false)||
-	!strcmp(animname,"FALL_LAND",false)||
-	!strcmp(animname,"FALL_SKYDIVE",false));
+    return (!strcmp(animlib,"SWIM",false));
 }
 
 /*
@@ -1746,6 +1778,7 @@ public OnPlayerConnect(playerid)
 	s_LastVehicleVelocity[playerid] = 0.0;
 	s_FallVel[playerid] = 0.0;
 	s_FallPara[playerid] = 0.0;
+	s_PlayerState[playerid] = 0;
 
 	for (new i = 0; i < sizeof(s_RejectedHits[]); i++) {
 		s_RejectedHits[playerid][i][e_Time] = 0;
@@ -1826,6 +1859,7 @@ public OnPlayerDisconnect(playerid, reason)
 	s_LastVehicleVelocity[playerid] = 0.0;
 	s_FallVel[playerid] = 0.0;
 	s_FallPara[playerid] = 0.0;
+	s_PlayerState[playerid] = 0;
 
 	#if defined WC_OnPlayerDisconnect
 		return WC_OnPlayerDisconnect(playerid, reason);
@@ -2159,6 +2193,8 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 
 public OnPlayerUpdate(playerid)
 {
+	s_PlayerState[playerid] = GetPlayerState(playerid);
+
 	if (s_IsDying[playerid]) {
 		return 1;
 	}
@@ -2241,7 +2277,7 @@ public OnPlayerUpdate(playerid)
 	}
 
 	if(s_VehicleExitDamage){
-		if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER || GetPlayerState(playerid) == PLAYER_STATE_PASSENGER){
+		if(s_PlayerState[playerid] == PLAYER_STATE_DRIVER || s_PlayerState[playerid] == PLAYER_STATE_PASSENGER){
 			new Float:x, Float:y, Float:z;
 			GetVehicleVelocity(GetPlayerVehicleID(playerid), x, y, z);
 			s_LastVehicleVelocity[playerid] = floatsqroot((x*x)+(y*y)+(z*z));
