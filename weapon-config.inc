@@ -377,7 +377,7 @@ static const s_ValidDamageTaken[] = {
 	2, // 51 - Explosion
 	0, // 52 - Car park (custom)
 	2, // 53 - Drowning
-	2, // 54 - Splat
+	2 // 54 - Splat
 };
 
 // Default weapon damage. Connected to s_DamageType.
