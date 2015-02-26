@@ -2300,21 +2300,23 @@ public OnPlayerUpdate(playerid)
 		s_FallVel[playerid] = 0.0;
 	}
 	
-	if(IsPlayerInWater(playerid)){
-	    if(s_FallVel[playerid]>1.0){
-	        InflictDamage(playerid,(s_FallVel[playerid]*12.0));
-	        s_FallVel[playerid] = 0.0;
-			s_FallPara[playerid] = 0.0;
-		}
-	    else if(s_FallPara[playerid]>0.2){
-		InflictDamage(playerid,(s_FallPara[playerid]*35.0));
-	    s_FallPara[playerid] = 0.0;
-		s_FallVel[playerid] = 0.0;
-		}
-		else if(s_FallPara[playerid]>0.07){
-		InflictDamage(playerid,(s_FallPara[playerid]*150.0));
-	    s_FallPara[playerid] = 0.0;
-		s_FallVel[playerid] = 0.0;
+	if(!IsPlayerInAnyVehicle(playerid)){
+		if(IsPlayerInWater(playerid)){
+			if(s_FallVel[playerid]>1.0){
+				InflictDamage(playerid,(s_FallVel[playerid]*12.0));
+				s_FallVel[playerid] = 0.0;
+				s_FallPara[playerid] = 0.0;
+			}
+			else if(s_FallPara[playerid]>0.2){
+				InflictDamage(playerid,(s_FallPara[playerid]*35.0));
+				s_FallPara[playerid] = 0.0;
+				s_FallVel[playerid] = 0.0;
+			}
+			else if(s_FallPara[playerid]>0.07){
+				InflictDamage(playerid,(s_FallPara[playerid]*150.0));
+				s_FallPara[playerid] = 0.0;
+				s_FallVel[playerid] = 0.0;
+			}
 		}
 	}
 
