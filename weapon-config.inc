@@ -969,7 +969,7 @@ stock SetDamageSounds(taken, given)
 	s_DamageGivenSound = given;
 }
 
-stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6, , bool:vehicle_exit_damage = false)
+stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6, bool:vehicle_exit_damage = false)
 {
 	s_CustomFallDamage = toggle;
 	s_VehicleExitDamage = vehicle_exit_damage;
