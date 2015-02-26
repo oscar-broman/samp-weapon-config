@@ -969,7 +969,7 @@ stock SetDamageSounds(taken, given)
 	s_DamageGivenSound = given;
 }
 
-stock SetCustomFallDamage(bool:toggle, bool:vehicle_exit_damage = false, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
+stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6, , bool:vehicle_exit_damage = false)
 {
 	s_CustomFallDamage = toggle;
 	s_VehicleExitDamage = vehicle_exit_damage;
@@ -2125,6 +2125,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 {
 	if(s_VehicleExitDamage){
 		if(newstate == PLAYER_STATE_ONFOOT && (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER)){
+				s_PlayerState[playerid] = 0;
 				SetTimerEx("WC_AnimCheck", 400, 0, "i", playerid);
 		}
 	}
