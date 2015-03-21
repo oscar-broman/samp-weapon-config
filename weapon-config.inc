@@ -795,6 +795,7 @@ static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
 static bool:s_SpawnInfoModified[MAX_PLAYERS];
+static bool:s_AlreadyConnected[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1848,7 +1849,12 @@ public OnPlayerConnect(playerid)
 	FreezeSyncData(playerid, false);
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
-	RemoveDefaultVendingMachines(playerid);
+
+	if (!s_AlreadyConnected[playerid]) {
+		RemoveDefaultVendingMachines(playerid);
+	}
+
+	s_AlreadyConnected[playerid] = false;
 
 	#if defined WC_OnPlayerConnect
 		return WC_OnPlayerConnect(playerid);
@@ -3275,6 +3281,7 @@ static ScriptInit()
 		s_TrueDeath[playerid] = true;
 		s_InClassSelection[playerid] = true;
 		s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
+		s_AlreadyConnected[playerid] = true;
 
 		if (PLAYER_STATE_ONFOOT <= GetPlayerState(playerid) <= PLAYER_STATE_PASSENGER) {
 			GetPlayerHealth(playerid, s_PlayerHealth[playerid]);
@@ -3299,8 +3306,6 @@ static ScriptInit()
 				SetHealthBarVisible(playerid, false);
 			}
 		}
-
-		RemoveDefaultVendingMachines(playerid);
 	}
 }
 
