@@ -1280,12 +1280,12 @@ stock WC_AddPlayerClass(modelid, Float:spawn_x, Float:spawn_y, Float:spawn_z, Fl
 {
 	new classid = AddPlayerClass(modelid, spawn_x, spawn_y, spawn_z, z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
 
-	s_ClassSpawnInfo[classid][e_Skin] = skin;
+	s_ClassSpawnInfo[classid][e_Skin] = modelid;
 	s_ClassSpawnInfo[classid][e_Team] = 0x7FFFFFFF;
-	s_ClassSpawnInfo[classid][e_PosX] = x;
-	s_ClassSpawnInfo[classid][e_PosY] = y;
-	s_ClassSpawnInfo[classid][e_PosZ] = z;
-	s_ClassSpawnInfo[classid][e_Rot] = rotation;
+	s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
+	s_ClassSpawnInfo[classid][e_PosY] = spawn_y;
+	s_ClassSpawnInfo[classid][e_PosZ] = spawn_z;
+	s_ClassSpawnInfo[classid][e_Rot] = z_angle;
 	s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
 	s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
 	s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
@@ -1300,12 +1300,12 @@ stock WC_AddPlayerClassEx(teamid, modelid, Float:spawn_x, Float:spawn_y, Float:s
 {
 	new classid = AddPlayerClassEx(teamid, modelid, spawn_x, spawn_y, spawn_z, z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
 
-	s_ClassSpawnInfo[classid][e_Skin] = skin;
+	s_ClassSpawnInfo[classid][e_Skin] = modelid;
 	s_ClassSpawnInfo[classid][e_Team] = teamid;
-	s_ClassSpawnInfo[classid][e_PosX] = x;
-	s_ClassSpawnInfo[classid][e_PosY] = y;
-	s_ClassSpawnInfo[classid][e_PosZ] = z;
-	s_ClassSpawnInfo[classid][e_Rot] = rotation;
+	s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
+	s_ClassSpawnInfo[classid][e_PosY] = spawn_y;
+	s_ClassSpawnInfo[classid][e_PosZ] = spawn_z;
+	s_ClassSpawnInfo[classid][e_Rot] = z_angle;
 	s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
 	s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
 	s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
@@ -1321,18 +1321,18 @@ stock WC_SetSpawnInfo(playerid, team, skin, Float:x, Float:y, Float:z, Float:rot
 	s_PlayerClass[playerid] = -1;
 	s_SpawnInfoModified[playerid] = false;
 
-	s_PlayerSpawnInfo[e_Skin] = skin;
-	s_PlayerSpawnInfo[e_Team] = team;
-	s_PlayerSpawnInfo[e_PosX] = x;
-	s_PlayerSpawnInfo[e_PosY] = y;
-	s_PlayerSpawnInfo[e_PosZ] = z;
-	s_PlayerSpawnInfo[e_Rot] = rotation;
-	s_PlayerSpawnInfo[e_Weapon1] = weapon1;
-	s_PlayerSpawnInfo[e_Ammo1] = weapon1_ammo;
-	s_PlayerSpawnInfo[e_Weapon2] = weapon2;
-	s_PlayerSpawnInfo[e_Ammo2] = weapon2_ammo;
-	s_PlayerSpawnInfo[e_Weapon3] = weapon3;
-	s_PlayerSpawnInfo[e_Ammo3] = weapon3_ammo;
+	s_PlayerSpawnInfo[playerid][e_Skin] = skin;
+	s_PlayerSpawnInfo[playerid][e_Team] = team;
+	s_PlayerSpawnInfo[playerid][e_PosX] = x;
+	s_PlayerSpawnInfo[playerid][e_PosY] = y;
+	s_PlayerSpawnInfo[playerid][e_PosZ] = z;
+	s_PlayerSpawnInfo[playerid][e_Rot] = rotation;
+	s_PlayerSpawnInfo[playerid][e_Weapon1] = weapon1;
+	s_PlayerSpawnInfo[playerid][e_Ammo1] = weapon1_ammo;
+	s_PlayerSpawnInfo[playerid][e_Weapon2] = weapon2;
+	s_PlayerSpawnInfo[playerid][e_Ammo2] = weapon2_ammo;
+	s_PlayerSpawnInfo[playerid][e_Weapon3] = weapon3;
+	s_PlayerSpawnInfo[playerid][e_Ammo3] = weapon3_ammo;
 
 	return SetSpawnInfo(playerid, team, skin, x, y, z, rotation, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
 }
