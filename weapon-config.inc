@@ -226,6 +226,8 @@ forward OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &r
 forward OnPlayerDeathFinished(playerid, bool:cancelable);
 // When a shot or damage given is rejected
 forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
+// When a player is about to use a vending machine
+forward OnPlayerUseVendingMachine(playerid, &Float:health_given);
 
 // If you have your own definitions, remove them and use these instead
 #define BODY_PART_UNKNOWN 0
@@ -2247,13 +2249,19 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 						break;
 					}
 
-					SetPlayerFacingAngle(playerid, sc_VendingMachines[i][e_RotZ]);
-					SetPlayerPos(playerid, sc_VendingMachines[i][e_FrontX], sc_VendingMachines[i][e_FrontY], z);
-					ApplyAnimation(playerid, "VENDING", "VEND_USE", 4.1, 0, 0, 1, 0, 0, 1);
-					GivePlayerMoney(playerid, -1);
-					PlayerPlaySound(playerid, 42600, 0.0, 0.0, 0.0);
+					new Float:health_given = 35.0;
 
-					s_VendingUseTimer[playerid] = SetTimerEx("WC_VendingMachineUsed", 2500, false, "i", playerid);
+					if (OnPlayerUseVendingMachine(playerid, health_given)) {
+						s_VendingUseTimer[playerid] = SetTimerEx("WC_VendingMachineUsed", 2500, false, "if", playerid, health_given);
+
+						SetPlayerFacingAngle(playerid, sc_VendingMachines[i][e_RotZ]);
+						SetPlayerPos(playerid, sc_VendingMachines[i][e_FrontX], sc_VendingMachines[i][e_FrontY], z);
+						ApplyAnimation(playerid, "VENDING", "VEND_USE", 4.1, 0, 0, 1, 0, 0, 1);
+
+						PlayerPlaySound(playerid, 42600, 0.0, 0.0, 0.0);
+					} else {
+						PlayerPlaySound(playerid, 1055, 0.0, 0.0, 0.0);
+					}
 
 					break;
 				}
@@ -4228,15 +4236,29 @@ public OnPlayerDeathFinished(playerid, bool:cancelable)
 	return 1;
 }
 
-forward WC_VendingMachineUsed(playerid);
-public WC_VendingMachineUsed(playerid)
+public OnPlayerUseVendingMachine(playerid, &Float:health_given) {
+	#if defined WC_OnPlayerUseVendingMachine
+		return WC_OnPlayerUseVendingMachine(playerid, health_given);
+	#else
+		if (GetPlayerMoney(playerid) > 0) {
+			GivePlayerMoney(playerid, -1);
+
+			return 1;
+		} else {
+			return 0;
+		}
+	#endif
+}
+
+forward WC_VendingMachineUsed(playerid, Float:health_given);
+public WC_VendingMachineUsed(playerid, Float:health_given)
 {
 	s_VendingUseTimer[playerid] = -1;
 
 	if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT && !s_IsDying[playerid]) {
 		new Float:health = s_PlayerHealth[playerid];
 
-		health += 35.0;
+		health += health_given;
 
 		if (health > 100.0) {
 			health = 100.0;
@@ -5012,6 +5034,17 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 #define OnRejectedHit WC_OnRejectedHit
 #if defined WC_OnRejectedHit
 	forward WC_OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
+#endif
+
+
+#if defined _ALS_OnPlayerUseVendingMachine
+	#undef OnPlayerUseVendingMachine
+#else
+	#define _ALS_OnPlayerUseVendingMachine
+#endif
+#define OnPlayerUseVendingMachine WC_OnPlayerUseVendingMachine
+#if defined WC_OnPlayerUseVendingMachine
+	forward WC_OnPlayerUseVendingMachine(playerid, &Float:health_given);
 #endif
 
 
