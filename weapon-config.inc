@@ -208,7 +208,7 @@ forward OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart);
 // Before the death animation is applied
 forward OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time);
 // When the death animation is finished and the player has been sent to respawn
-forward OnPlayerDeathFinished(playerid);
+forward OnPlayerDeathFinished(playerid, bool:cancelable);
 // When a shot or damage given is rejected
 forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 
@@ -770,6 +770,9 @@ static s_LastVehicleShooter[MAX_VEHICLES + 1] = {INVALID_PLAYER_ID, ...};
 static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
 static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
 static s_LastVehicleEnterTime[MAX_PLAYERS];
+static s_TrueDeath[MAX_PLAYERS];
+static s_InClassSelection[MAX_PLAYERS];
+static s_ForceClassSelection[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1250,6 +1253,23 @@ stock WC_ClearAnimations(playerid, forcesync = 1)
 	return ClearAnimations(playerid, forcesync);
 }
 
+stock WC_TogglePlayerSpectating(playerid, toggle)
+{
+	if (toggle) {
+		if (s_DeathTimer[playerid] != -1) {
+			KillTimer(s_DeathTimer[playerid]);
+			s_DeathTimer[playerid] = -1;
+		}
+
+		if (s_VendingUseTimer[playerid] != -1) {
+			KillTimer(s_VendingUseTimer[playerid]);
+			s_VendingUseTimer[playerid] = -1;
+		}
+	}
+
+	return TogglePlayerSpectating(playerid, toggle);
+}
+
 stock WC_TogglePlayerControllable(playerid, toggle)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS || s_IsDying[playerid]) {
@@ -1725,6 +1745,9 @@ public OnPlayerConnect(playerid)
 	s_LastStop[playerid] = tick;
 	s_FirstSpawn[playerid] = true;
 	s_LastVehicleEnterTime[playerid] = 0;
+	s_TrueDeath[playerid] = true;
+	s_InClassSelection[playerid] = false;
+	s_ForceClassSelection[playerid] = false;
 
 	for (new i = 0; i < sizeof(s_RejectedHits[]); i++) {
 		s_RejectedHits[playerid][i][e_Time] = 0;
@@ -1811,6 +1834,18 @@ public OnPlayerDisconnect(playerid, reason)
 
 public OnPlayerSpawn(playerid)
 {
+	s_TrueDeath[playerid] = false;
+	s_InClassSelection[playerid] = false;
+
+	if (s_ForceClassSelection[playerid]) {
+		DebugMessage(playerid, "Being forced into class selection");
+		ForceClassSelection(playerid);
+		SetPlayerHealth(playerid, 0.0);
+		SetPlayerVirtualWorld(playerid, WC_DEATH_WORLD);
+
+		return 1;
+	}
+
 	s_LastUpdate[playerid] = GetTickCount();
 	s_LastStop[playerid] = GetTickCount();
 
@@ -1845,6 +1880,10 @@ public OnPlayerSpawn(playerid)
 		s_IsDying[playerid] = false;
 	}
 
+	if (s_PlayerHealth[playerid] == 0.0) {
+		s_PlayerHealth[playerid] = 100.0;
+	}
+
 	UpdatePlayerVirtualWorld(playerid);
 	UpdateHealthBar(playerid, true);
 	FreezeSyncData(playerid, false);
@@ -1869,13 +1908,19 @@ public OnPlayerSpawn(playerid)
 		return 1;
 	#endif
 }
-
+public OnPlayerRequestClass(playerid, classid);
 public OnPlayerRequestClass(playerid, classid)
 {
+	if (s_ForceClassSelection[playerid]) {
+		s_ForceClassSelection[playerid] = false;
+	}
+
 	if (s_BeingResynced[playerid]) {
+		s_TrueDeath[playerid] = false;
+
 		SpawnPlayer(playerid);
 
-		return 1;
+		return 0;
 	}
 
 	if (s_DeathTimer[playerid] != -1) {
@@ -1884,28 +1929,56 @@ public OnPlayerRequestClass(playerid, classid)
 	}
 
 	if (s_IsDying[playerid]) {
-		OnPlayerDeathFinished(playerid);
+		OnPlayerDeathFinished(playerid, false);
 		s_IsDying[playerid] = false;
 	}
 
 	FreezeSyncData(playerid, false);
 	UpdatePlayerVirtualWorld(playerid);
 
-	#if defined WC_OnPlayerRequestClass
-		return WC_OnPlayerRequestClass(playerid, classid);
-	#else
-		return 1;
-	#endif
+	if (s_TrueDeath[playerid]) {
+		if (!s_InClassSelection[playerid]) {
+			DebugMessage(playerid, "True death class selection");
+
+			new Float:x, Float:y, Float:z;
+			GetPlayerPos(playerid, x, y, z);
+			RemoveBuildingForPlayer(playerid, 1484, x, y, z, 350.0),
+			RemoveBuildingForPlayer(playerid, 1485, x, y, z, 350.0),
+			RemoveBuildingForPlayer(playerid, 1486, x, y, z, 350.0);
+
+			s_InClassSelection[playerid] = true;
+		}
+
+		#if defined WC_OnPlayerRequestClass
+			return WC_OnPlayerRequestClass(playerid, classid);
+		#else
+			return 1;
+		#endif
+	} else {
+		DebugMessage(playerid, "Not true death - being respawned");
+
+		new Float:x, Float:y, Float:z, Float:r;
+		GetPlayerPos(playerid, x, y, z);
+		GetPlayerFacingAngle(playerid, r);
+		s_ForceClassSelection[playerid] = true;
+		SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+		SpawnPlayer(playerid);
+
+		return 0;
+	}
 }
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
+	s_TrueDeath[playerid] = true;
+	s_InClassSelection[playerid] = false;
+
 	if (s_VendingUseTimer[playerid] != -1) {
 		KillTimer(s_VendingUseTimer[playerid]);
 		s_VendingUseTimer[playerid] = -1;
 	}
 
-	if (s_BeingResynced[playerid]) {
+	if (s_BeingResynced[playerid] || s_ForceClassSelection[playerid]) {
 		return 1;
 	}
 
@@ -1919,9 +1992,6 @@ public OnPlayerDeath(playerid, killerid, reason)
 	if (s_DeathTimer[playerid] != -1) {
 		KillTimer(s_DeathTimer[playerid]);
 	}
-
-	// Should usually not get called
-	s_DeathTimer[playerid] = SetTimerEx("WC_PlayerDeathRespawn", 6000, false, "i", playerid);
 
 	if (s_IsDying[playerid]) {
 		DebugMessageRedAll("death while dying %d", playerid);
@@ -1957,10 +2027,12 @@ public OnPlayerDeath(playerid, killerid, reason)
 	s_IsDying[playerid] = true;
 
 	#if defined WC_OnPlayerDeath
-		return WC_OnPlayerDeath(playerid, killerid, reason);
-	#else
-		return 1;
+		WC_OnPlayerDeath(playerid, killerid, reason);
 	#endif
+
+	OnPlayerDeathFinished(playerid, false);
+
+	return 1;
 }
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
@@ -2842,7 +2914,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				SetVehicleHealth(hitid, health);
 			}
 		}
-		
+
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
@@ -3001,6 +3073,8 @@ static ScriptInit()
 		s_DamageFeedLastUpdate[playerid] = tick;
 		s_LastStop[playerid] = tick;
 		s_LastVehicleEnterTime[playerid] = 0;
+		s_TrueDeath[playerid] = true;
+		s_InClassSelection[playerid] = true;
 
 		if (PLAYER_STATE_ONFOOT <= GetPlayerState(playerid) <= PLAYER_STATE_PASSENGER) {
 			GetPlayerHealth(playerid, s_PlayerHealth[playerid]);
@@ -3128,7 +3202,7 @@ static IsPlayerPaused(playerid)
 
 static UpdateHealthBar(playerid, bool:force = false)
 {
-	if (s_BeingResynced[playerid]) {
+	if (s_BeingResynced[playerid] || s_ForceClassSelection[playerid]) {
 		return;
 	}
 
@@ -3333,7 +3407,6 @@ static DestroyVendingMachines()
 		}
 	}
 }
-
 
 forward WC_SpawnForStreamedIn(playerid);
 public WC_SpawnForStreamedIn(playerid)
@@ -3837,7 +3910,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 	UpdateHealthBar(playerid);
 }
 
-static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 1, respawn_time = -1, bool:freeze_sync = true)
+static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
 {
 	s_PlayerHealth[playerid] = 0.0;
 	s_PlayerArmour[playerid] = 0.0;
@@ -3869,7 +3942,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 1, respawn_t
 	}
 
 	if (animlib[0] && animname[0]) {
-		ApplyAnimation(playerid, animlib, animname, 4.1, 0, anim_lock, anim_lock, 1, respawn_time, 1);
+		ApplyAnimation(playerid, animlib, animname, 4.1, 0, anim_lock, anim_lock, anim_freeze, 0, 1);
 	}
 
 	if (s_DeathTimer[playerid] != -1) {
@@ -3922,10 +3995,8 @@ public OnRejectedHit(playerid, hit[E_REJECTED_HIT])
 	#endif
 }
 
-public OnPlayerDeathFinished(playerid)
+public OnPlayerDeathFinished(playerid, bool:cancelable)
 {
-	ResetPlayerWeapons(playerid);
-
 	if (s_PlayerHealth[playerid] == 0.0) {
 		s_PlayerHealth[playerid] = 100.0;
 	}
@@ -3936,8 +4007,14 @@ public OnPlayerDeathFinished(playerid)
 	}
 
 	#if defined WC_OnPlayerDeathFinished
-		WC_OnPlayerDeathFinished(playerid);
+		if (!WC_OnPlayerDeathFinished(playerid, cancelable) && cancelable) {
+			return 0;
+		}
 	#endif
+
+	ResetPlayerWeapons(playerid);
+
+	return 1;
 }
 
 forward WC_VendingMachineUsed(playerid);
@@ -4396,15 +4473,22 @@ public WC_PlayerDeathRespawn(playerid)
 		return;
 	}
 
-	new Float:x, Float:y, Float:z;
+	if (!OnPlayerDeathFinished(playerid, true)) {
+		s_IsDying[playerid] = false;
 
-	GetPlayerPos(playerid, x, y, z);
-	SetPlayerPos(playerid, x, y, z);
-	TogglePlayerControllable(playerid, true);
-	SpawnPlayer(playerid);
+		UpdateHealthBar(playerid);
+		SetFakeFacingAngle(playerid, _);
+		FreezeSyncData(playerid, false);
+
+		return;
+	}
+
+	s_TrueDeath[playerid] = false;
+
 	SetPlayerVirtualWorld(playerid, WC_DEATH_WORLD);
 	SetFakeFacingAngle(playerid, _);
-	OnPlayerDeathFinished(playerid);
+	TogglePlayerSpectating(playerid, true);
+	TogglePlayerSpectating(playerid, false);
 }
 
 public OnInvalidWeaponDamage(playerid, damagedid, Float:amount, weaponid, bodypart, error, bool:given)
@@ -4727,7 +4811,7 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 #endif
 #define OnPlayerDeathFinished WC_OnPlayerDeathFinished
 #if defined WC_OnPlayerDeathFinished
-	forward WC_OnPlayerDeathFinished(playerid);
+	forward WC_OnPlayerDeathFinished(playerid, bool:cancelable);
 #endif
 
 /*
@@ -4827,6 +4911,14 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 	#define _ALS_ClearAnimations
 #endif
 #define ClearAnimations WC_ClearAnimations
+
+
+#if defined _ALS_TogglePlayerSpectating
+	#undef TogglePlayerSpectating
+#else
+	#define _ALS_TogglePlayerSpectating
+#endif
+#define TogglePlayerSpectating WC_TogglePlayerSpectating
 
 
 #if defined _ALS_TogglePlayerControllable
