@@ -199,6 +199,21 @@ enum E_SHOT_INFO {
 	 bool:e_Valid
 }
 
+enum E_SPAWN_INFO {
+	      e_Skin,
+	      e_Team,
+	Float:e_PosX,
+	Float:e_PosY,
+	Float:e_PosZ,
+	Float:e_Rot,
+	      e_Weapon1,
+	      e_Ammo1,
+	      e_Weapon2,
+	      e_Ammo2,
+	      e_Weapon3,
+	      e_Ammo3
+}
+
 // When a player takes or gives invalid damage (WC_* errors above)
 forward OnInvalidWeaponDamage(playerid, damagedid, Float:amount, weaponid, bodypart, error, bool:given);
 // Before damage is inflicted
@@ -773,6 +788,11 @@ static s_LastVehicleEnterTime[MAX_PLAYERS];
 static s_TrueDeath[MAX_PLAYERS];
 static s_InClassSelection[MAX_PLAYERS];
 static s_ForceClassSelection[MAX_PLAYERS];
+static s_ClassSpawnInfo[300][E_SPAWN_INFO];
+static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
+static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
+static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
+static bool:s_SpawnInfoModified[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1251,6 +1271,67 @@ stock WC_ClearAnimations(playerid, forcesync = 1)
 	s_LastStop[playerid] = GetTickCount();
 
 	return ClearAnimations(playerid, forcesync);
+}
+
+stock WC_AddPlayerClass(modelid, Float:spawn_x, Float:spawn_y, Float:spawn_z, Float:z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo)
+{
+	new classid = AddPlayerClass(modelid, spawn_x, spawn_y, spawn_z, z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
+
+	s_ClassSpawnInfo[classid][e_Skin] = skin;
+	s_ClassSpawnInfo[classid][e_Team] = 0x7FFFFFFF;
+	s_ClassSpawnInfo[classid][e_PosX] = x;
+	s_ClassSpawnInfo[classid][e_PosY] = y;
+	s_ClassSpawnInfo[classid][e_PosZ] = z;
+	s_ClassSpawnInfo[classid][e_Rot] = rotation;
+	s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
+	s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
+	s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
+	s_ClassSpawnInfo[classid][e_Ammo2] = weapon2_ammo;
+	s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
+	s_ClassSpawnInfo[classid][e_Ammo3] = weapon3_ammo;
+
+	return classid;
+}
+
+stock WC_AddPlayerClassEx(teamid, modelid, Float:spawn_x, Float:spawn_y, Float:spawn_z, Float:z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo)
+{
+	new classid = AddPlayerClassEx(teamid, modelid, spawn_x, spawn_y, spawn_z, z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
+
+	s_ClassSpawnInfo[classid][e_Skin] = skin;
+	s_ClassSpawnInfo[classid][e_Team] = teamid;
+	s_ClassSpawnInfo[classid][e_PosX] = x;
+	s_ClassSpawnInfo[classid][e_PosY] = y;
+	s_ClassSpawnInfo[classid][e_PosZ] = z;
+	s_ClassSpawnInfo[classid][e_Rot] = rotation;
+	s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
+	s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
+	s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
+	s_ClassSpawnInfo[classid][e_Ammo2] = weapon2_ammo;
+	s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
+	s_ClassSpawnInfo[classid][e_Ammo3] = weapon3_ammo;
+
+	return classid;
+}
+
+stock WC_SetSpawnInfo(playerid, team, skin, Float:x, Float:y, Float:z, Float:rotation, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo)
+{
+	s_PlayerClass[playerid] = -1;
+	s_SpawnInfoModified[playerid] = false;
+
+	s_PlayerSpawnInfo[e_Skin] = skin;
+	s_PlayerSpawnInfo[e_Team] = team;
+	s_PlayerSpawnInfo[e_PosX] = x;
+	s_PlayerSpawnInfo[e_PosY] = y;
+	s_PlayerSpawnInfo[e_PosZ] = z;
+	s_PlayerSpawnInfo[e_Rot] = rotation;
+	s_PlayerSpawnInfo[e_Weapon1] = weapon1;
+	s_PlayerSpawnInfo[e_Ammo1] = weapon1_ammo;
+	s_PlayerSpawnInfo[e_Weapon2] = weapon2;
+	s_PlayerSpawnInfo[e_Ammo2] = weapon2_ammo;
+	s_PlayerSpawnInfo[e_Weapon3] = weapon3;
+	s_PlayerSpawnInfo[e_Ammo3] = weapon3_ammo;
+
+	return SetSpawnInfo(playerid, team, skin, x, y, z, rotation, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
 }
 
 stock WC_TogglePlayerSpectating(playerid, toggle)
@@ -1748,6 +1829,9 @@ public OnPlayerConnect(playerid)
 	s_TrueDeath[playerid] = true;
 	s_InClassSelection[playerid] = false;
 	s_ForceClassSelection[playerid] = false;
+	s_PlayerClass[playerid] = -2;
+	s_SpawnInfoModified[playerid] = false;
+	s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
 
 	for (new i = 0; i < sizeof(s_RejectedHits[]); i++) {
 		s_RejectedHits[playerid][i][e_Time] = 0;
@@ -1871,6 +1955,52 @@ public OnPlayerSpawn(playerid)
 		return 1;
 	}
 
+	if (s_SpawnInfoModified[playerid]) {
+		new spawn_info[E_SPAWN_INFO], classid = s_PlayerClass[playerid];
+
+		s_SpawnInfoModified[playerid] = false;
+
+		if (classid == -1) {
+			spawn_info = s_PlayerSpawnInfo[playerid];
+		} else if (classid == -2) {
+			spawn_info = s_PlayerFallbackSpawnInfo[playerid];
+		} else {
+			if (s_ClassSpawnInfo[classid][e_Skin] == -1 && s_PlayerFallbackSpawnInfo[playerid][e_Skin] != -1) {
+				spawn_info = s_PlayerFallbackSpawnInfo[playerid];
+			} else {
+				spawn_info = s_ClassSpawnInfo[classid];
+			}
+		}
+
+		if (spawn_info[e_Skin] != -1) {
+			SetSpawnInfo(
+				playerid,
+				spawn_info[e_Team],
+				spawn_info[e_Skin],
+				spawn_info[e_PosX],
+				spawn_info[e_PosY],
+				spawn_info[e_PosZ],
+				spawn_info[e_Rot],
+				spawn_info[e_Weapon1],
+				spawn_info[e_Ammo1],
+				spawn_info[e_Weapon2],
+				spawn_info[e_Ammo2],
+				spawn_info[e_Weapon3],
+				spawn_info[e_Ammo3]
+			);
+		}
+	} else {
+		s_PlayerFallbackSpawnInfo[playerid][e_Team] = s_PlayerTeam[playerid];
+		s_PlayerFallbackSpawnInfo[playerid][e_Skin] = GetPlayerSkin(playerid);
+		GetPlayerPos(
+			playerid,
+			s_PlayerFallbackSpawnInfo[playerid][e_PosX],
+			s_PlayerFallbackSpawnInfo[playerid][e_PosY],
+			s_PlayerFallbackSpawnInfo[playerid][e_PosZ]
+		);
+		GetPlayerFacingAngle(playerid, s_PlayerFallbackSpawnInfo[playerid][e_Rot]);
+	}
+
 	if (s_DeathTimer[playerid] != -1) {
 		KillTimer(s_DeathTimer[playerid]);
 		s_DeathTimer[playerid] = -1;
@@ -1918,7 +2048,7 @@ public OnPlayerRequestClass(playerid, classid)
 	if (s_BeingResynced[playerid]) {
 		s_TrueDeath[playerid] = false;
 
-		SpawnPlayer(playerid);
+		SpawnPlayerInPlace(playerid);
 
 		return 0;
 	}
@@ -1950,19 +2080,24 @@ public OnPlayerRequestClass(playerid, classid)
 		}
 
 		#if defined WC_OnPlayerRequestClass
-			return WC_OnPlayerRequestClass(playerid, classid);
+			if (WC_OnPlayerRequestClass(playerid, classid)) {
+				s_PlayerClass[playerid] = classid;
+
+				return 1;
+			} else {
+				return 0;
+			}
 		#else
+			s_PlayerClass[playerid] = classid;
+
 			return 1;
 		#endif
 	} else {
 		DebugMessage(playerid, "Not true death - being respawned");
 
-		new Float:x, Float:y, Float:z, Float:r;
-		GetPlayerPos(playerid, x, y, z);
-		GetPlayerFacingAngle(playerid, r);
 		s_ForceClassSelection[playerid] = true;
-		SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
-		SpawnPlayer(playerid);
+
+		SpawnPlayerInPlace(playerid);
 
 		return 0;
 	}
@@ -2016,21 +2151,69 @@ public OnPlayerDeath(playerid, killerid, reason)
 		}
 	}
 
-	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
-		PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
-		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
-		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	new Float:amount = 0.0;
+	new bodypart = BODY_PART_UNKNOWN;
+
+	if (reason == WEAPON_PARACHUTE) {
+		reason = WEAPON_COLLISION;
 	}
 
-	OnPlayerDamageDone(playerid, s_PlayerHealth[playerid] + s_PlayerArmour[playerid], killerid, reason, BODY_PART_UNKNOWN);
+	if (OnPlayerDamage(playerid, amount, killerid, reason, bodypart)) {
+		if (reason < 0 || reason > WEAPON_UNKNOWN) {
+			reason = WEAPON_UNKNOWN;
+		}
 
-	s_IsDying[playerid] = true;
+		if (amount == 0.0) {
+			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
+		}
 
-	#if defined WC_OnPlayerDeath
-		WC_OnPlayerDeath(playerid, killerid, reason);
-	#endif
+		if (reason == WEAPON_COLLISION || reason == WEAPON_DROWN || reason == WEAPON_CARPARK) {
+			if (amount <= 0.0) {
+				amount = s_PlayerHealth[playerid];
+			}
 
-	OnPlayerDeathFinished(playerid, false);
+			s_PlayerHealth[playerid] -= amount;
+		} else {
+			if (amount <= 0.0) {
+				amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
+			}
+
+			s_PlayerArmour[playerid] -= amount;
+		}
+
+		if (s_PlayerArmour[playerid] < 0.0) {
+			s_PlayerHealth[playerid] += s_PlayerArmour[playerid];
+			s_PlayerArmour[playerid] = 0.0;
+		}
+
+		if (s_PlayerHealth[playerid] <= 0.0) {
+			amount += s_PlayerHealth[playerid];
+			s_PlayerHealth[playerid] = 0.0;
+		}
+
+		OnPlayerDamageDone(playerid, amount, killerid, reason, bodypart);
+	}
+
+	if (s_PlayerHealth[playerid] <= 0.0005) {
+		s_PlayerHealth[playerid] = 0.0;
+		s_IsDying[playerid] = true;
+
+		new animlib[32], animname[32], anim_lock, respawn_time;
+
+		OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
+
+		#if defined WC_OnPlayerDeath
+			WC_OnPlayerDeath(playerid, killerid, reason);
+		#endif
+
+		OnPlayerDeathFinished(playerid, false);
+	} else {
+		SetTimerEx("WC_SpawnPlayerInPlace", 50, false, "i", playerid);
+
+		s_LastStop[playerid] = GetTickCount();
+	}
+
+	UpdateHealthBar(playerid);
 
 	return 1;
 }
@@ -2260,6 +2443,10 @@ public OnPlayerUpdate(playerid)
 						amount = (vz + 0.2) / (s_FallDeathVelocity + 0.2);
 						amount *= s_WeaponDamage[WEAPON_COLLISION];
 					}
+				}
+
+				if (GetPlayerWeapon(playerid) == WEAPON_PARACHUTE && anim == 1134) {
+					amount = -1.0;
 				}
 
 				if (amount >= 0.0) {
@@ -3012,6 +3199,10 @@ static ScriptInit()
 		SetKnifeSync(true);
 	}
 
+	for (new i = 0; i < sizeof(s_ClassSpawnInfo); i++) {
+		s_ClassSpawnInfo[i][e_Skin] = -1;
+	}
+
 	s_HealthBarBorder = TextDrawCreate(610.01, 68.25, "\1");
 
 	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
@@ -3075,6 +3266,7 @@ static ScriptInit()
 		s_LastVehicleEnterTime[playerid] = 0;
 		s_TrueDeath[playerid] = true;
 		s_InClassSelection[playerid] = true;
+		s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
 
 		if (PLAYER_STATE_ONFOOT <= GetPlayerState(playerid) <= PLAYER_STATE_PASSENGER) {
 			GetPlayerHealth(playerid, s_PlayerHealth[playerid]);
@@ -3315,6 +3507,19 @@ static SetHealthBarVisible(playerid, bool:toggle)
 	}
 }
 
+static SpawnPlayerInPlace(playerid) {
+	new Float:x, Float:y, Float:z, Float:r;
+
+	GetPlayerPos(playerid, x, y, z);
+	GetPlayerFacingAngle(playerid, r);
+
+	SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+
+	s_SpawnInfoModified[playerid] = true;
+
+	SpawnPlayer(playerid);
+}
+
 static PosInFront(playerid, Float:distance, &Float:x, &Float:y, &Float:z)
 {
 	new Float:a;
@@ -3429,6 +3634,12 @@ forward WC_SetSpawnForStreamedIn(playerid);
 public WC_SetSpawnForStreamedIn(playerid)
 {
 	s_SpawnForStreamedIn[playerid] = true;
+}
+
+forward WC_SpawnPlayerInPlace(playerid);
+public WC_SpawnPlayerInPlace(playerid)
+{
+	SpawnPlayerInPlace(playerid);
 }
 
 static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, &Float:bullets)
@@ -4366,7 +4577,7 @@ static ResyncPlayer(playerid)
 
 	s_BeingResynced[playerid] = true;
 
-	SpawnPlayer(playerid);
+	SpawnPlayerInPlace(playerid);
 }
 
 static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2)
@@ -4911,6 +5122,30 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 	#define _ALS_ClearAnimations
 #endif
 #define ClearAnimations WC_ClearAnimations
+
+
+#if defined _ALS_AddPlayerClass
+    #undef AddPlayerClass
+#else
+    #define _ALS_AddPlayerClass
+#endif
+#define AddPlayerClass WC_AddPlayerClass
+
+
+#if defined _ALS_AddPlayerClassEx
+	#undef AddPlayerClassEx
+#else
+	#define _ALS_AddPlayerClassEx
+#endif
+#define AddPlayerClassEx WC_AddPlayerClassEx
+
+
+#if defined _ALS_SetSpawnInfo
+	#undef SetSpawnInfo
+#else
+	#define _ALS_SetSpawnInfo
+#endif
+#define SetSpawnInfo WC_SetSpawnInfo
 
 
 #if defined _ALS_TogglePlayerSpectating
