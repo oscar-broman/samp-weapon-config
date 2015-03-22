@@ -1349,6 +1349,8 @@ stock WC_TogglePlayerSpectating(playerid, toggle)
 			KillTimer(s_VendingUseTimer[playerid]);
 			s_VendingUseTimer[playerid] = -1;
 		}
+
+		s_IsDying[playerid] = false;
 	}
 
 	return TogglePlayerSpectating(playerid, toggle);
@@ -4711,9 +4713,9 @@ public WC_PlayerDeathRespawn(playerid)
 		return;
 	}
 
-	if (!OnPlayerDeathFinished(playerid, true)) {
-		s_IsDying[playerid] = false;
+	s_IsDying[playerid] = false;
 
+	if (!OnPlayerDeathFinished(playerid, true)) {
 		UpdateHealthBar(playerid);
 		SetFakeFacingAngle(playerid, _);
 		FreezeSyncData(playerid, false);
@@ -4721,6 +4723,7 @@ public WC_PlayerDeathRespawn(playerid)
 		return;
 	}
 
+	s_IsDying[playerid] = true;
 	s_TrueDeath[playerid] = false;
 
 	SetPlayerVirtualWorld(playerid, WC_DEATH_WORLD);
