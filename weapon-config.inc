@@ -40,6 +40,11 @@
 	#define WC_USE_STREAMER false
 #endif
 
+// For SetWeaponName
+#if !defined WC_MAX_WEAPON_NAME
+	#define WC_MAX_WEAPON_NAME 21
+#endif
+
 #if WC_USE_STREAMER && !defined Streamer_IncludeFileVersion
 	#error streamer.inc is required when WC_USE_STREAMER=true
 #endif
@@ -612,7 +617,7 @@ static s_MaxWeaponShootRate[] = {
 };
 
 // That's right, it's called cuntgun
-stock const g_WeaponName[57][21] = {
+stock const g_WeaponName[57][WC_MAX_WEAPON_NAME] = {
 	{"Fist"             }, {"Brass knuckles"}, {"Golf club"           },
 	{"Nightstick"       }, {"Knife"         }, {"Bat"                 },
 	{"Shovel"           }, {"Pool cue"      }, {"Katana"              },
@@ -1241,6 +1246,17 @@ stock WC_SendDeathMessage(killer, killee, weapon)
 	}
 
 	SendDeathMessage(killer, killee, weapon);
+
+	return 1;
+}
+
+stock SetWeaponName(weaponid, const name[])
+{
+	if (weaponid < 0 || weaponid >= sizeof(g_WeaponName)) {
+		return 0;
+	}
+
+	strunpack(g_WeaponName[weaponid], name, sizeof(g_WeaponName[]));
 
 	return 1;
 }
