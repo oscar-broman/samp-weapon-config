@@ -4742,6 +4742,12 @@ public WC_PlayerDeathRespawn(playerid)
 	s_IsDying[playerid] = true;
 	s_TrueDeath[playerid] = false;
 
+	if (IsPlayerInAnyVehicle(playerid)) {
+		new Float:x, Float:y, Float:z;
+		GetPlayerPos(playerid, x, y, z);
+		SetPlayerPos(playerid, x, y, z);
+	}
+
 	SetPlayerVirtualWorld(playerid, WC_DEATH_WORLD);
 	SetFakeFacingAngle(playerid, _);
 	TogglePlayerSpectating(playerid, true);
