@@ -2330,13 +2330,19 @@ public OnPlayerStreamIn(playerid, forplayerid)
 
 public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 {
-	if (s_VendingUseTimer[playerid] != -1) {
-		KillTimer(s_VendingUseTimer[playerid]);
-		s_VendingUseTimer[playerid] = -1;
+	if(!ispassenger && s_IsDying[playerid]) {
+	    new Float:s_tmpPos[3];
+	    GetPlayerPos(playerid, s_tmpPos[0], s_tmpPos[1], s_tmpPos[2]);
+	    SetPlayerPos(playerid, s_tmpPos[0], s_tmpPos[1], s_tmpPos[2]);
+	} else {
+		if (s_VendingUseTimer[playerid] != -1) {
+			KillTimer(s_VendingUseTimer[playerid]);
+			s_VendingUseTimer[playerid] = -1;
+		}
+
+		s_LastVehicleEnterTime[playerid] = gettime();
 	}
-
-	s_LastVehicleEnterTime[playerid] = gettime();
-
+	
 	#if defined WC_OnPlayerEnterVehicle
 		return WC_OnPlayerEnterVehicle(playerid, vehicleid, ispassenger);
 	#else
