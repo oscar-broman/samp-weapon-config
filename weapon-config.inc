@@ -801,6 +801,9 @@ static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
 static bool:s_SpawnInfoModified[MAX_PLAYERS];
 static bool:s_AlreadyConnected[MAX_PLAYERS];
+static s_DeathSkip[MAX_PLAYERS];
+static s_DeathSkipTick[MAX_PLAYERS];
+static s_LastVehicleTick[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1853,6 +1856,8 @@ public OnPlayerConnect(playerid)
 	s_PlayerClass[playerid] = -2;
 	s_SpawnInfoModified[playerid] = false;
 	s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
+	s_DeathSkip[playerid] = 0;
+	s_LastVehicleTick[playerid] = 0;
 
 	for (new i = 0; i < sizeof(s_RejectedHits[]); i++) {
 		s_RejectedHits[playerid][i][e_Time] = 0;
@@ -1946,6 +1951,8 @@ public OnPlayerSpawn(playerid)
 {
 	s_TrueDeath[playerid] = false;
 	s_InClassSelection[playerid] = false;
+
+	RemoveDefaultVendingMachines(playerid);
 
 	if (s_ForceClassSelection[playerid]) {
 		DebugMessage(playerid, "Being forced into class selection");
@@ -2050,6 +2057,19 @@ public OnPlayerSpawn(playerid)
 		SetPlayerTeam(playerid, 0xFE);
 	}
 
+	if (s_DeathSkip[playerid] == 2) {
+		DebugMessage(playerid, "Death skipped");
+		SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
+		GivePlayerWeapon(playerid, 1, 1);
+		ClearAnimations(playerid);
+		ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 1, 1);
+
+		s_DeathSkip[playerid] = 1;
+		s_DeathSkipTick[playerid] = GetTickCount();
+
+		return 1;
+	}
+
 	if (s_FirstSpawn[playerid]) {
 		s_FirstSpawn[playerid] = false;
 
@@ -2064,9 +2084,18 @@ public OnPlayerSpawn(playerid)
 		return 1;
 	#endif
 }
-public OnPlayerRequestClass(playerid, classid);
+
 public OnPlayerRequestClass(playerid, classid)
 {
+	DebugMessage(playerid, "Requested class: %d", classid);
+
+	if (s_DeathSkip[playerid]) {
+		DebugMessage(playerid, "Skipping death - class selection skipped");
+		SpawnPlayer(playerid);
+
+		return 0;
+	}
+
 	if (s_ForceClassSelection[playerid]) {
 		s_ForceClassSelection[playerid] = false;
 	}
@@ -2234,9 +2263,31 @@ public OnPlayerDeath(playerid, killerid, reason)
 
 		OnPlayerDeathFinished(playerid, false);
 	} else {
-		SetTimerEx("WC_SpawnPlayerInPlace", 50, false, "i", playerid);
+		if (vehicleid || WasPlayerInVehicle(playerid, 10000)) {
+			new Float:x, Float:y, Float:z, Float:r;
 
-		s_LastStop[playerid] = GetTickCount();
+			GetPlayerPos(playerid, x, y, z);
+			SetPlayerPos(playerid, x, y, z);
+			SaveSyncData(playerid);
+
+			if (vehicleid) {
+				GetVehicleZAngle(vehicleid, r);
+			} else {
+				GetPlayerFacingAngle(playerid, r);
+			}
+
+			s_DeathSkip[playerid] = 2;
+
+			ForceClassSelection(playerid);
+			SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+			TogglePlayerSpectating(playerid, true);
+			TogglePlayerSpectating(playerid, false);
+			SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+			TogglePlayerControllable(playerid, true);
+			GivePlayerWeapon(playerid, 1, 1);
+		} else {
+			SpawnPlayerInPlace(playerid);
+		}
 	}
 
 	UpdateHealthBar(playerid);
@@ -2336,9 +2387,21 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 	}
 
 	s_LastVehicleEnterTime[playerid] = gettime();
+	s_LastVehicleTick[playerid] = GetTickCount();
 
 	#if defined WC_OnPlayerEnterVehicle
 		return WC_OnPlayerEnterVehicle(playerid, vehicleid, ispassenger);
+	#else
+		return 1;
+	#endif
+}
+
+public OnPlayerExitVehicle(playerid, vehicleid)
+{
+	s_LastVehicleTick[playerid] = GetTickCount();
+
+	#if defined WC_OnPlayerExitVehicle
+		return WC_OnPlayerExitVehicle(playerid, vehicleid);
 	#else
 		return 1;
 	#endif
@@ -2359,8 +2422,10 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		TogglePlayerControllable(playerid, false);
 	}
 
-	if (newstate == PLAYER_STATE_ONFOOT) {
-		if (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER) {
+	if (oldstate == PLAYER_STATE_DRIVER || oldstate == PLAYER_STATE_PASSENGER) {
+		s_LastVehicleTick[playerid] = GetTickCount();
+
+		if (newstate == PLAYER_STATE_ONFOOT) {
 			new Float:vx, Float:vy, Float:vz;
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
@@ -2411,6 +2476,31 @@ public OnPlayerUpdate(playerid)
 {
 	if (s_IsDying[playerid]) {
 		return 1;
+	}
+
+	if (s_DeathSkip[playerid] == 1) {
+		if (s_DeathSkipTick[playerid]) {
+			if (GetTickCount() - s_DeathSkipTick[playerid] > 1000) {
+				new Float:x, Float:y, Float:z, Float:r;
+
+				GetPlayerPos(playerid, x, y, z);
+				GetPlayerFacingAngle(playerid, r);
+
+				SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+
+				s_DeathSkipTick[playerid] = 0;
+
+				ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 1, 1);
+			}
+		} else {
+			if (GetPlayerAnimationIndex(playerid) != 1189) {
+				s_DeathSkip[playerid] = 0;
+
+				WC_DeathSkipEnd(playerid);
+
+				DebugMessage(playerid, "Death skip end");
+			}
+		}
 	}
 
 	if (s_SpawnForStreamedIn[playerid]) {
@@ -3576,6 +3666,18 @@ static UpdateSyncData(playerid)
 	}
 }
 
+static WasPlayerInVehicle(playerid, time) {
+	if (!s_LastVehicleTick[playerid]) {
+		return 0;
+	}
+
+	if (GetTickCount() - time < s_LastVehicleTick[playerid]) {
+		return 1;
+	}
+
+	return 0;
+}
+
 static RemoveDefaultVendingMachines(playerid)
 {
 	RemoveBuildingForPlayer(playerid, 955, 0.0, 0.0, 0.0, 20000.0); // CJ_EXT_SPRUNK
@@ -3585,18 +3687,6 @@ static RemoveDefaultVendingMachines(playerid)
 	RemoveBuildingForPlayer(playerid, 1775, 0.0, 0.0, 0.0, 20000.0); // CJ_SPRUNK1
 	RemoveBuildingForPlayer(playerid, 1776, 0.0, 0.0, 0.0, 20000.0); // CJ_CANDYVENDOR
 	RemoveBuildingForPlayer(playerid, 1977, 0.0, 0.0, 0.0, 20000.0); // vendin3
-
-	// Make sure they're all gone..
-	for (new i = 0; i < sizeof(sc_VendingMachines); i++) {
-		RemoveBuildingForPlayer(
-			playerid,
-			sc_VendingMachines[i][e_Model],
-			sc_VendingMachines[i][e_PosX],
-			sc_VendingMachines[i][e_PosY],
-			sc_VendingMachines[i][e_PosZ],
-			1.0
-		);
-	}
 }
 
 static CreateVendingMachines()
@@ -3642,6 +3732,22 @@ static DestroyVendingMachines()
 			s_VendingMachineObject[i] = -1;
 		}
 	}
+}
+
+forward WC_DeathSkipEnd(playerid);
+public WC_DeathSkipEnd(playerid) {
+	TogglePlayerControllable(playerid, true);
+
+	ResetPlayerWeapons(playerid);
+
+	for (new i = 0; i < 13; i++) {
+		if (s_SyncData[playerid][e_WeaponId][i]) {
+			GivePlayerWeapon(playerid, s_SyncData[playerid][e_WeaponId][i], s_SyncData[playerid][e_WeaponAmmo][i]);
+		}
+	}
+
+	GivePlayerWeapon(playerid, s_SyncData[playerid][e_Weapon], 0);
+	SetPlayerSpecialAction(playerid, 0);
 }
 
 forward WC_SpawnForStreamedIn(playerid);
@@ -4603,7 +4709,7 @@ static DamageFeedRemoveHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], idx)
 	}
 }
 
-static ResyncPlayer(playerid)
+static SaveSyncData(playerid)
 {
 	GetPlayerHealth(playerid, s_SyncData[playerid][e_Health]);
 	GetPlayerArmour(playerid, s_SyncData[playerid][e_Armour]);
@@ -4619,6 +4725,11 @@ static ResyncPlayer(playerid)
 	for (new i = 0; i < 13; i++) {
 		GetPlayerWeaponData(playerid, i, s_SyncData[playerid][e_WeaponId][i], s_SyncData[playerid][e_WeaponAmmo][i]);
 	}
+}
+
+static ResyncPlayer(playerid)
+{
+	SaveSyncData(playerid);
 
 	s_BeingResynced[playerid] = true;
 
@@ -4899,6 +5010,17 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 #define OnPlayerEnterVehicle WC_OnPlayerEnterVehicle
 #if defined WC_OnPlayerEnterVehicle
 	forward WC_OnPlayerEnterVehicle(playerid, vehicleid, ispassenger);
+#endif
+
+
+#if defined _ALS_OnPlayerExitVehicle
+	#undef OnPlayerExitVehicle
+#else
+	#define _ALS_OnPlayerExitVehicle
+#endif
+#define OnPlayerExitVehicle WC_OnPlayerExitVehicle
+#if defined WC_OnPlayerExitVehicle
+	forward WC_OnPlayerExitVehicle(playerid, vehicleid);
 #endif
 
 
