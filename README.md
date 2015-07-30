@@ -18,7 +18,6 @@ It's pretty much plug-and-play if you don't have any filterscripts that interfer
     ```pawn
     public OnGameModeInit() {
         SetVehiclePassengerDamage(true);
-        SetCustomFallDamage(true, 40.0, -0.75);
         SetDisableSyncBugs(true);
     }
     ```
