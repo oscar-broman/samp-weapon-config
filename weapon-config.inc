@@ -4355,7 +4355,9 @@ public OnPlayerDeathFinished(playerid, bool:cancelable)
 	}
 
 	#if defined WC_OnPlayerDeathFinished
-		if (!WC_OnPlayerDeathFinished(playerid, cancelable) && cancelable) {
+		new retval = WC_OnPlayerDeathFinished(playerid, cancelable);
+
+		if (!retval && cancelable) {
 			return 0;
 		}
 	#endif
