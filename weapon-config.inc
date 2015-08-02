@@ -251,7 +251,7 @@ forward OnPlayerUseVendingMachine(playerid, &Float:health_given);
 	#define DebugMessage(%1,%2) \
 		format(s_DebugMsgBuf,512,%2),printf("(wc:%d) %s",%1,s_DebugMsgBuf)
 
-	#define DebugMessageRed(%1,%2) \ 
+	#define DebugMessageRed(%1,%2) \
 		format(s_DebugMsgBuf,512,%2),printf("(wc:%d) WARN: %s",%1,s_DebugMsgBuf)
 
 	#define DebugMessageAll(%1) \
@@ -1952,8 +1952,6 @@ public OnPlayerSpawn(playerid)
 	s_TrueDeath[playerid] = false;
 	s_InClassSelection[playerid] = false;
 
-	RemoveDefaultVendingMachines(playerid);
-
 	if (s_ForceClassSelection[playerid]) {
 		DebugMessage(playerid, "Being forced into class selection");
 		ForceClassSelection(playerid);
@@ -3179,7 +3177,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (hitid < 0 || hitid > MAX_VEHICLES || !WC_IsValidVehicle(hitid)) {
 			AddRejectedHit(playerid, damagedid, HIT_INVALID_VEHICLE, weaponid, hitid);
 			return 0;
-		} 
+		}
 
 		new vehicleid = GetPlayerVehicleID(playerid);
 
@@ -3396,6 +3394,8 @@ static ScriptInit()
 		s_InClassSelection[playerid] = true;
 		s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
 		s_AlreadyConnected[playerid] = true;
+
+		RemoveDefaultVendingMachines(playerid);
 
 		if (PLAYER_STATE_ONFOOT <= GetPlayerState(playerid) <= PLAYER_STATE_PASSENGER) {
 			GetPlayerHealth(playerid, s_PlayerHealth[playerid]);
@@ -3693,6 +3693,18 @@ static RemoveDefaultVendingMachines(playerid)
 	RemoveBuildingForPlayer(playerid, 1775, 0.0, 0.0, 0.0, 20000.0); // CJ_SPRUNK1
 	RemoveBuildingForPlayer(playerid, 1776, 0.0, 0.0, 0.0, 20000.0); // CJ_CANDYVENDOR
 	RemoveBuildingForPlayer(playerid, 1977, 0.0, 0.0, 0.0, 20000.0); // vendin3
+
+	// Make sure they're all gone..
+	for (new i = 0; i < sizeof(sc_VendingMachines); i++) {
+		RemoveBuildingForPlayer(
+			playerid,
+			sc_VendingMachines[i][e_Model],
+			sc_VendingMachines[i][e_PosX],
+			sc_VendingMachines[i][e_PosY],
+			sc_VendingMachines[i][e_PosZ],
+			1.0
+		);
+	}
 }
 
 static CreateVendingMachines()
