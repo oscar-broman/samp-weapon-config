@@ -2060,7 +2060,8 @@ public OnPlayerSpawn(playerid)
 	if (s_DeathSkip[playerid] == 2) {
 		DebugMessage(playerid, "Death skipped");
 		SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
-		GivePlayerWeapon(playerid, 1, 1);
+		GivePlayerWeapon(playerid, 0, 1);
+		SetPlayerArmedWeapon(playerid, 0);
 		ClearAnimations(playerid);
 		ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 1, 1);
 
@@ -2857,6 +2858,11 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 	}
 
 	if (playerid == INVALID_PLAYER_ID || IsPlayerNPC(playerid)) {
+		return 0;
+	}
+
+	// Carjack damage
+	if (weaponid == 54 && _:amount == _:0.0) {
 		return 0;
 	}
 
