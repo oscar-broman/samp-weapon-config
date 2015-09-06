@@ -211,6 +211,16 @@ enum E_SHOT_INFO {
 	 bool:e_Valid
 }
 
+enum E_HIT_INFO {
+	      e_Tick,
+	      e_Issuer,
+	      e_Weapon,
+	Float:e_Amount,
+	Float:e_Health,
+	Float:e_Armour,
+	      e_Bodypart
+}
+
 enum E_SPAWN_INFO {
 	      e_Skin,
 	      e_Team,
@@ -764,6 +774,8 @@ static bool:s_HealthBarVisible[MAX_PLAYERS];
 static bool:s_SpawnForStreamedIn[MAX_PLAYERS];
 static s_RespawnTime = 3000;
 static s_CustomFallDamage = false;
+static bool:s_CbugAllowed = true;
+static s_CbugFroze[MAX_PLAYERS];
 static s_DamageFeed = true;
 static s_DamageFeedHideDelay = 3000;
 static s_DamageFeedMaxUpdateRate = 250;
@@ -818,6 +830,11 @@ static bool:s_AlreadyConnected[MAX_PLAYERS];
 static s_DeathSkip[MAX_PLAYERS];
 static s_DeathSkipTick[MAX_PLAYERS];
 static s_LastVehicleTick[MAX_PLAYERS];
+static s_PreviousHits[MAX_PLAYERS][10][E_HIT_INFO];
+static s_PreviousHitI[MAX_PLAYERS];
+static Float:s_DamageDoneHealth[MAX_PLAYERS];
+static Float:s_DamageDoneArmour[MAX_PLAYERS];
+static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1004,6 +1021,16 @@ stock SetDamageSounds(taken, given)
 	s_DamageGivenSound = given;
 }
 
+stock SetCbugAllowed(bool:enabled)
+{
+	s_CbugAllowed = enabled;
+}
+
+stock bool:GetCbugAllowed()
+{
+	return s_CbugAllowed;
+}
+
 stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
 {
 	s_CustomFallDamage = toggle;
@@ -1077,6 +1104,14 @@ stock SetWeaponMaxRange(weaponid, Float:range)
 	s_WeaponRange[weaponid] = range;
 
 	return 1;
+}
+
+stock Float:GetLastDamageHealth(playerid) {
+	return s_DamageDoneHealth[playerid];
+}
+
+stock Float:GetLastDamageArmour(playerid) {
+	return s_DamageDoneArmour[playerid];
 }
 
 stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN)
@@ -1844,6 +1879,7 @@ public OnPlayerConnect(playerid)
 	s_PlayerArmour[playerid] = 0.0;
 	s_LastExplosive[playerid] = 0;
 	s_LastShotIdx[playerid] = 0;
+	s_LastShot[playerid][e_Tick] = 0;
 	s_LastHitIdx[playerid] = 0;
 	s_RejectedHitsIdx[playerid] = 0;
 	s_ShotsFired[playerid] = 0;
@@ -1876,6 +1912,14 @@ public OnPlayerConnect(playerid)
 	s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
 	s_DeathSkip[playerid] = 0;
 	s_LastVehicleTick[playerid] = 0;
+	s_PreviousHitI[playerid] = 0;
+	s_CbugFroze[playerid] = 0;
+	s_DeathTimer[playerid] = -1;
+	s_DelayedDeathTimer[playerid] = -1;
+
+	for (new i = 0; i < sizeof(s_PreviousHits[]); i++) {
+		s_PreviousHits[playerid][i][e_Tick] = 0;
+	}
 
 	for (new i = 0; i < sizeof(s_RejectedHits[]); i++) {
 		s_RejectedHits[playerid][i][e_Time] = 0;
@@ -1914,6 +1958,11 @@ public OnPlayerDisconnect(playerid, reason)
 			s_VendingUseTimer[playerid] = -1;
 		}
 	#endif
+
+	if (s_DelayedDeathTimer[playerid] != -1) {
+		KillTimer(s_DelayedDeathTimer[playerid]);
+		s_DelayedDeathTimer[playerid] = -1;
+	}
 
 	if (s_DeathTimer[playerid] != -1) {
 		KillTimer(s_DeathTimer[playerid]);
@@ -1960,6 +2009,18 @@ public OnPlayerDisconnect(playerid, reason)
 
 	for (new i = 0; i < sizeof(s_InternalPlayerTextDraw[]); i++) {
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
+	}
+
+	for (new i = 0; i < MAX_PLAYERS; i++) {
+		if (!IsPlayerConnected(i)) {
+			continue;
+		}
+
+		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
+			if (s_PreviousHits[i][j][e_Issuer] == playerid) {
+				s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
+			}
+		}
 	}
 
 	#if defined WC_OnPlayerDisconnect
@@ -2262,12 +2323,18 @@ public OnPlayerDeath(playerid, killerid, reason)
 		}
 
 		if (s_PlayerArmour[playerid] < 0.0) {
+			s_DamageDoneArmour[playerid] = amount + s_PlayerArmour[playerid];
+			s_DamageDoneHealth[playerid] = -s_PlayerArmour[playerid];
 			s_PlayerHealth[playerid] += s_PlayerArmour[playerid];
 			s_PlayerArmour[playerid] = 0.0;
+		} else {
+			s_DamageDoneArmour[playerid] = amount;
+			s_DamageDoneHealth[playerid] = 0.0;
 		}
 
 		if (s_PlayerHealth[playerid] <= 0.0) {
 			amount += s_PlayerHealth[playerid];
+			s_DamageDoneHealth[playerid] += s_PlayerHealth[playerid];
 			s_PlayerHealth[playerid] = 0.0;
 		}
 
@@ -2320,8 +2387,87 @@ public OnPlayerDeath(playerid, killerid, reason)
 	return 1;
 }
 
+static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2);
+
+forward WC_CbugPunishment(playerid, weapon);
+public WC_CbugPunishment(playerid, weapon) {
+	FreezeSyncData(playerid, false);
+	ClearAnimations(playerid, 1);
+	GivePlayerWeapon(playerid, weapon, 0);
+}
+
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
+	if (!s_CbugAllowed && !IsPlayerDying(playerid) && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
+		if (newkeys & KEY_CROUCH) {
+			new tick = GetTickCount();
+			new diff = tick - s_LastShot[playerid][e_Tick];
+
+			if (s_LastShot[playerid][e_Tick] && diff < 1200 && !s_CbugFroze[playerid]) {
+				PlayerPlaySound(playerid, 1055, 0.0, 0.0, 0.0);
+
+				if (s_LastShot[playerid][e_Valid] && floatabs(s_LastShot[playerid][e_HX]) > 1.0 && floatabs(s_LastShot[playerid][e_HY]) > 1.0) {
+					SetPlayerFacingAngle(playerid, AngleBetweenPoints(
+						s_LastShot[playerid][e_HX],
+						s_LastShot[playerid][e_HY],
+						s_LastShot[playerid][e_OX],
+						s_LastShot[playerid][e_OY]
+					));
+				}
+
+				new w, a;
+				GetPlayerWeaponData(playerid, 0, w, a);
+
+				ClearAnimations(playerid, 1);
+				ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 0, 1);
+				FreezeSyncData(playerid, true);
+				GivePlayerWeapon(playerid, w, 0);
+				SetTimerEx("WC_CbugPunishment", 600, false, "ii", playerid, GetPlayerWeapon(playerid));
+
+				s_CbugFroze[playerid] = tick;
+
+				for (new i = 0; i < MAX_PLAYERS; i++) {
+					if (!IsPlayerConnected(i) && !IsPlayerDying(i)) {
+						continue;
+					}
+
+					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
+						if (s_PreviousHits[i][j][e_Issuer] == playerid && tick - s_PreviousHits[i][j][e_Tick] <= 1200) {
+							s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
+
+							new Float:health = WC_GetPlayerHealth(i);
+							new Float:armour = WC_GetPlayerArmour(i);
+
+							if (s_IsDying[i]) {
+								if (s_DelayedDeathTimer[i] == -1) {
+									continue;
+								}
+
+								KillTimer(s_DelayedDeathTimer[i]);
+								s_DelayedDeathTimer[i] = -1;
+								ClearAnimations(i, 1);
+								SetFakeFacingAngle(i, _);
+								FreezeSyncData(i, false);
+
+								s_IsDying[i] = false;
+
+								if (s_DeathTimer[i] != -1) {
+									KillTimer(s_DeathTimer[i]);
+									s_DeathTimer[i] = -1;
+								}
+							}
+
+							health += s_PreviousHits[i][j][e_Health];
+							armour += s_PreviousHits[i][j][e_Armour];
+
+							WC_SetPlayerHealth(i, health, armour);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
 		#if WC_CUSTOM_VENDING_MACHINES
 			if (s_CustomVendingMachines
@@ -2714,6 +2860,9 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 				return 0;
 			}
 
+			s_DamageDoneHealth[playerid] = s_PlayerHealth[playerid];
+			s_DamageDoneArmour[playerid] = s_PlayerArmour[playerid];
+
 			OnPlayerDamageDone(damagedid, s_PlayerHealth[damagedid] + s_PlayerArmour[damagedid], playerid, weaponid, bodypart);
 
 			ClearAnimations(damagedid, 1);
@@ -2945,6 +3094,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			weaponid = WEAPON_KNIFE;
 			amount = 0.0;
 
+			s_DamageDoneHealth[playerid] = s_PlayerHealth[playerid];
+			s_DamageDoneArmour[playerid] = s_PlayerArmour[playerid];
+
 			OnPlayerDamageDone(playerid, s_PlayerHealth[playerid] + s_PlayerArmour[playerid], issuerid, weaponid, bodypart);
 
 			PlayerDeath(playerid, "KNIFE", "KILL_Knife_Ped_Die", _, 4000 - GetPlayerPing(playerid));
@@ -3050,6 +3202,12 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 
 	s_LastShot[playerid][e_Valid] = false;
 	s_LastShot[playerid][e_Hits] = false;
+
+	if (s_CbugFroze[playerid] && GetTickCount() - s_CbugFroze[playerid] < 900) {
+		return 0;
+	}
+
+	s_CbugFroze[playerid] = 0;
 
 	new damagedid = INVALID_PLAYER_ID;
 
@@ -3701,6 +3859,11 @@ static PosInFront(playerid, Float:distance, &Float:x, &Float:y, &Float:z)
 	y += (distance * floatcos(-a, degrees));
 }
 
+static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2)
+{
+	return -(90.0 - atan2(y1 - y2, x1 - x2));
+}
+
 static UpdateSyncData(playerid)
 {
 	// Currently re-sending onfoot data is only supported
@@ -3798,7 +3961,8 @@ static WasPlayerInVehicle(playerid, time) {
 #endif
 
 forward WC_DeathSkipEnd(playerid);
-public WC_DeathSkipEnd(playerid) {
+public WC_DeathSkipEnd(playerid)
+{
 	TogglePlayerControllable(playerid, true);
 
 	ResetPlayerWeapons(playerid);
@@ -4224,12 +4388,18 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 	}
 
 	if (s_PlayerArmour[playerid] < 0.0) {
+		s_DamageDoneArmour[playerid] = amount + s_PlayerArmour[playerid];
+		s_DamageDoneHealth[playerid] = -s_PlayerArmour[playerid];
 		s_PlayerHealth[playerid] += s_PlayerArmour[playerid];
 		s_PlayerArmour[playerid] = 0.0;
+	} else {
+		s_DamageDoneArmour[playerid] = amount;
+		s_DamageDoneHealth[playerid] = 0.0;
 	}
 
 	if (s_PlayerHealth[playerid] <= 0.0) {
 		amount += s_PlayerHealth[playerid];
+		s_DamageDoneHealth[playerid] += s_PlayerHealth[playerid];
 		s_PlayerHealth[playerid] = 0.0;
 	}
 
@@ -4314,11 +4484,22 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		}
 
 		#if defined WC_OnPlayerDeath
-			WC_OnPlayerDeath(playerid, issuerid, weaponid);
+			if (s_CbugAllowed) {
+				WC_OnPlayerDeath(playerid, issuerid, weaponid);
+			} else {
+				s_DelayedDeathTimer[playerid] = SetTimerEx(#WC_DelayedDeath, 1200, false, "iii", playerid, issuerid, weaponid);
+			}
 		#endif
 	}
 
 	UpdateHealthBar(playerid);
+}
+
+forward WC_DelayedDeath(playerid, issuerid, reason);
+public WC_DelayedDeath(playerid, issuerid, reason) {
+	s_DelayedDeathTimer[playerid] = -1;
+
+	WC_OnPlayerDeath(playerid, issuerid, reason);
 }
 
 static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
@@ -4803,11 +4984,6 @@ static ResyncPlayer(playerid)
 	SpawnPlayerInPlace(playerid);
 }
 
-static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2)
-{
-	return -(90.0 - atan2(y1 - y2, x1 - x2));
-}
-
 static MakePlayerFacePlayer(playerid, targetid, opposite = false, forcesync = true)
 {
 	new Float:x1, Float:y1, Float:z1;
@@ -4943,6 +5119,23 @@ public OnInvalidWeaponDamage(playerid, damagedid, Float:amount, weaponid, bodypa
 
 public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 {
+	new idx = s_PreviousHitI[playerid];
+
+	s_PreviousHitI[playerid] = (s_PreviousHitI[playerid] - 1) % sizeof(s_PreviousHits[]);
+
+	// JIT plugin fix
+	if (s_PreviousHitI[playerid] < 0) {
+		s_PreviousHitI[playerid] += sizeof(s_PreviousHits[]);
+	}
+
+	s_PreviousHits[playerid][idx][e_Tick] = GetTickCount();
+	s_PreviousHits[playerid][idx][e_Issuer] = issuerid;
+	s_PreviousHits[playerid][idx][e_Weapon] = weapon;
+	s_PreviousHits[playerid][idx][e_Amount] = amount;
+	s_PreviousHits[playerid][idx][e_Bodypart] = bodypart;
+	s_PreviousHits[playerid][idx][e_Health] = GetLastDamageHealth(playerid);
+	s_PreviousHits[playerid][idx][e_Armour] = GetLastDamageArmour(playerid);
+
 	if (!IsHighRateWeapon(weapon)) {
 		DebugMessageAll("OnPlayerDamageDone(%d did %f to %d with %d on bodypart %d)", issuerid, amount, playerid, weapon, bodypart);
 
