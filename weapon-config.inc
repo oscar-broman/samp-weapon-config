@@ -1108,28 +1108,54 @@ stock SetWeaponMaxRange(weaponid, Float:range)
 	return 1;
 }
 
-stock SetPlayerMaxHealth(playerid, Float:value) {
-	s_PlayerMaxHealth[playerid] = value;
+stock SetPlayerMaxHealth(playerid, Float:value)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		s_PlayerMaxHealth[playerid] = value;
+	}
 }
 
-stock SetPlayerMaxArmour(playerid, Float:value) {
-	s_PlayerMaxArmour[playerid] = value;
+stock SetPlayerMaxArmour(playerid, Float:value)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		s_PlayerMaxArmour[playerid] = value;
+	}
 }
 
-stock Float:GetPlayerMaxHealth(playerid) {
-	return s_PlayerMaxHealth[playerid];
+stock Float:GetPlayerMaxHealth(playerid)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		return s_PlayerMaxHealth[playerid];
+	}
+	
+	return 0.0;
 }
 
-stock Float:GetPlayerMaxArmour(playerid) {
-	return s_PlayerMaxArmour[playerid];
+stock Float:GetPlayerMaxArmour(playerid)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		return s_PlayerMaxArmour[playerid];
+	}
+	
+	return 0.0;
 }
 
-stock Float:GetLastDamageHealth(playerid) {
-	return s_DamageDoneHealth[playerid];
+stock Float:GetLastDamageHealth(playerid)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		return s_DamageDoneHealth[playerid];
+	}
+	
+	return 0.0;
 }
 
-stock Float:GetLastDamageArmour(playerid) {
-	return s_DamageDoneArmour[playerid];
+stock Float:GetLastDamageArmour(playerid)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		return s_DamageDoneArmour[playerid];
+	}
+	
+	return 0.0;
 }
 
 stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN)
