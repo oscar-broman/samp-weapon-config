@@ -763,7 +763,9 @@ static s_ShotsFired[MAX_PLAYERS];
 static s_HitsIssued[MAX_PLAYERS];
 static s_MaxShootRateSamples = 5;
 static s_MaxHitRateSamples = 5;
+static Float:s_PlayerMaxHealth[MAX_PLAYERS] = {100.0, ...};
 static Float:s_PlayerHealth[MAX_PLAYERS] = {100.0, ...};
+static Float:s_PlayerMaxArmour[MAX_PLAYERS] = {100.0, ...};
 static Float:s_PlayerArmour[MAX_PLAYERS] = {0.0, ...};
 static s_LastSentHealth[MAX_PLAYERS];
 static s_LastSentArmour[MAX_PLAYERS];
@@ -1106,6 +1108,22 @@ stock SetWeaponMaxRange(weaponid, Float:range)
 	return 1;
 }
 
+stock SetPlayerMaxHealth(playerid, Float:value) {
+	s_PlayerMaxHealth[playerid] = value;
+}
+
+stock SetPlayerMaxArmour(playerid, Float:value) {
+	s_PlayerMaxArmour[playerid] = value;
+}
+
+stock Float:GetPlayerMaxHealth(playerid) {
+	return s_PlayerMaxHealth[playerid];
+}
+
+stock Float:GetPlayerMaxArmour(playerid) {
+	return s_PlayerMaxArmour[playerid];
+}
+
 stock Float:GetLastDamageHealth(playerid) {
 	return s_DamageDoneHealth[playerid];
 }
@@ -1183,7 +1201,7 @@ stock WC_SpawnPlayer(playerid)
 	}
 
 	if (s_PlayerHealth[playerid] == 0.0) {
-		s_PlayerHealth[playerid] = 100.0;
+		s_PlayerHealth[playerid] = s_PlayerMaxHealth[playerid];
 	}
 
 	SpawnPlayer(playerid);
@@ -1226,9 +1244,15 @@ stock WC_SetPlayerHealth(playerid, Float:health, Float:armour = -1.0)
 		InflictDamage(playerid, 0.0);
 	} else {
 		if (armour != -1.0) {
+			if (armour > s_PlayerMaxArmour[playerid]) {
+				armour = s_PlayerMaxArmour[playerid];
+			}
 			s_PlayerArmour[playerid] = armour;
 		}
-		
+
+		if (health > s_PlayerMaxHealth[playerid]) {
+			health = s_PlayerMaxHealth[playerid];
+		}
 		s_PlayerHealth[playerid] = health;
 		UpdateHealthBar(playerid, true);
 	}
@@ -1255,6 +1279,9 @@ stock WC_SetPlayerArmour(playerid, Float:armour)
 		return 0;
 	}
 
+	if (armour > s_PlayerMaxArmour[playerid]) {
+		armour = s_PlayerMaxArmour[playerid];
+	}
 	s_PlayerArmour[playerid] = armour;
 	UpdateHealthBar(playerid, true);
 
@@ -1875,7 +1902,9 @@ public OnPlayerConnect(playerid)
 {
 	new tick = GetTickCount();
 
-	s_PlayerHealth[playerid] = 0.0;
+	s_PlayerMaxHealth[playerid] = 100.0;
+	s_PlayerHealth[playerid] = 100.0;
+	s_PlayerMaxArmour[playerid] = 100.0;
 	s_PlayerArmour[playerid] = 0.0;
 	s_LastExplosive[playerid] = 0;
 	s_LastShotIdx[playerid] = 0;
@@ -1884,8 +1913,6 @@ public OnPlayerConnect(playerid)
 	s_RejectedHitsIdx[playerid] = 0;
 	s_ShotsFired[playerid] = 0;
 	s_HitsIssued[playerid] = 0;
-	s_PlayerHealth[playerid] = 100.0;
-	s_PlayerArmour[playerid] = 0.0;
 	s_PlayerTeam[playerid] = NO_TEAM;
 	s_IsDying[playerid] = false;
 	s_BeingResynced[playerid] = false;
@@ -2125,7 +2152,7 @@ public OnPlayerSpawn(playerid)
 	}
 
 	if (s_PlayerHealth[playerid] == 0.0) {
-		s_PlayerHealth[playerid] = 100.0;
+		s_PlayerHealth[playerid] = s_PlayerMaxHealth[playerid];
 	}
 
 	UpdatePlayerVirtualWorld(playerid);
@@ -2477,7 +2504,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 			 && GetPlayerAnimationIndex(playerid) != 1660) {
 				new bool:failed = false;
 
-				if (GetPlayerMoney(playerid) <= 0 || s_PlayerHealth[playerid] >= 100.0) {
+				if (GetPlayerMoney(playerid) <= 0 || s_PlayerHealth[playerid] >= s_PlayerMaxHealth[playerid]) {
 					failed = true;
 				}
 
@@ -3598,7 +3625,7 @@ static ScriptInit()
 			GetPlayerArmour(playerid, s_PlayerArmour[playerid]);
 
 			if (s_PlayerHealth[playerid] == 0.0) {
-				s_PlayerHealth[playerid] = 100.0;
+				s_PlayerHealth[playerid] = s_PlayerMaxHealth[playerid];
 			}
 
 			UpdateHealthBar(playerid);
@@ -3646,7 +3673,7 @@ static ScriptExit()
 			new Float:health = s_PlayerHealth[playerid];
 
 			if (health == 0.0) {
-				health = 100.0;
+				health = s_PlayerMaxHealth[playerid];
 			}
 
 			SetPlayerHealth(playerid, health);
@@ -3726,8 +3753,8 @@ static UpdateHealthBar(playerid, bool:force = false)
 		return;
 	}
 
-	new health = floatround(s_PlayerHealth[playerid], floatround_ceil);
-	new armour = floatround(s_PlayerArmour[playerid], floatround_ceil);
+	new health = floatround(s_PlayerHealth[playerid] / s_PlayerMaxHealth[playerid] * 100.0, floatround_ceil);
+	new armour = floatround(s_PlayerArmour[playerid] / s_PlayerMaxArmour[playerid] * 100.0, floatround_ceil);
 	
 	// Make the values reflect what the client should see
 	if (s_IsDying[playerid]) {
@@ -4590,7 +4617,7 @@ public OnRejectedHit(playerid, hit[E_REJECTED_HIT])
 public OnPlayerDeathFinished(playerid, bool:cancelable)
 {
 	if (s_PlayerHealth[playerid] == 0.0) {
-		s_PlayerHealth[playerid] = 100.0;
+		s_PlayerHealth[playerid] = s_PlayerMaxHealth[playerid];
 	}
 
 	if (s_DeathTimer[playerid] != -1) {
@@ -4636,8 +4663,8 @@ public OnPlayerDeathFinished(playerid, bool:cancelable)
 
 			health += health_given;
 
-			if (health > 100.0) {
-				health = 100.0;
+			if (health > s_PlayerMaxHealth[playerid]) {
+				health = s_PlayerMaxHealth[playerid];
 			}
 
 			WC_SetPlayerHealth(playerid, health);
