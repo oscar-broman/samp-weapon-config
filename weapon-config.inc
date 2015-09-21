@@ -1075,7 +1075,7 @@ stock SetPlayerDamageFeed(playerid, bool: toggle)
 		DamageFeedUpdate(playerid);
 		return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -4733,7 +4733,7 @@ public WC_DamageFeedUpdate(playerid)
 
 static DamageFeedUpdate(playerid, bool:modified = false)
 {
-	if (!s_DamageFeed || !s_DamageFeedPlayer[playerid]) {
+	if (!s_DamageFeed || s_DamageFeed && !s_DamageFeedPlayer[playerid]) {
 		if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 			PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
 			s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
@@ -5236,7 +5236,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		}
 	}
 
-	if (s_DamageFeed || s_DamageFeedPlayer[playerid]) {
+	if (s_DamageFeed || !s_DamageFeed && s_DamageFeedPlayer[playerid]) {
 		if (issuerid != INVALID_PLAYER_ID) {
 			DamageFeedAddHitGiven(issuerid, playerid, amount, weapon);
 		}
