@@ -779,6 +779,7 @@ static s_CustomFallDamage = false;
 static bool:s_CbugAllowed = true;
 static s_CbugFroze[MAX_PLAYERS];
 static s_DamageFeed = true;
+static s_DamageFeedPlayer[MAX_PLAYERS] = true;
 static s_DamageFeedHideDelay = 3000;
 static s_DamageFeedMaxUpdateRate = 250;
 static s_VehiclePassengerDamage = false;
@@ -1066,6 +1067,28 @@ stock SetVehicleUnoccupiedDamage(bool:toggle)
 	s_VehicleUnoccupiedDamage = toggle;
 }
 
+stock SetPlayerDamageFeed(playerid, bool: toggle)
+{
+	if(IsPlayerConnected(playerid))
+	{
+	    s_DamageFeedPlayer[playerid] = toggle;
+		DamageFeedUpdate(playerid);
+		return 1;
+	}
+
+	return 0;
+}
+
+stock IsPlayerDamageFeedActive(playerid)
+{
+	return s_DamageFeedPlayer[playerid];
+}
+
+stock IsDamageFeedActive()
+{
+	return s_DamageFeed;
+}
+
 stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
@@ -1127,7 +1150,7 @@ stock Float:GetPlayerMaxHealth(playerid)
 	if (0 <= playerid < MAX_PLAYERS) {
 		return s_PlayerMaxHealth[playerid];
 	}
-	
+
 	return 0.0;
 }
 
@@ -1136,7 +1159,7 @@ stock Float:GetPlayerMaxArmour(playerid)
 	if (0 <= playerid < MAX_PLAYERS) {
 		return s_PlayerMaxArmour[playerid];
 	}
-	
+
 	return 0.0;
 }
 
@@ -1145,7 +1168,7 @@ stock Float:GetLastDamageHealth(playerid)
 	if (0 <= playerid < MAX_PLAYERS) {
 		return s_DamageDoneHealth[playerid];
 	}
-	
+
 	return 0.0;
 }
 
@@ -1154,7 +1177,7 @@ stock Float:GetLastDamageArmour(playerid)
 	if (0 <= playerid < MAX_PLAYERS) {
 		return s_DamageDoneArmour[playerid];
 	}
-	
+
 	return 0.0;
 }
 
@@ -3781,7 +3804,7 @@ static UpdateHealthBar(playerid, bool:force = false)
 
 	new health = floatround(s_PlayerHealth[playerid] / s_PlayerMaxHealth[playerid] * 100.0, floatround_ceil);
 	new armour = floatround(s_PlayerArmour[playerid] / s_PlayerMaxArmour[playerid] * 100.0, floatround_ceil);
-	
+
 	// Make the values reflect what the client should see
 	if (s_IsDying[playerid]) {
 		health = 0;
@@ -4710,7 +4733,7 @@ public WC_DamageFeedUpdate(playerid)
 
 static DamageFeedUpdate(playerid, bool:modified = false)
 {
-	if (!s_DamageFeed) {
+	if (!s_DamageFeed || s_DamageFeed && !s_DamageFeedPlayer[playerid]) {
 		if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 			PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
 			s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
@@ -5213,7 +5236,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		}
 	}
 
-	if (s_DamageFeed) {
+	if (s_DamageFeed || !s_DamageFeed && s_DamageFeedPlayer[playerid]) {
 		if (issuerid != INVALID_PLAYER_ID) {
 			DamageFeedAddHitGiven(issuerid, playerid, amount, weapon);
 		}
