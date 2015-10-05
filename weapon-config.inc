@@ -779,7 +779,7 @@ static s_CustomFallDamage = false;
 static bool:s_CbugAllowed = true;
 static s_CbugFroze[MAX_PLAYERS];
 static s_DamageFeed = true;
-static s_DamageFeedPlayer[MAX_PLAYERS] = true;
+static s_DamageFeedPlayer[MAX_PLAYERS] = {-1, ...};
 static s_DamageFeedHideDelay = 3000;
 static s_DamageFeedMaxUpdateRate = 250;
 static s_VehiclePassengerDamage = false;
@@ -1067,11 +1067,11 @@ stock SetVehicleUnoccupiedDamage(bool:toggle)
 	s_VehicleUnoccupiedDamage = toggle;
 }
 
-stock SetPlayerDamageFeed(playerid, bool: toggle)
+stock SetDamageFeedForPlayer(playerid, toggle = -1)
 {
-	if(IsPlayerConnected(playerid))
+	if (IsPlayerConnected(playerid))
 	{
-	    s_DamageFeedPlayer[playerid] = toggle;
+		s_DamageFeedPlayer[playerid] = toggle;
 		DamageFeedUpdate(playerid);
 		return 1;
 	}
@@ -1079,13 +1079,12 @@ stock SetPlayerDamageFeed(playerid, bool: toggle)
 	return 0;
 }
 
-stock IsPlayerDamageFeedActive(playerid)
+stock IsDamageFeedActive(playerid = -1)
 {
-	return s_DamageFeedPlayer[playerid];
-}
+	if (playerid != -1) {
+		return s_DamageFeedPlayer[playerid] == 1 || s_DamageFeed && s_DamageFeedPlayer[playerid] != 0;
+	}
 
-stock IsDamageFeedActive()
-{
 	return s_DamageFeed;
 }
 
@@ -1184,11 +1183,11 @@ stock Float:GetLastDamageArmour(playerid)
 stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN)
 {
 	if (playerid < 0 || playerid > MAX_PLAYERS || !IsPlayerConnected(playerid)) {
-		return;
+		return 0;
 	}
 
 	if (amount < 0.0) {
-		return;
+		return 0;
 	}
 
 	if (weaponid < 0 || weaponid > 55) {
@@ -1200,6 +1199,8 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponi
 	}
 
 	InflictDamage(playerid, amount, issuerid, weaponid, bodypart);
+
+	return 1;
 }
 
 stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
@@ -1237,6 +1238,15 @@ stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 	format(output, maxlength, output, i1, i2, i3);
 
 	return 1;
+}
+
+stock ResyncPlayer(playerid)
+{
+	SaveSyncData(playerid);
+
+	s_BeingResynced[playerid] = true;
+
+	SpawnPlayerInPlace(playerid);
 }
 
 /*
@@ -1992,6 +2002,7 @@ public OnPlayerConnect(playerid)
 	s_CbugFroze[playerid] = 0;
 	s_DeathTimer[playerid] = -1;
 	s_DelayedDeathTimer[playerid] = -1;
+	s_DamageFeedPlayer[playerid] = -1;
 
 	for (new i = 0; i < sizeof(s_PreviousHits[]); i++) {
 		s_PreviousHits[playerid][i][e_Tick] = 0;
@@ -3297,7 +3308,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		damagedid = hitid;
 	}
 
-	if (hittype < 0 || hittype > 4) {
+	if (hittype < 0 || hittype > 5) {
 		AddRejectedHit(playerid, damagedid, HIT_INVALID_HITTYPE, weaponid, hittype);
 
 		return 0;
@@ -4450,15 +4461,15 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 	#endif
 
 	if (weaponid == WEAPON_COLLISION || weaponid == WEAPON_DROWN || weaponid == WEAPON_CARPARK) {
-	    if (amount <= 0.0) {
-	   		amount = s_PlayerHealth[playerid];
-	   	}
+		if (amount <= 0.0) {
+			amount = s_PlayerHealth[playerid];
+		}
 
 		s_PlayerHealth[playerid] -= amount;
 	} else {
-	    if (amount <= 0.0) {
-	   		amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
-	   	}
+		if (amount <= 0.0) {
+			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
+		}
 
 		s_PlayerArmour[playerid] -= amount;
 	}
@@ -4726,14 +4737,14 @@ public WC_DamageFeedUpdate(playerid)
 {
 	s_DamageFeedTimer[playerid] = -1;
 
-	if (s_DamageFeed && IsPlayerConnected(playerid)) {
+	if (IsPlayerConnected(playerid) && IsDamageFeedActive(playerid)) {
 		DamageFeedUpdate(playerid, true);
 	}
 }
 
 static DamageFeedUpdate(playerid, bool:modified = false)
 {
-	if (!s_DamageFeed || s_DamageFeed && !s_DamageFeedPlayer[playerid]) {
+	if (!IsDamageFeedActive(playerid)) {
 		if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 			PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
 			s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
@@ -4978,6 +4989,10 @@ static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 
 static DamageFeedAddHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], playerid, issuerid, Float:amount, weapon)
 {
+	if (!IsDamageFeedActive(playerid)) {
+		return;
+	}
+
 	new tick = GetTickCount();
 	if (tick == 0) tick = 1;
 	new idx = -1;
@@ -5049,15 +5064,6 @@ static SaveSyncData(playerid)
 	for (new i = 0; i < 13; i++) {
 		GetPlayerWeaponData(playerid, i, s_SyncData[playerid][e_WeaponId][i], s_SyncData[playerid][e_WeaponAmmo][i]);
 	}
-}
-
-static ResyncPlayer(playerid)
-{
-	SaveSyncData(playerid);
-
-	s_BeingResynced[playerid] = true;
-
-	SpawnPlayerInPlace(playerid);
 }
 
 static MakePlayerFacePlayer(playerid, targetid, opposite = false, forcesync = true)
@@ -5236,13 +5242,11 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		}
 	}
 
-	if (s_DamageFeed || !s_DamageFeed && s_DamageFeedPlayer[playerid]) {
-		if (issuerid != INVALID_PLAYER_ID) {
-			DamageFeedAddHitGiven(issuerid, playerid, amount, weapon);
-		}
-
-		DamageFeedAddHitTaken(playerid, issuerid, amount, weapon);
+	if (issuerid != INVALID_PLAYER_ID) {
+		DamageFeedAddHitGiven(issuerid, playerid, amount, weapon);
 	}
+
+	DamageFeedAddHitTaken(playerid, issuerid, amount, weapon);
 
 	#if defined WC_OnPlayerDamageDone
 		WC_OnPlayerDamageDone(playerid, amount, issuerid, weapon, bodypart);
@@ -5648,9 +5652,9 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 
 
 #if defined _ALS_AddPlayerClass
-    #undef AddPlayerClass
+	#undef AddPlayerClass
 #else
-    #define _ALS_AddPlayerClass
+	#define _ALS_AddPlayerClass
 #endif
 #define AddPlayerClass WC_AddPlayerClass
 
