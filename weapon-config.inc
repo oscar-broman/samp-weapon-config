@@ -824,7 +824,7 @@ static s_LastVehicleEnterTime[MAX_PLAYERS];
 static s_TrueDeath[MAX_PLAYERS];
 static s_InClassSelection[MAX_PLAYERS];
 static s_ForceClassSelection[MAX_PLAYERS];
-static s_ClassSpawnInfo[300][E_SPAWN_INFO];
+static s_ClassSpawnInfo[311][E_SPAWN_INFO];
 static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
@@ -838,6 +838,8 @@ static s_PreviousHitI[MAX_PLAYERS];
 static Float:s_DamageDoneHealth[MAX_PLAYERS];
 static Float:s_DamageDoneArmour[MAX_PLAYERS];
 static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
+static bool:s_Vehicle_Alive[MAX_VEHICLES] = true;
+static s_Vehicle_Respawn_Timer[MAX_VEHICLES] = -1;
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1605,6 +1607,10 @@ stock WC_DestroyVehicle(vehicleid)
 {
 	if (0 < vehicleid < MAX_VEHICLES) {
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
+		if(s_Vehicle_Respawn_Timer[vehicleid] != -1) {
+			KillTimer(s_Vehicle_Respawn_Timer[vehicleid]);
+			s_Vehicle_Respawn_Timer[vehicleid] = -1;
+		}
 	}
 
 	return DestroyVehicle(vehicleid);
@@ -3526,18 +3532,20 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
+				if(health >= 249.0) { //vehicles start on fire at 250 or under so theres no need to check once the vehicle is at or below 250
+					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
+						health -= 120.0;
+					} else {
+						health -= s_WeaponDamage[weaponid] * 3.0;
+					}
 
-				if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
-					health -= 120.0;
-				} else {
-					health -= s_WeaponDamage[weaponid] * 3.0;
+					if (health <= 249.0) {
+						health = 249.0;
+						s_Vehicle_Respawn_Timer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid,playerid);
+					}
+
+					SetVehicleHealth(hitid, health);
 				}
-
-				if (health <= 0.0) {
-					health = 0.0;
-				}
-
-				SetVehicleHealth(hitid, health);
 			}
 		}
 	}
@@ -3561,6 +3569,56 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 
 	return retval;
 }
+
+forward WC_KillVehicle(vehicleid,killerid);
+public WC_KillVehicle(vehicleid,killerid)
+{
+	OnVehicleDeath(vehicleid, killerid);
+	s_Vehicle_Respawn_Timer[vehicleid] = SetTimerEx("WC_OnDeadVehicleSpawn", 10000, false, "ii", vehicleid);
+	return 1;
+}
+
+
+forward WC_OnDeadVehicleSpawn(vehicleid);
+public WC_OnDeadVehicleSpawn(vehicleid)
+{
+	s_Vehicle_Respawn_Timer[vehicleid] = -1;
+	return SetVehicleToRespawn(vehicleid);
+}
+
+
+
+public OnVehicleSpawn(vehicleid)
+{
+	if(s_Vehicle_Respawn_Timer[vehicleid] != -1) {
+		KillTimer(s_Vehicle_Respawn_Timer[vehicleid]);
+		s_Vehicle_Respawn_Timer[vehicleid] = -1;
+	}
+	if(!s_Vehicle_Alive[vehicleid]) {
+		s_Vehicle_Alive[vehicleid] = true;
+		#if defined WC_OnVehicleSpawn
+			return WC_OnVehicleSpawn(vehicleid);
+		#else
+			return 1;
+		#endif
+	}
+	return 1;
+}
+
+
+public OnVehicleDeath(vehicleid, killerid)
+{
+	if(s_Vehicle_Alive[vehicleid]) { //Checks if the vehicle is alive
+		s_Vehicle_Alive[vehicleid] = false;
+		#if defined OnVehicleDeath
+			return WC_OnVehicleDeath(vehicleid, killerid);
+		#else
+			return 1;
+		#endif
+	}
+	return 1;
+}
+
 
 public OnPlayerEnterCheckpoint(playerid)
 {
@@ -5341,6 +5399,26 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 	forward WC_OnPlayerStreamIn(playerid, forplayerid);
 #endif
 
+#if defined _ALS_OnVehicleDeath
+	#undef OnVehicleDeath
+#else
+	#define _ALS_OnVehicleDeath
+#endif
+#define OnVehicleDeath WC_OnVehicleDeath
+#if defined WC_OnVehicleDeath
+	forward WC_OnVehicleDeath(vehicleid, killerid);
+#endif
+
+
+#if defined _ALS_OnVehicleSpawn
+	#undef OnVehicleSpawn
+#else
+	#define _ALS_OnVehicleSpawn
+#endif
+#define OnVehicleSpawn WC_OnVehicleSpawn
+#if defined WC_OnVehicleSpawn
+	forward WC_OnVehicleSpawn(vehicleid);
+#endif
 
 #if defined _ALS_OnPlayerEnterVehicle
 	#undef OnPlayerEnterVehicle
