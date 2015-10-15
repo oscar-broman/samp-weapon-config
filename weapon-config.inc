@@ -1607,7 +1607,7 @@ stock WC_DestroyVehicle(vehicleid)
 {
 	if (0 < vehicleid < MAX_VEHICLES) {
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
-		if(s_Vehicle_Respawn_Timer[vehicleid] != -1) {
+		if (s_Vehicle_Respawn_Timer[vehicleid] != -1) {
 			KillTimer(s_Vehicle_Respawn_Timer[vehicleid]);
 			s_Vehicle_Respawn_Timer[vehicleid] = -1;
 		}
