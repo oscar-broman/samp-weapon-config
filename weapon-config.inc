@@ -824,7 +824,7 @@ static s_LastVehicleEnterTime[MAX_PLAYERS];
 static s_TrueDeath[MAX_PLAYERS];
 static s_InClassSelection[MAX_PLAYERS];
 static s_ForceClassSelection[MAX_PLAYERS];
-static s_ClassSpawnInfo[311][E_SPAWN_INFO];
+static s_ClassSpawnInfo[319][E_SPAWN_INFO];
 static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
@@ -838,8 +838,8 @@ static s_PreviousHitI[MAX_PLAYERS];
 static Float:s_DamageDoneHealth[MAX_PLAYERS];
 static Float:s_DamageDoneArmour[MAX_PLAYERS];
 static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
-static bool:s_Vehicle_Alive[MAX_VEHICLES] = true;
-static s_Vehicle_Respawn_Timer[MAX_VEHICLES] = -1;
+static bool:s_Vehicle_Alive[MAX_VEHICLES] = {true, ...};
+static s_Vehicle_Respawn_Timer[MAX_VEHICLES] = {-1, ...};
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -3532,7 +3532,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
-				if(health >= 249.0) { //vehicles start on fire at 250 or under so theres no need to check once the vehicle is at or below 250
+				if(health >= 249.0) { //vehicles start on fire at 249 or under so theres no need to check once the vehicle is at or below 250
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
 					} else {
@@ -3590,11 +3590,11 @@ public WC_OnDeadVehicleSpawn(vehicleid)
 
 public OnVehicleSpawn(vehicleid)
 {
-	if(s_Vehicle_Respawn_Timer[vehicleid] != -1) {
+	if (s_Vehicle_Respawn_Timer[vehicleid] != -1) {
 		KillTimer(s_Vehicle_Respawn_Timer[vehicleid]);
 		s_Vehicle_Respawn_Timer[vehicleid] = -1;
 	}
-	if(!s_Vehicle_Alive[vehicleid]) {
+	if (!s_Vehicle_Alive[vehicleid]) {
 		s_Vehicle_Alive[vehicleid] = true;
 		#if defined WC_OnVehicleSpawn
 			return WC_OnVehicleSpawn(vehicleid);
