@@ -824,7 +824,7 @@ static s_LastVehicleEnterTime[MAX_PLAYERS];
 static s_TrueDeath[MAX_PLAYERS];
 static s_InClassSelection[MAX_PLAYERS];
 static s_ForceClassSelection[MAX_PLAYERS];
-static s_ClassSpawnInfo[319][E_SPAWN_INFO];
+static s_ClassSpawnInfo[320][E_SPAWN_INFO];
 static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
