@@ -1182,7 +1182,7 @@ stock Float:GetLastDamageArmour(playerid)
 	return 0.0;
 }
 
-stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN)
+stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
 	if (playerid < 0 || playerid > MAX_PLAYERS || !IsPlayerConnected(playerid)) {
 		return 0;
@@ -1200,7 +1200,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponi
 		issuerid = INVALID_PLAYER_ID;
 	}
 
-	InflictDamage(playerid, amount, issuerid, weaponid, bodypart);
+	InflictDamage(playerid, amount, issuerid, weaponid, bodypart, bool:ignore_armour);
 
 	return 1;
 }
@@ -4470,7 +4470,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 	return WC_NO_ERROR;
 }
 
-static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN)
+static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
 	if (!IsPlayerSpawned(playerid) || amount < 0.0) {
 		return;
@@ -4518,7 +4518,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		}
 	#endif
 
-	if (weaponid == WEAPON_COLLISION || weaponid == WEAPON_DROWN || weaponid == WEAPON_CARPARK) {
+	if (weaponid == WEAPON_COLLISION || weaponid == WEAPON_DROWN || weaponid == WEAPON_CARPARK || bool:ignore_armour) {
 		if (amount <= 0.0) {
 			amount = s_PlayerHealth[playerid];
 		}
