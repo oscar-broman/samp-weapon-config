@@ -1200,7 +1200,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponi
 		issuerid = INVALID_PLAYER_ID;
 	}
 
-	InflictDamage(playerid, amount, issuerid, weaponid, bodypart, bool:ignore_armour);
+	InflictDamage(playerid, amount, issuerid, weaponid, bodypart, ignore_armour);
 
 	return 1;
 }
@@ -4518,7 +4518,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		}
 	#endif
 
-	if (weaponid == WEAPON_COLLISION || weaponid == WEAPON_DROWN || weaponid == WEAPON_CARPARK || bool:ignore_armour) {
+	if (weaponid == WEAPON_COLLISION || weaponid == WEAPON_DROWN || weaponid == WEAPON_CARPARK || ignore_armour) {
 		if (amount <= 0.0) {
 			amount = s_PlayerHealth[playerid];
 		}
