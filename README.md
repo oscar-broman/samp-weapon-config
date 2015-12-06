@@ -195,9 +195,10 @@ AverageHitRate(playerid, hits, &multiple_weapons = 0);
 Same as above, but for hits inflicted with `OnPlayerGiveDamage`
 
 ```pawn
-DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN);
+DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false);
 ```
 Inflict a hit on a player. All callbacks except `OnPlayerWeaponShot` will be called.
+* `ignore_armour` - When `true` will do damage straight to health, and not armour.
 
 ```pawn
 Float:GetPlayerHealth(playerid, &Float:health = 0.0);
