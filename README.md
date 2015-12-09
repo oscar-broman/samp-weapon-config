@@ -331,3 +331,18 @@ SetWeaponShootRate(weaponid, max_rate);
 ```
 Set the max allowed shoot rate of a weapon.
 Could be used to prevent C-bug damage or allow infinite shooting if a script uses GivePlayerWeapon to do so.
+
+```pawn
+SetCustomArmourRules(bool:armour_rules, bool:torso_rules);
+```
+Toggle the custom armour rules on and off. Both are disabled by default.
+* `armour_rules` - Toggle all of the rules. When off, nothing is affected. Armour is affected as it normally would. When on, weapons can be set to either damage armour before health or just take health and never damage armour.
+* `torso_rules` - Toggle all torso-only rules. When off, all weapons will have effects no matter which bodypart is 'hit'. When on, weapons with the `torso_only` rule (of `SetWeaponArmourRule`) on will only damage armour when the torso is 'hit' (and when it's off, armour is damaged no matter which body part is 'hit').
+
+```pawn
+SetWeaponArmourRule(weaponid, bool:affects_armour, bool:torso_only);
+```
+Set custom rules for a weapon. The defaults aren't going to comfort EVERYONE, so everyone needs the ability to modify the weapons themselves.
+* `weaponid` - The ID of the weapon to modify the rules of.
+* `affects_armour` - Whether this weapon will distribute damage over armour and health or just damage health directly.
+* `torso_only` - Whether this weapon will only damage armour when the 'hit' bodypart is the torso or all bodyparts. Only works when `torso_rules` are enabled using `SetCustomArmourRules`.
