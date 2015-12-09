@@ -1080,7 +1080,7 @@ stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 	return 0;
 }
 
-stock SetArmourRules(bool:armour_rules, bool:torso_rules = false)
+stock SetCustomArmourRules(bool:armour_rules, bool:torso_rules = false)
 {
 	s_DamageArmourToggle[0] = armour_rules;
 	s_DamageArmourToggle[1] = torso_rules;
