@@ -898,8 +898,8 @@ static s_PreviousHitI[MAX_PLAYERS];
 static Float:s_DamageDoneHealth[MAX_PLAYERS];
 static Float:s_DamageDoneArmour[MAX_PLAYERS];
 static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
-static bool:s_Vehicle_Alive[MAX_VEHICLES] = {true, ...};
-static s_Vehicle_Respawn_Timer[MAX_VEHICLES] = {-1, ...};
+static bool:s_VehicleAlive[MAX_VEHICLES] = {true, ...};
+static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1685,9 +1685,9 @@ stock WC_DestroyVehicle(vehicleid)
 {
 	if (0 < vehicleid < MAX_VEHICLES) {
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
-		if (s_Vehicle_Respawn_Timer[vehicleid] != -1) {
-			KillTimer(s_Vehicle_Respawn_Timer[vehicleid]);
-			s_Vehicle_Respawn_Timer[vehicleid] = -1;
+		if (s_VehicleRespawnTimer[vehicleid] != -1) {
+			KillTimer(s_VehicleRespawnTimer[vehicleid]);
+			s_VehicleRespawnTimer[vehicleid] = -1;
 		}
 	}
 
@@ -3610,7 +3610,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
-				if(health >= 249.0) { //vehicles start on fire at 249 or under so theres no need to check once the vehicle is at or below 250
+				if (health >= 249.0) { //vehicles start on fire at 249 or under so theres no need to check once the vehicle is at or below 250
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
 					} else {
@@ -3619,7 +3619,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 
 					if (health <= 249.0) {
 						health = 249.0;
-						s_Vehicle_Respawn_Timer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid,playerid);
+						s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid,playerid);
 					}
 
 					SetVehicleHealth(hitid, health);
@@ -3652,7 +3652,7 @@ forward WC_KillVehicle(vehicleid,killerid);
 public WC_KillVehicle(vehicleid,killerid)
 {
 	OnVehicleDeath(vehicleid, killerid);
-	s_Vehicle_Respawn_Timer[vehicleid] = SetTimerEx("WC_OnDeadVehicleSpawn", 10000, false, "ii", vehicleid);
+	s_VehicleRespawnTimer[vehicleid] = SetTimerEx("WC_OnDeadVehicleSpawn", 10000, false, "ii", vehicleid);
 	return 1;
 }
 
@@ -3660,7 +3660,7 @@ public WC_KillVehicle(vehicleid,killerid)
 forward WC_OnDeadVehicleSpawn(vehicleid);
 public WC_OnDeadVehicleSpawn(vehicleid)
 {
-	s_Vehicle_Respawn_Timer[vehicleid] = -1;
+	s_VehicleRespawnTimer[vehicleid] = -1;
 	return SetVehicleToRespawn(vehicleid);
 }
 
@@ -3668,12 +3668,14 @@ public WC_OnDeadVehicleSpawn(vehicleid)
 
 public OnVehicleSpawn(vehicleid)
 {
-	if (s_Vehicle_Respawn_Timer[vehicleid] != -1) {
-		KillTimer(s_Vehicle_Respawn_Timer[vehicleid]);
-		s_Vehicle_Respawn_Timer[vehicleid] = -1;
+	if (s_VehicleRespawnTimer[vehicleid] != -1) {
+		KillTimer(s_VehicleRespawnTimer[vehicleid]);
+		s_VehicleRespawnTimer[vehicleid] = -1;
 	}
-	if (!s_Vehicle_Alive[vehicleid]) {
-		s_Vehicle_Alive[vehicleid] = true;
+
+	if (!s_VehicleAlive[vehicleid]) {
+		s_VehicleAlive[vehicleid] = true;
+
 		#if defined WC_OnVehicleSpawn
 			return WC_OnVehicleSpawn(vehicleid);
 		#else
@@ -3686,9 +3688,10 @@ public OnVehicleSpawn(vehicleid)
 
 public OnVehicleDeath(vehicleid, killerid)
 {
-	if(s_Vehicle_Alive[vehicleid]) { //Checks if the vehicle is alive
-		s_Vehicle_Alive[vehicleid] = false;
-		#if defined OnVehicleDeath
+	if (s_VehicleAlive[vehicleid]) {
+		s_VehicleAlive[vehicleid] = false;
+
+		#if defined WC_OnVehicleDeath
 			return WC_OnVehicleDeath(vehicleid, killerid);
 		#else
 			return 1;
@@ -4595,7 +4598,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 			DebugMessageAll("InflictDamage(%d, %.4f, %d, %d, %d) length = %f", playerid, amount, issuerid, weaponid, bodypart, length);
 		}
 	#endif
-	
+
 	if (!ignore_armour && weaponid != WEAPON_COLLISION && weaponid != WEAPON_DROWN && weaponid != WEAPON_CARPARK && (!s_DamageArmourToggle[0] || (s_DamageArmour[weaponid][0] && (!s_DamageArmourToggle[1] || ((s_DamageArmour[weaponid][1] && bodypart == 3) || (!s_DamageArmour[weaponid][1])))))) {
 		if (amount <= 0.0) {
 			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
