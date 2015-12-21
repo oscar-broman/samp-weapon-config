@@ -898,7 +898,7 @@ static s_PreviousHitI[MAX_PLAYERS];
 static Float:s_DamageDoneHealth[MAX_PLAYERS];
 static Float:s_DamageDoneArmour[MAX_PLAYERS];
 static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
-static bool:s_VehicleAlive[MAX_VEHICLES] = {true, ...};
+static bool:s_VehicleAlive[MAX_VEHICLES] = {false, ...};
 static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
@@ -1685,6 +1685,7 @@ stock WC_DestroyVehicle(vehicleid)
 {
 	if (0 < vehicleid < MAX_VEHICLES) {
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
+		s_VehicleAlive[vehicleid] = false;
 		if (s_VehicleRespawnTimer[vehicleid] != -1) {
 			KillTimer(s_VehicleRespawnTimer[vehicleid]);
 			s_VehicleRespawnTimer[vehicleid] = -1;
@@ -1692,6 +1693,38 @@ stock WC_DestroyVehicle(vehicleid)
 	}
 
 	return DestroyVehicle(vehicleid);
+}
+
+stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay)
+{
+	new id = CreateVehicle(modelid, x, y, z, angle, color1, color2, respawn_delay);
+	if (id != INVALID_VEHICLE_ID) {
+		s_VehicleAlive[id] = true;
+		return id;
+	}
+	return INVALID_VEHICLE_ID;
+}
+
+
+stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2)
+{
+	new id = AddStaticVehicle(modelid, x, y, z, angle, color1, color2);
+	if (id != INVALID_VEHICLE_ID) {
+		s_VehicleAlive[id] = true;
+		return id;
+	}
+	return INVALID_VEHICLE_ID;
+}
+
+
+stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay,addsiren=0)
+{
+	new id = AddStaticVehicleEx(modelid, x, y, z, angle, color1, color2, respawn_delay,addsiren);
+	if (id != INVALID_VEHICLE_ID) {
+		s_VehicleAlive[id] = true;
+		return id;
+	}
+	return INVALID_VEHICLE_ID;
 }
 
 stock WC_IsPlayerInCheckpoint(playerid)
@@ -3618,8 +3651,10 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 					}
 
 					if (health <= 249.0) {
-						health = 249.0;
-						s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid,playerid);
+						if (s_VehicleRespawnTimer[hitid] == -1) {
+							health = 249.0;
+							s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid,playerid);
+						}
 					}
 
 					SetVehicleHealth(hitid, health);
@@ -3652,7 +3687,7 @@ forward WC_KillVehicle(vehicleid,killerid);
 public WC_KillVehicle(vehicleid,killerid)
 {
 	OnVehicleDeath(vehicleid, killerid);
-	s_VehicleRespawnTimer[vehicleid] = SetTimerEx("WC_OnDeadVehicleSpawn", 10000, false, "ii", vehicleid);
+	s_VehicleRespawnTimer[vehicleid] = SetTimerEx("WC_OnDeadVehicleSpawn", 10000, false, "i", vehicleid);
 	return 1;
 }
 
@@ -3673,21 +3708,23 @@ public OnVehicleSpawn(vehicleid)
 		s_VehicleRespawnTimer[vehicleid] = -1;
 	}
 
-	if (!s_VehicleAlive[vehicleid]) {
-		s_VehicleAlive[vehicleid] = true;
+	s_VehicleAlive[vehicleid] = true;
 
-		#if defined WC_OnVehicleSpawn
-			return WC_OnVehicleSpawn(vehicleid);
-		#else
-			return 1;
-		#endif
-	}
-	return 1;
+
+	#if defined WC_OnVehicleSpawn
+		return WC_OnVehicleSpawn(vehicleid);
+	#else
+		return 1;
+	#endif
 }
 
 
 public OnVehicleDeath(vehicleid, killerid)
 {
+	if (s_VehicleRespawnTimer[vehicleid] != -1) {
+		KillTimer(s_VehicleRespawnTimer[vehicleid]);
+		s_VehicleRespawnTimer[vehicleid] = -1;
+	}
 	if (s_VehicleAlive[vehicleid]) {
 		s_VehicleAlive[vehicleid] = false;
 
@@ -5905,6 +5942,28 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 #endif
 #define DestroyVehicle WC_DestroyVehicle
 
+#if defined _ALS_CreateVehicle
+	#undef CreateVehicle
+#else
+	#define _ALS_CreateVehicle
+#endif
+#define CreateVehicle WC_CreateVehicle
+
+
+#if defined _ALS_AddStaticVehicle
+	#undef AddStaticVehicle
+#else
+	#define _ALS_AddStaticVehicle
+#endif
+#define AddStaticVehicle WC_AddStaticVehicle
+
+
+#if defined _ALS_AddStaticVehicleEx
+	#undef AddStaticVehicleEx
+#else
+	#define _ALS_AddStaticVehicleEx
+#endif
+#define AddStaticVehicleEx WC_AddStaticVehicleEx
 
 #if defined _ALS_IsPlayerInCheckpoint
 	#undef IsPlayerInCheckpoint
