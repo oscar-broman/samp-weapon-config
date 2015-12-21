@@ -636,6 +636,65 @@ static s_MaxWeaponShootRate[] = {
 	400 // 48 - Pistol whip (custom)
 };
 
+// Whether the damage is applied directly to health (1) or is distributed between health and armour (0), and whether this rule applies only to the torso (1) or not (0)
+static s_DamageArmour[][2] = {
+	{0, 0}, // 0 - Fist
+	{0, 0}, // 1 - Brass knuckles
+	{0, 0}, // 2 - Golf club
+	{0, 0}, // 3 - Nitestick
+	{0, 0}, // 4 - Knife
+	{0, 0}, // 5 - Bat
+	{0, 0}, // 6 - Shovel
+	{0, 0}, // 7 - Pool cue
+	{0, 0}, // 8 - Katana
+	{0, 0}, // 9 - Chainsaw
+	{0, 0}, // 10 - Dildo
+	{0, 0}, // 11 - Dildo 2
+	{0, 0}, // 12 - Vibrator
+	{0, 0}, // 13 - Vibrator 2
+	{0, 0}, // 14 - Flowers
+	{0, 0}, // 15 - Cane
+	{0, 0}, // 16 - Grenade
+	{0, 0}, // 17 - Teargas
+	{0, 0}, // 18 - Molotov
+	{1, 1}, // 19 - Vehicle M4 (custom)
+	{1, 1}, // 20 - Vehicle minigun (custom)
+	{1, 0}, // 21
+	{1, 1}, // 22 - Colt 45
+	{1, 1}, // 23 - Silenced
+	{1, 1}, // 24 - Deagle
+	{1, 1}, // 25 - Shotgun
+	{1, 1}, // 26 - Sawed-off
+	{1, 1}, // 27 - Spas
+	{1, 1}, // 28 - UZI
+	{1, 1}, // 29 - MP5
+	{1, 1}, // 30 - AK47
+	{1, 1}, // 31 - M4
+	{1, 1}, // 32 - Tec9
+	{1, 1}, // 33 - Cuntgun
+	{1, 1}, // 34 - Sniper
+	{0, 0}, // 35 - Rocket launcher
+	{0, 0}, // 36 - Heatseeker
+	{0, 0}, // 37 - Flamethrower
+	{1, 1}, // 38 - Minigun
+	{0, 0}, // 39 - Satchel
+	{0, 0}, // 40 - Detonator
+	{0, 0}, // 41 - Spraycan
+	{0, 0}, // 42 - Fire extinguisher
+	{1, 0}, // 43 - Camera
+	{1, 0}, // 44 - Night vision
+	{1, 0}, // 45 - Infrared
+	{1, 0}, // 46 - Parachute
+	{1, 0}, // 47 - Fake pistol
+	{0, 0}, // 48 - Pistol whip (custom)
+	{0, 0}, // 49 - Vehicle
+	{0, 1}, // 50 - Helicopter blades
+	{0, 0}, // 51 - Explosion
+	{0, 0}, // 52 - Car park
+	{0, 0}, // 53 - Drowning
+	{0, 0}  // 54 - Splat
+};
+
 // That's right, it's called cuntgun
 stock const g_WeaponName[57][WC_MAX_WEAPON_NAME] = {
 	{"Fist"             }, {"Brass knuckles"}, {"Golf club"           },
@@ -769,6 +828,7 @@ static Float:s_PlayerMaxArmour[MAX_PLAYERS] = {100.0, ...};
 static Float:s_PlayerArmour[MAX_PLAYERS] = {0.0, ...};
 static s_LastSentHealth[MAX_PLAYERS];
 static s_LastSentArmour[MAX_PLAYERS];
+static bool:s_DamageArmourToggle[2] = {false, ...};
 static s_PlayerTeam[MAX_PLAYERS] = {NO_TEAM, ...};
 static s_IsDying[MAX_PLAYERS];
 static s_DeathTimer[MAX_PLAYERS] = {-1, ...};
@@ -824,7 +884,7 @@ static s_LastVehicleEnterTime[MAX_PLAYERS];
 static s_TrueDeath[MAX_PLAYERS];
 static s_InClassSelection[MAX_PLAYERS];
 static s_ForceClassSelection[MAX_PLAYERS];
-static s_ClassSpawnInfo[319][E_SPAWN_INFO];
+static s_ClassSpawnInfo[320][E_SPAWN_INFO];
 static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
@@ -838,8 +898,8 @@ static s_PreviousHitI[MAX_PLAYERS];
 static Float:s_DamageDoneHealth[MAX_PLAYERS];
 static Float:s_DamageDoneArmour[MAX_PLAYERS];
 static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
-static bool:s_Vehicle_Alive[MAX_VEHICLES] = {true, ...};
-static s_Vehicle_Respawn_Timer[MAX_VEHICLES] = {-1, ...};
+static bool:s_VehicleAlive[MAX_VEHICLES] = {true, ...};
+static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1020,6 +1080,24 @@ stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 	return 0;
 }
 
+stock SetCustomArmourRules(bool:armour_rules, bool:torso_rules = false)
+{
+	s_DamageArmourToggle[0] = armour_rules;
+	s_DamageArmourToggle[1] = torso_rules;
+}
+
+stock SetWeaponArmourRule(weaponid, bool:affects_armour, bool:torso_only = false)
+{
+	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
+		return 0;
+	}
+
+	s_DamageArmour[weaponid][0] = affects_armour;
+	s_DamageArmour[weaponid][1] = torso_only;
+
+	return 1;
+}
+
 stock SetDamageSounds(taken, given)
 {
 	s_DamageTakenSound = taken;
@@ -1182,7 +1260,7 @@ stock Float:GetLastDamageArmour(playerid)
 	return 0.0;
 }
 
-stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN)
+stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
 	if (playerid < 0 || playerid > MAX_PLAYERS || !IsPlayerConnected(playerid)) {
 		return 0;
@@ -1200,7 +1278,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponi
 		issuerid = INVALID_PLAYER_ID;
 	}
 
-	InflictDamage(playerid, amount, issuerid, weaponid, bodypart);
+	InflictDamage(playerid, amount, issuerid, weaponid, bodypart, ignore_armour);
 
 	return 1;
 }
@@ -1607,9 +1685,9 @@ stock WC_DestroyVehicle(vehicleid)
 {
 	if (0 < vehicleid < MAX_VEHICLES) {
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
-		if (s_Vehicle_Respawn_Timer[vehicleid] != -1) {
-			KillTimer(s_Vehicle_Respawn_Timer[vehicleid]);
-			s_Vehicle_Respawn_Timer[vehicleid] = -1;
+		if (s_VehicleRespawnTimer[vehicleid] != -1) {
+			KillTimer(s_VehicleRespawnTimer[vehicleid]);
+			s_VehicleRespawnTimer[vehicleid] = -1;
 		}
 	}
 
@@ -3532,7 +3610,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
-				if(health >= 249.0) { //vehicles start on fire at 249 or under so theres no need to check once the vehicle is at or below 250
+				if (health >= 249.0) { //vehicles start on fire at 249 or under so theres no need to check once the vehicle is at or below 250
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
 					} else {
@@ -3541,7 +3619,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 
 					if (health <= 249.0) {
 						health = 249.0;
-						s_Vehicle_Respawn_Timer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid,playerid);
+						s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid,playerid);
 					}
 
 					SetVehicleHealth(hitid, health);
@@ -3574,7 +3652,7 @@ forward WC_KillVehicle(vehicleid,killerid);
 public WC_KillVehicle(vehicleid,killerid)
 {
 	OnVehicleDeath(vehicleid, killerid);
-	s_Vehicle_Respawn_Timer[vehicleid] = SetTimerEx("WC_OnDeadVehicleSpawn", 10000, false, "ii", vehicleid);
+	s_VehicleRespawnTimer[vehicleid] = SetTimerEx("WC_OnDeadVehicleSpawn", 10000, false, "ii", vehicleid);
 	return 1;
 }
 
@@ -3582,7 +3660,7 @@ public WC_KillVehicle(vehicleid,killerid)
 forward WC_OnDeadVehicleSpawn(vehicleid);
 public WC_OnDeadVehicleSpawn(vehicleid)
 {
-	s_Vehicle_Respawn_Timer[vehicleid] = -1;
+	s_VehicleRespawnTimer[vehicleid] = -1;
 	return SetVehicleToRespawn(vehicleid);
 }
 
@@ -3590,12 +3668,14 @@ public WC_OnDeadVehicleSpawn(vehicleid)
 
 public OnVehicleSpawn(vehicleid)
 {
-	if (s_Vehicle_Respawn_Timer[vehicleid] != -1) {
-		KillTimer(s_Vehicle_Respawn_Timer[vehicleid]);
-		s_Vehicle_Respawn_Timer[vehicleid] = -1;
+	if (s_VehicleRespawnTimer[vehicleid] != -1) {
+		KillTimer(s_VehicleRespawnTimer[vehicleid]);
+		s_VehicleRespawnTimer[vehicleid] = -1;
 	}
-	if (!s_Vehicle_Alive[vehicleid]) {
-		s_Vehicle_Alive[vehicleid] = true;
+
+	if (!s_VehicleAlive[vehicleid]) {
+		s_VehicleAlive[vehicleid] = true;
+
 		#if defined WC_OnVehicleSpawn
 			return WC_OnVehicleSpawn(vehicleid);
 		#else
@@ -3608,9 +3688,10 @@ public OnVehicleSpawn(vehicleid)
 
 public OnVehicleDeath(vehicleid, killerid)
 {
-	if(s_Vehicle_Alive[vehicleid]) { //Checks if the vehicle is alive
-		s_Vehicle_Alive[vehicleid] = false;
-		#if defined OnVehicleDeath
+	if (s_VehicleAlive[vehicleid]) {
+		s_VehicleAlive[vehicleid] = false;
+
+		#if defined WC_OnVehicleDeath
 			return WC_OnVehicleDeath(vehicleid, killerid);
 		#else
 			return 1;
@@ -4470,7 +4551,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 	return WC_NO_ERROR;
 }
 
-static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN)
+static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
 	if (!IsPlayerSpawned(playerid) || amount < 0.0) {
 		return;
@@ -4518,18 +4599,18 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		}
 	#endif
 
-	if (weaponid == WEAPON_COLLISION || weaponid == WEAPON_DROWN || weaponid == WEAPON_CARPARK) {
-		if (amount <= 0.0) {
-			amount = s_PlayerHealth[playerid];
-		}
-
-		s_PlayerHealth[playerid] -= amount;
-	} else {
+	if (!ignore_armour && weaponid != WEAPON_COLLISION && weaponid != WEAPON_DROWN && weaponid != WEAPON_CARPARK && (!s_DamageArmourToggle[0] || (s_DamageArmour[weaponid][0] && (!s_DamageArmourToggle[1] || ((s_DamageArmour[weaponid][1] && bodypart == 3) || (!s_DamageArmour[weaponid][1])))))) {
 		if (amount <= 0.0) {
 			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
 		}
 
 		s_PlayerArmour[playerid] -= amount;
+	} else {
+		if (amount <= 0.0) {
+			amount = s_PlayerHealth[playerid];
+		}
+
+		s_PlayerHealth[playerid] -= amount;
 	}
 
 	if (s_PlayerArmour[playerid] < 0.0) {
