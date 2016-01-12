@@ -1717,9 +1717,9 @@ stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color
 }
 
 
-stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay,addsiren=0)
+stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
 {
-	new id = AddStaticVehicleEx(modelid, x, y, z, angle, color1, color2, respawn_delay,addsiren);
+	new id = AddStaticVehicleEx(modelid, x, y, z, angle, color1, color2, respawn_delay, addsiren);
 	if (id != INVALID_VEHICLE_ID) {
 		s_VehicleAlive[id] = true;
 		return id;
@@ -3653,7 +3653,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 					if (health <= 249.0) {
 						if (s_VehicleRespawnTimer[hitid] == -1) {
 							health = 249.0;
-							s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid,playerid);
+							s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid, playerid);
 						}
 					}
 
@@ -3683,8 +3683,8 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 	return retval;
 }
 
-forward WC_KillVehicle(vehicleid,killerid);
-public WC_KillVehicle(vehicleid,killerid)
+forward WC_KillVehicle(vehicleid, killerid);
+public WC_KillVehicle(vehicleid, killerid)
 {
 	OnVehicleDeath(vehicleid, killerid);
 	s_VehicleRespawnTimer[vehicleid] = SetTimerEx("WC_OnDeadVehicleSpawn", 10000, false, "i", vehicleid);
