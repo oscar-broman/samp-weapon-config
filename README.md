@@ -59,7 +59,7 @@ This include file requires the [SKY](https://github.com/oscar-broman/SKY/) plugi
         - Increase/lower damage for combos
         - Lower damage for c-bug rapid fire
 - **Knife sync fixed in both lagcomp and no-lagcomp**
-- **New death atnimations and respawn logic**
+- **New death animations and respawn logic**
     - Customize respawn time globally and for each death
     - Fully customizable animations, with a nice set of defaults
     - Different animation depending on weapon/bodypart, for example:
