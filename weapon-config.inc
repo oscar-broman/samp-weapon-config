@@ -4762,7 +4762,9 @@ forward WC_DelayedDeath(playerid, issuerid, reason);
 public WC_DelayedDeath(playerid, issuerid, reason) {
 	s_DelayedDeathTimer[playerid] = -1;
 
-	WC_OnPlayerDeath(playerid, issuerid, reason);
+	#if defined WC_OnPlayerDeath
+		WC_OnPlayerDeath(playerid, issuerid, reason);
+	#endif
 }
 
 static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
