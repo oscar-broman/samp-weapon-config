@@ -4520,6 +4520,18 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 			}
 		}
 	}
+	
+	// Check deagle damage
+	if (weaponid == WEAPON_CHAINSAW) {
+		switch (amount) {
+			case 46.200000762939453125,
+			     23.1000003814697265625: {}
+
+			default: {
+				return WC_INVALID_DAMAGE;
+			}
+		}
+	}
 
 	// Check gun damage
 	new Float:def_amount = 0.0;
@@ -4528,7 +4540,6 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 		case WEAPON_COLT45,
 		     WEAPON_MP5: def_amount = 8.25;
 		case WEAPON_SILENCED: def_amount = 13.200000762939453125;
-		case WEAPON_DEAGLE: def_amount = 46.200000762939453125;
 		case WEAPON_UZI,
 		     WEAPON_TEC9: def_amount = 6.6000003814697265625;
 		case WEAPON_AK47,
