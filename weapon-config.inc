@@ -4522,7 +4522,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 	}
 	
 	// Check deagle damage
-	if (weaponid == WEAPON_CHAINSAW) {
+	if (weaponid == WEAPON_DEAGLE) {
 		switch (amount) {
 			case 46.200000762939453125,
 			     23.1000003814697265625: {}
