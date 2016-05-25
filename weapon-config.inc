@@ -266,13 +266,13 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #define WEAPON_UNKNOWN 55
 
 #if WC_DEBUG_SILENT
-	static s_DebugMsgBuf[512];
+	static s_DebugMsgBuf[MAX_CHATBUBBLE_LENGTH + 1];
 
 	#define DebugMessage(%1,%2) \
-		format(s_DebugMsgBuf,512,%2),printf("(wc:%d) %s",%1,s_DebugMsgBuf)
+		format(s_DebugMsgBuf,sizeof(s_DebugMsgBuf),%2),printf("(wc:%d) %s",%1,s_DebugMsgBuf)
 
 	#define DebugMessageRed(%1,%2) \
-		format(s_DebugMsgBuf,512,%2),printf("(wc:%d) WARN: %s",%1,s_DebugMsgBuf)
+		format(s_DebugMsgBuf,sizeof(s_DebugMsgBuf),%2),printf("(wc:%d) WARN: %s",%1,s_DebugMsgBuf)
 
 	#define DebugMessageAll(%1) \
 		printf(s_DebugMsgBuf,"(wc) " %1)
@@ -280,22 +280,22 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 	#define DebugMessageRedAll(%1) \
 		printf(s_DebugMsgBuf,"(wc) WARN: " %1)
 #elseif WC_DEBUG
-	static s_DebugMsgBuf[512];
+	static s_DebugMsgBuf[MAX_CHATBUBBLE_LENGTH + 1];
 
 	#define DebugMessage(%1,%2) \
-		format(s_DebugMsgBuf,512,"(wc) " %2),SendClientMessage(%1,-1,s_DebugMsgBuf), \
-		format(s_DebugMsgBuf,512,%2),printf("(wc:%d) %s",%1,s_DebugMsgBuf)
+		format(s_DebugMsgBuf,sizeof(s_DebugMsgBuf),"(wc) " %2),SendClientMessage(%1,-1,s_DebugMsgBuf), \
+		format(s_DebugMsgBuf,sizeof(s_DebugMsgBuf),%2),printf("(wc:%d) %s",%1,s_DebugMsgBuf)
 
 	#define DebugMessageRed(%1,%2) \
-		format(s_DebugMsgBuf,512,"(wc) " %2),SendClientMessage(%1,0xcc0000ff,s_DebugMsgBuf), \
-		format(s_DebugMsgBuf,512,%2),printf("(wc:%d) WARN: %s",%1,s_DebugMsgBuf)
+		format(s_DebugMsgBuf,sizeof(s_DebugMsgBuf),"(wc) " %2),SendClientMessage(%1,0xcc0000ff,s_DebugMsgBuf), \
+		format(s_DebugMsgBuf,sizeof(s_DebugMsgBuf),%2),printf("(wc:%d) WARN: %s",%1,s_DebugMsgBuf)
 
 	#define DebugMessageAll(%1) \
-		format(s_DebugMsgBuf,512,"(wc) " %1),SendClientMessageToAll(-1,s_DebugMsgBuf), \
+		format(s_DebugMsgBuf,sizeof(s_DebugMsgBuf),"(wc) " %1),SendClientMessageToAll(-1,s_DebugMsgBuf), \
 		printf(s_DebugMsgBuf,"(wc) " %1)
 
 	#define DebugMessageRedAll(%1) \
-		format(s_DebugMsgBuf,512,"(wc) " %1),SendClientMessageToAll(0xcc0000ff,s_DebugMsgBuf), \
+		format(s_DebugMsgBuf,sizeof(s_DebugMsgBuf),"(wc) " %1),SendClientMessageToAll(0xcc0000ff,s_DebugMsgBuf), \
 		printf(s_DebugMsgBuf,"(wc) WARN: " %1)
 #else
 	#define DebugMessage(%1);
