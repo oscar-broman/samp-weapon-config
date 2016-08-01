@@ -2156,6 +2156,10 @@ public OnPlayerConnect(playerid)
 
 public OnPlayerDisconnect(playerid, reason)
 {
+	#if defined WC_OnPlayerDisconnect
+		WC_OnPlayerDisconnect(playerid, reason);
+	#else
+	
 	#if WC_CUSTOM_VENDING_MACHINES
 		if (s_VendingUseTimer[playerid] != -1) {
 			KillTimer(s_VendingUseTimer[playerid]);
@@ -2227,11 +2231,7 @@ public OnPlayerDisconnect(playerid, reason)
 		}
 	}
 
-	#if defined WC_OnPlayerDisconnect
-		return WC_OnPlayerDisconnect(playerid, reason);
-	#else
-		return 1;
-	#endif
+	return 1;
 }
 
 public OnPlayerSpawn(playerid)
