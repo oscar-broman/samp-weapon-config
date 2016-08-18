@@ -2158,7 +2158,7 @@ public OnPlayerDisconnect(playerid, reason)
 {
 	#if defined WC_OnPlayerDisconnect
 		WC_OnPlayerDisconnect(playerid, reason);
-	#else
+	#endif
 	
 	#if WC_CUSTOM_VENDING_MACHINES
 		if (s_VendingUseTimer[playerid] != -1) {
