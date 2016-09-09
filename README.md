@@ -107,7 +107,7 @@ CallRemoteFunction("SetHealth", "i", playerid, health);
 ### New callbacks
 
 ```pawn
-public OnPlayerDamage(playerid, &Float:amount, &issuerid, &weapon, &bodypart);
+public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart);
 ```
 Called when damage is about to be inflicted on a player
 Most arguments can be modified (e.g. the damage could be adjusted)
