@@ -1695,9 +1695,9 @@ stock WC_DestroyVehicle(vehicleid)
 	return DestroyVehicle(vehicleid);
 }
 
-stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay)
+stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
 {
-	new id = CreateVehicle(modelid, x, y, z, angle, color1, color2, respawn_delay);
+	new id = CreateVehicle(modelid, x, y, z, angle, color1, color2, respawn_delay, addsiren);
 	if (id != INVALID_VEHICLE_ID) {
 		s_VehicleAlive[id] = true;
 		return id;
