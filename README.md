@@ -266,9 +266,19 @@ SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_vel
 Toggle custom falling damage
 
 ```pawn
-SetCustomFallDamageMachines(bool:toggle);
+SetCustomVendingMachines(bool:toggle);
 ```
 Toggle vending machines (they are removed and disabled by default)
+
+```pawn
+SetCbugAllowed(bool:enabled,playerid = INVALID_PLAYER_ID);
+```
+Toggle anti-cbug per player or globally. (Using no playerid param will default all users to default)
+
+```pawn
+bool:GetCbugAllowed(playerid = INVALID_PLAYER_ID);
+```
+Check if users anti-cbug is toggled. (Using no playerid param will show the global toggle value)
 
 ```pawn
 SetDamageFeed(bool:toggle);
