@@ -4031,7 +4031,7 @@ static UpdateHealthBar(playerid, bool:force = false)
 					playerid,
 					551.5 + float(health) * 0.5651,
 					70.25,
-					"\1"
+					"_"
 				);
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
