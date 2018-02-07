@@ -191,6 +191,27 @@ enum E_RESYNC_DATA {
 	      e_WeaponAmmo[13]
 }
 
+//Required variables for fixing wrong hittype call
+enum E_eFix_OPWS_INFO
+{
+    eFixPauseTicks,
+ 
+    bool:eFixPlayerDamaged,
+    bool:eFixDesyncPassg,
+    bool:eFixDoubleCFix,
+    bool:eFixJustShot,
+ 
+    Float:eFixShotX,
+    Float:eFixShotY,
+    Float:eFixShotZ,
+ 
+    Float:eFixATypeHealth,
+    Float:eFixBTypeHealth,
+ 
+    Float:eFixATypeArmour,
+    Float:eFixBTypeArmour
+}
+
 // From OnPlayerWeaponShot
 enum E_SHOT_INFO {
 	      e_Tick,
@@ -811,6 +832,7 @@ stock const g_WeaponName[57][WC_MAX_WEAPON_NAME] = {
 // Sorry about the mess..
 static s_LagCompMode;
 static s_LastExplosive[MAX_PLAYERS];
+static eFix_Player[MAX_PLAYERS][E_eFix_OPWS_INFO];
 static s_LastShot[MAX_PLAYERS][E_SHOT_INFO];
 static s_LastShotTicks[MAX_PLAYERS][10];
 static s_LastShotWeapons[MAX_PLAYERS][10];
@@ -1329,6 +1351,22 @@ stock ResyncPlayer(playerid)
 	SpawnPlayerInPlace(playerid);
 }
 
+//Shooter checkings
+stock IsAmmoable(weaponid)
+{
+    if(22 <= weaponid <= 34 || weaponid == 38) return 1;
+    else return 0;
+}
+ 
+stock IsPAiming(playerid)
+{
+    new playeranim = GetPlayerAnimationIndex(playerid);
+ 
+    if (((playeranim >= 1160) && (playeranim <= 1163)) || (playeranim == 1167) || (playeranim == 1365) ||
+    (playeranim == 1643) || (playeranim == 1453) || (playeranim == 220)) return 1;
+    return 0;
+}
+
 /*
  * Hooked natives
  */
@@ -1392,6 +1430,9 @@ stock WC_SetPlayerHealth(playerid, Float:health, Float:armour = -1.0)
 		if (health > s_PlayerMaxHealth[playerid]) {
 			health = s_PlayerMaxHealth[playerid];
 		}
+
+		eFix_Player[playerid][eFixATypeHealth] = amount;
+
 		s_PlayerHealth[playerid] = health;
 		UpdateHealthBar(playerid, true);
 	}
@@ -1421,6 +1462,9 @@ stock WC_SetPlayerArmour(playerid, Float:armour)
 	if (armour > s_PlayerMaxArmour[playerid]) {
 		armour = s_PlayerMaxArmour[playerid];
 	}
+
+	eFix_Player[playerid][eFixATypeArmour] = amount;
+
 	s_PlayerArmour[playerid] = armour;
 	UpdateHealthBar(playerid, true);
 
@@ -2078,6 +2122,11 @@ public OnPlayerConnect(playerid)
 {
 	new tick = GetTickCount();
 
+    eFix_Player[playerid][eFixPlayerDamaged] = false;
+    eFix_Player[playerid][eFixDoubleCFix] = false;
+    eFix_Player[playerid][eFixDesyncPassg] = false;
+    eFix_Player[playerid][eFixJustShot] = false;
+
 	s_PlayerMaxHealth[playerid] = 100.0;
 	s_PlayerHealth[playerid] = 100.0;
 	s_PlayerMaxArmour[playerid] = 100.0;
@@ -2236,6 +2285,8 @@ public OnPlayerDisconnect(playerid, reason)
 
 public OnPlayerSpawn(playerid)
 {
+	eFix_Player[playerid][eFixDesyncPassg] = false;
+
 	s_TrueDeath[playerid] = false;
 	s_InClassSelection[playerid] = false;
 
@@ -2448,6 +2499,8 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
+	eFix_Player[playerid][eFixDesyncPassg] = true;
+
 	s_TrueDeath[playerid] = true;
 	s_InClassSelection[playerid] = false;
 
@@ -2788,6 +2841,14 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
+	if(newstate == 3 || newstate == 2 )
+    {	
+        GetPlayerHealth(playerid, eFix_Player[playerid][eFixBTypeHealth]);
+        GetPlayerArmour(playerid, eFix_Player[playerid][eFixBTypeArmour]);
+        GetPlayerHealth(playerid, eFix_Player[playerid][eFixATypeHealth]);
+        GetPlayerArmour(playerid, eFix_Player[playerid][eFixATypeArmour]);
+        }
+
 	if (s_Spectating[playerid] != INVALID_PLAYER_ID && newstate != PLAYER_STATE_SPECTATING) {
 		s_Spectating[playerid] = INVALID_PLAYER_ID;
 	}
@@ -2855,6 +2916,39 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 
 public OnPlayerUpdate(playerid)
 {
+	//Constant check for the damage made to the player to fix the Hittype bug
+	eFix_Player[playerid][eFixPauseTicks] = GetTickCount();
+    new E_State = GetPlayerState(playerid);
+    if(E_State == 3 || E_State == 2 )
+    {
+        GetPlayerHealth(playerid, eFix_Player[playerid][eFixBTypeHealth]);
+        GetPlayerArmour(playerid, eFix_Player[playerid][eFixBTypeArmour]);
+        if(eFix_Player[playerid][eFixATypeHealth] > eFix_Player[playerid][eFixBTypeHealth] && !eFix_Player[playerid][eFixPlayerDamaged]
+        && eFix_Player[playerid][eFixBTypeArmour] == 0.0)
+        {
+            eFix_Player[playerid][eFixATypeHealth] = eFix_Player[playerid][eFixBTypeHealth];
+            eFix_Player[playerid][eFixPlayerDamaged] = true;
+            SetTimerEx("eFix_ResetDamage", 490, false, "i", playerid);
+            }
+        else if(eFix_Player[playerid][eFixBTypeHealth] <= 0.0)
+        {
+            eFix_Player[playerid][eFixATypeHealth] = eFix_Player[playerid][eFixBTypeHealth];
+            eFix_Player[playerid][eFixPlayerDamaged] = true;
+            SetTimerEx("eFix_ResetDamage", 490, false, "i", playerid);
+            }
+        else if(eFix_Player[playerid][eFixBTypeArmour] > 0.0)
+        {
+            if(eFix_Player[playerid][eFixATypeArmour] > eFix_Player[playerid][eFixBTypeArmour]
+            && !eFix_Player[playerid][eFixPlayerDamaged])
+            {
+                eFix_Player[playerid][eFixATypeArmour] = eFix_Player[playerid][eFixBTypeArmour];
+                eFix_Player[playerid][eFixPlayerDamaged] = true;
+                SetTimerEx("eFix_ResetDamage", 490, false, "i", playerid);
+                }
+            }
+        }
+        
+
 	if (s_IsDying[playerid]) {
 		return 1;
 	}
@@ -3403,6 +3497,25 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			s_VendingUseTimer[playerid] = -1;
 		}
 	#endif
+
+	//Channeling hittype vehicle through the custom checks that were made to return the correct reading.
+    if(hittype == BULLET_HIT_TYPE_VEHICLE)
+    {
+        if(!eFix_Player[playerid][eFixJustShot]) SetTimerEx("eFix_ResetShot", 650, false, "d", playerid);
+        eFix_Player[playerid][eFixShotX]=fX;
+        eFix_Player[playerid][eFixShotY]=fY;
+        eFix_Player[playerid][eFixShotZ]=fZ;
+        eFix_Player[playerid][eFixJustShot] = true;
+ 
+ 
+        for(new i, j = GetPlayerPoolSize(); i <= j; i++)
+        {
+            if(GetPlayerVehicleID(i) == hitid && !eFix_Player[i][eFixDoubleCFix])
+            {
+                return SetTimerEx("eFix_OpwsCheck", 285, false, "dddfffd", i, weaponid, hitid, Float:fX, Float:fY, Float:fZ, playerid);
+                }
+            }
+        }
 
 	s_LastShot[playerid][e_Valid] = false;
 	s_LastShot[playerid][e_Hits] = false;
@@ -5226,6 +5339,73 @@ static DamageFeedAddHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], playerid, issuer
 	GetPlayerName(issuerid, arr[idx][e_Name], MAX_PLAYER_NAME);
 
 	DamageFeedUpdate(playerid, true);
+}
+//Resetting value callback timers
+
+forward eFix_ResetShot(playerid);
+public eFix_ResetShot(playerid) return eFix_Player[playerid][eFixJustShot]  = false;
+
+forward eFix_ResetDamage(playerid);
+public eFix_ResetDamage(playerid) return eFix_Player[playerid][eFixPlayerDamaged] = false;
+
+forward eFix_ResetDoubleCFix(playerid);
+public eFix_ResetDoubleCFix(playerid) return eFix_Player[playerid][eFixDoubleCFix]= false;
+
+//Pause & damage checking
+forward eFix_OpwsCheck(playerid, weaponid, vehicleid, Float:x, Float:y, Float:z, shooterid);
+public eFix_OpwsCheck(playerid, weaponid, vehicleid, Float:x, Float:y, Float:z, shooterid)
+{
+    new Float:Health;
+    GetPlayerHealth(playerid, Health);
+ 
+    if(eFix_Player[playerid][eFixDesyncPassg]) return OnPlayerWeaponShot(shooterid, weaponid, 1, playerid, x, y, z);
+ 
+    if(GetTickCount() > eFix_Player[playerid][eFixPauseTicks]+800)
+    {
+        if(GetPlayerState(playerid) == 3 ) return SetTimerEx("eFix_DesyncP", 150, false, "d", playerid,  weaponid, vehicleid, Float:x, Float:y, Float:z, shooterid);
+        return OnPlayerWeaponShot(shooterid, weaponid, 5, playerid, x, y, z);
+        }
+    else
+    {
+        if(eFix_Player[playerid][eFixPlayerDamaged] || Health <= 0.0)
+        {
+            return OnPlayerWeaponShot(shooterid, weaponid, 1, playerid, x, y, z);
+            }
+        else if(!eFix_Player[playerid][eFixPlayerDamaged])
+        {
+            return
+            eFix_Player[playerid][eFixDoubleCFix] = true,
+            OnPlayerWeaponShot(shooterid, weaponid, 2, vehicleid, x, y, z),
+            SetTimerEx("eFix_ResetDoubleCFix", 20, false, "i", playerid);
+            }
+        }
+
+    return 1;
+}
+
+//Paused player's re-entering readings
+forward eFix_DesyncP(playerid,  weaponid, vehicleid, Float:x, Float:y, Float:z, shooterid);
+public eFix_DesyncP(playerid,  weaponid, vehicleid, Float:x, Float:y, Float:z, shooterid)
+{
+    if(eFix_Player[playerid][eFixDesyncPassg])
+    {
+        return OnPlayerWeaponShot(shooterid, weaponid, 1, playerid, x, y, z);
+        }
+    else if(!eFix_Player[playerid][eFixDesyncPassg])
+    {
+        new Float:xx, Float:yy, Float:zz;
+        GetPlayerPos(playerid, xx,yy,zz);
+        for(new i, j = GetPlayerPoolSize(); i <= j; i++)
+        {
+            new eWep = GetPlayerWeapon(i);
+            if(!IsPlayerConnected(i)) continue;
+            if(IsAmmoable(eWep) && eFix_Player[i][eFixJustShot] && IsPlayerInRangeOfPoint(i, 50.0, xx, yy, zz)
+            && IsPlayerInRangeOfPoint(playerid, 2.0, eFix_Player[i][eFixShotX], eFix_Player[i][eFixShotY], eFix_Player[i][eFixShotZ])
+            && IsPAiming(i)) return OnPlayerWeaponShot(i, eWep, 5, playerid, eFix_Player[i][eFixShotX], eFix_Player[i][eFixShotY], eFix_Player[i][eFixShotZ]);
+            }
+        }
+
+    return 1;
 }
 
 static DamageFeedRemoveHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], idx)
