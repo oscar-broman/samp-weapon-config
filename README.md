@@ -65,7 +65,10 @@ This include file requires the [SKY](https://github.com/oscar-broman/SKY/) plugi
     - Different animation depending on weapon/bodypart, for example:
         - Headshots make you fall back with both hands in your face
         - Shotgun kills make you fly backward like in GTA:VC (unless killed from behind)
-
+- **Fixes the SA-MP OnPlayerWeaponShot hittype bug which detects damage taken by drivers/passengers
+    -Fixes the bug
+    -Provides a new hittype (#5) which is called when a paused driver/passenger is shot at.
+    
 ## Implementation details
 
 All players are given infinite health and set to the same team. Damage is counted by the script whenever `OnPlayer(Give/Take)Damage` is called. The real `GetPlayerHealth` is **never** read by the include file.
