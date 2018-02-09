@@ -66,8 +66,8 @@ This include file requires the [SKY](https://github.com/oscar-broman/SKY/) plugi
         - Headshots make you fall back with both hands in your face
         - Shotgun kills make you fly backward like in GTA:VC (unless killed from behind)
 - **Fixes the SA-MP OnPlayerWeaponShot hittype bug which detects damage taken by drivers/passengers**
-    -Fixes the bug
-    -Provides a new hittype (#5) which is called when a paused driver/passenger is shot at.
+    - Fixes the bug
+    - Provides a new hittype (#5) which is called when a paused driver/passenger is shot at.
     
 ## Implementation details
 
