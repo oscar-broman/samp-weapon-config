@@ -3784,7 +3784,7 @@ static ScriptInit()
 		s_ClassSpawnInfo[i][e_Skin] = -1;
 	}
 
-	s_HealthBarBorder = TextDrawCreate(610.01, 68.25, "\1");
+	s_HealthBarBorder = TextDrawCreate(610.01, 68.25, "_");
 
 	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar border textdraw");
@@ -3797,7 +3797,7 @@ static ScriptInit()
 		TextDrawBoxColor  (s_HealthBarBorder, 0x000000FF);
 	}
 
-	s_HealthBarBackground = TextDrawCreate(608.01, 70.25, "\1");
+	s_HealthBarBackground = TextDrawCreate(608.01, 70.25, "_");
 
 	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar background textdraw");
@@ -4031,7 +4031,7 @@ static UpdateHealthBar(playerid, bool:force = false)
 					playerid,
 					551.5 + float(health) * 0.5651,
 					70.25,
-					"\1"
+					"_"
 				);
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
