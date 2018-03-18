@@ -3221,6 +3221,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 {
+	if(playerid==INVALID_PLAYER_ID || IsPlayerNPC(playerid)) return 0;
 	UpdateHealthBar(playerid, true);
 
 	if (s_IsDying[playerid]) {
@@ -3237,10 +3238,6 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 	// Ignore unreliable and invalid damage
 	if (weaponid < 0 || weaponid >= sizeof(s_ValidDamageTaken) || !s_ValidDamageTaken[weaponid]) {
-		return 0;
-	}
-
-	if (playerid == INVALID_PLAYER_ID || IsPlayerNPC(playerid)) {
 		return 0;
 	}
 
