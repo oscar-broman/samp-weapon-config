@@ -977,7 +977,7 @@ stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 
 		total += s_LastShotTicks[playerid][this_idx] - prev;
 	}
-
+	if(shots==1) return 0;
 	return total / (shots - 1);
 }
 
