@@ -977,7 +977,7 @@ stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 
 		total += s_LastShotTicks[playerid][this_idx] - prev;
 	}
-
+	if(shots==1) return 1;
 	return total / (shots - 1);
 }
 
@@ -1014,7 +1014,7 @@ stock AverageHitRate(playerid, hits, &multiple_weapons = 0)
 
 		total += s_LastHitTicks[playerid][this_idx] - prev;
 	}
-
+	if(hits==1) return 1;
 	return total / (hits - 1);
 }
 
