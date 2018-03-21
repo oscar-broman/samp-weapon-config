@@ -836,7 +836,8 @@ static bool:s_HealthBarVisible[MAX_PLAYERS];
 static bool:s_SpawnForStreamedIn[MAX_PLAYERS];
 static s_RespawnTime = 3000;
 static s_CustomFallDamage = false;
-static bool:s_CbugAllowed = true;
+static bool:s_CbugGlobal = true;
+static bool:s_CbugAllowed[MAX_PLAYERS] = true;
 static s_CbugFroze[MAX_PLAYERS];
 static s_DamageFeed = true;
 static s_DamageFeedPlayer[MAX_PLAYERS] = {-1, ...};
@@ -1104,14 +1105,28 @@ stock SetDamageSounds(taken, given)
 	s_DamageGivenSound = given;
 }
 
-stock SetCbugAllowed(bool:enabled)
+stock SetCbugAllowed(bool:enabled,playerid = INVALID_PLAYER_ID)
 {
-	s_CbugAllowed = enabled;
+	if (playerid == INVALID_PLAYER_ID) {
+		for (new i = 0; i < MAX_PLAYERS; i++) {
+			if (IsPlayerConnected(i)) {
+				s_CbugAllowed[i] = enabled;
+				s_CbugGlobal = enabled;
+			}
+		}
+	}
+	else {
+		s_CbugAllowed[playerid] = enabled;
+	}
+	return enabled;
 }
 
-stock bool:GetCbugAllowed()
+stock bool:GetCbugAllowed(playerid = INVALID_PLAYER_ID)
 {
-	return s_CbugAllowed;
+	if (playerid == INVALID_PLAYER_ID) {
+		return s_CbugGlobal;
+	}
+	return s_CbugAllowed[playerid];
 }
 
 stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
@@ -2602,7 +2617,7 @@ public WC_CbugPunishment(playerid, weapon) {
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
-	if (!s_CbugAllowed && !IsPlayerDying(playerid) && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
+	if (!s_CbugAllowed[playerid] && !IsPlayerDying(playerid) && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
 		if (newkeys & KEY_CROUCH) {
 			new tick = GetTickCount();
 			new diff = tick - s_LastShot[playerid][e_Tick];
@@ -4755,7 +4770,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		}
 
 		#if defined WC_OnPlayerDeath
-			if (s_CbugAllowed) {
+			if (s_CbugAllowed[playerid]) {
 				WC_OnPlayerDeath(playerid, issuerid, weaponid);
 			} else {
 				s_DelayedDeathTimer[playerid] = SetTimerEx(#WC_DelayedDeath, 1200, false, "iii", playerid, issuerid, weaponid);
