@@ -3425,7 +3425,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		damagedid = hitid;
 	}
 
-	if (hittype < 0 || hittype > 5) {
+	if (hittype < 0 || hittype > 4) {
 		AddRejectedHit(playerid, damagedid, HIT_INVALID_HITTYPE, weaponid, hittype);
 
 		return 0;
