@@ -978,7 +978,7 @@ stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 		total += s_LastShotTicks[playerid][this_idx] - prev;
 	}
 
-	return total / (shots - 1);
+	return shots == 1 ? 1 : (total / (shots - 1));
 }
 
 stock AverageHitRate(playerid, hits, &multiple_weapons = 0)
@@ -1015,7 +1015,7 @@ stock AverageHitRate(playerid, hits, &multiple_weapons = 0)
 		total += s_LastHitTicks[playerid][this_idx] - prev;
 	}
 
-	return total / (hits - 1);
+	return hits == 1 ? 1 : (total / (hits - 1));
 }
 
 stock SetRespawnTime(ms)
@@ -5305,40 +5305,42 @@ static IsPlayerBehindPlayer(playerid, targetid, Float:diff = 90.0)
 
 static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 0)
 {
-	new idx = s_RejectedHitsIdx[playerid];
+	if (playerid != INVALID_PLAYER_ID) {
+		new idx = s_RejectedHitsIdx[playerid];
 
-	if (s_RejectedHits[playerid][idx][e_Time]) {
-		idx += 1;
+		if (s_RejectedHits[playerid][idx][e_Time]) {
+			idx += 1;
 
-		if (idx >= sizeof(s_RejectedHits[])) {
-			idx = 0;
+			if (idx >= sizeof(s_RejectedHits[])) {
+				idx = 0;
+			}
+
+			s_RejectedHitsIdx[playerid] = idx;
 		}
 
-		s_RejectedHitsIdx[playerid] = idx;
+		new time, hour, minute, second;
+
+		time = gettime(hour, minute, second);
+
+		s_RejectedHits[playerid][idx][e_Reason] = reason;
+		s_RejectedHits[playerid][idx][e_Time] = time;
+		s_RejectedHits[playerid][idx][e_Weapon] = weapon;
+		s_RejectedHits[playerid][idx][e_Hour] = hour;
+		s_RejectedHits[playerid][idx][e_Minute] = minute;
+		s_RejectedHits[playerid][idx][e_Second] = second;
+		s_RejectedHits[playerid][idx][e_Info1] = _:i1;
+		s_RejectedHits[playerid][idx][e_Info2] = _:i2;
+		s_RejectedHits[playerid][idx][e_Info3] = _:i3;
+
+		if (damagedid != INVALID_PLAYER_ID) {
+			GetPlayerName(damagedid, s_RejectedHits[playerid][idx][e_Name], MAX_PLAYER_NAME);
+		} else {
+			s_RejectedHits[playerid][idx][e_Name][0] = '#';
+			s_RejectedHits[playerid][idx][e_Name][1] = '\0';
+		}
+
+		OnRejectedHit(playerid, s_RejectedHits[playerid][idx]);
 	}
-
-	new time, hour, minute, second;
-
-	time = gettime(hour, minute, second);
-
-	s_RejectedHits[playerid][idx][e_Reason] = reason;
-	s_RejectedHits[playerid][idx][e_Time] = time;
-	s_RejectedHits[playerid][idx][e_Weapon] = weapon;
-	s_RejectedHits[playerid][idx][e_Hour] = hour;
-	s_RejectedHits[playerid][idx][e_Minute] = minute;
-	s_RejectedHits[playerid][idx][e_Second] = second;
-	s_RejectedHits[playerid][idx][e_Info1] = _:i1;
-	s_RejectedHits[playerid][idx][e_Info2] = _:i2;
-	s_RejectedHits[playerid][idx][e_Info3] = _:i3;
-
-	if (damagedid != INVALID_PLAYER_ID) {
-		GetPlayerName(damagedid, s_RejectedHits[playerid][idx][e_Name], MAX_PLAYER_NAME);
-	} else {
-		s_RejectedHits[playerid][idx][e_Name][0] = '#';
-		s_RejectedHits[playerid][idx][e_Name][1] = '\0';
-	}
-
-	OnRejectedHit(playerid, s_RejectedHits[playerid][idx]);
 }
 
 forward WC_SecondKnifeAnim(playerid);
