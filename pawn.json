@@ -1,5 +1,5 @@
 {
     "user": "AtraXaz",
     "repo": "samp-weapon-config",
-    "dependencies":["AtraXaz/SKY:0.1"]
+    "dependencies":["AtraXaz/SKY"]
 }
