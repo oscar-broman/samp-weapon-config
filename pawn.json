@@ -2,5 +2,5 @@
     "user": "oscar-broman",
     "repo": "samp-weapon-config",
     "contributors": ["oscar-broman"],
-    "dependencies": ["oscar-broman/SKY:0.1"]
+    "dependencies": ["oscar-broman/SKY:1.0.0"]
 }
