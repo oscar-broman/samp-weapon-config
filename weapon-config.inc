@@ -978,7 +978,7 @@ stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 		total += s_LastShotTicks[playerid][this_idx] - prev;
 	}
 
-	return total / (shots - 1);
+	return shots == 1 ? 1 : (total / (shots - 1));
 }
 
 stock AverageHitRate(playerid, hits, &multiple_weapons = 0)
@@ -1015,7 +1015,7 @@ stock AverageHitRate(playerid, hits, &multiple_weapons = 0)
 		total += s_LastHitTicks[playerid][this_idx] - prev;
 	}
 
-	return total / (hits - 1);
+	return hits == 1 ? 1 : (total / (hits - 1));
 }
 
 stock SetRespawnTime(ms)
@@ -1172,7 +1172,7 @@ stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
 
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (IsPlayerConnected(i)) {
 			DamageFeedUpdate(i);
 		}
@@ -2219,7 +2219,7 @@ public OnPlayerDisconnect(playerid, reason)
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
 	}
 
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (!IsPlayerConnected(i)) {
 			continue;
 		}
@@ -2630,7 +2630,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				s_CbugFroze[playerid] = tick;
 
-				for (new i = 0; i < MAX_PLAYERS; i++) {
+				for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 					if (!IsPlayerConnected(i) && !IsPlayerDying(i)) {
 						continue;
 					}
@@ -2811,7 +2811,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx*vx + vy*vy + vz*vz <= 0.05) {
-				for (new i = 0; i < MAX_PLAYERS; i++) {
+				for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 					if (i != playerid && IsPlayerConnected(i) && IsPlayerStreamedIn(playerid, i)) {
 						SendLastSyncData(playerid, i);
 						ClearAnimationsForPlayer(playerid, i);
@@ -3587,7 +3587,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			new has_driver = false;
 			new has_passenger = false;
 
-			for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+			for (new otherid = GetPlayerPoolSize(); otherid >= 0; --otherid) {
 				if (otherid == playerid || !IsPlayerConnected(otherid)) {
 					continue;
 				}
@@ -3627,7 +3627,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
-			for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+			for (new otherid = GetPlayerPoolSize(); otherid >= 0; --otherid) {
 				if (otherid == playerid || !IsPlayerConnected(otherid)) {
 					continue;
 				}
@@ -3818,7 +3818,7 @@ static ScriptInit()
 
 	new tick = GetTickCount();
 
-	for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+	for (new playerid = GetPlayerPoolSize(); playerid >= 0; --playerid) {
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
@@ -3890,7 +3890,7 @@ static ScriptExit()
 		DestroyVendingMachines();
 	#endif
 
-	for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+	for (new playerid = GetPlayerPoolSize(); playerid >= 0; --playerid) {
 		#if WC_CUSTOM_VENDING_MACHINES
 			if (s_VendingUseTimer[playerid] != -1) {
 				KillTimer(s_VendingUseTimer[playerid]);
@@ -4134,7 +4134,7 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (i != playerid && IsPlayerConnected(i) && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncData(playerid, i);
 		}
@@ -4249,7 +4249,7 @@ public WC_SpawnForStreamedIn(playerid)
 
 	SpawnPlayerForWorld(playerid);
 
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (i != playerid && IsPlayerConnected(i) && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncData(playerid, i);
 			ClearAnimationsForPlayer(playerid, i);
@@ -5156,7 +5156,7 @@ static DamageFeedUpdateText(playerid)
 
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsGiven[i], i, issuerid, amount, weapon);
 		}
@@ -5167,7 +5167,7 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsTaken[i], i, issuerid, amount, weapon);
 		}
@@ -5305,40 +5305,42 @@ static IsPlayerBehindPlayer(playerid, targetid, Float:diff = 90.0)
 
 static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 0)
 {
-	new idx = s_RejectedHitsIdx[playerid];
+	if (playerid != INVALID_PLAYER_ID) {
+		new idx = s_RejectedHitsIdx[playerid];
 
-	if (s_RejectedHits[playerid][idx][e_Time]) {
-		idx += 1;
+		if (s_RejectedHits[playerid][idx][e_Time]) {
+			idx += 1;
 
-		if (idx >= sizeof(s_RejectedHits[])) {
-			idx = 0;
+			if (idx >= sizeof(s_RejectedHits[])) {
+				idx = 0;
+			}
+
+			s_RejectedHitsIdx[playerid] = idx;
 		}
 
-		s_RejectedHitsIdx[playerid] = idx;
+		new time, hour, minute, second;
+
+		time = gettime(hour, minute, second);
+
+		s_RejectedHits[playerid][idx][e_Reason] = reason;
+		s_RejectedHits[playerid][idx][e_Time] = time;
+		s_RejectedHits[playerid][idx][e_Weapon] = weapon;
+		s_RejectedHits[playerid][idx][e_Hour] = hour;
+		s_RejectedHits[playerid][idx][e_Minute] = minute;
+		s_RejectedHits[playerid][idx][e_Second] = second;
+		s_RejectedHits[playerid][idx][e_Info1] = _:i1;
+		s_RejectedHits[playerid][idx][e_Info2] = _:i2;
+		s_RejectedHits[playerid][idx][e_Info3] = _:i3;
+
+		if (damagedid != INVALID_PLAYER_ID) {
+			GetPlayerName(damagedid, s_RejectedHits[playerid][idx][e_Name], MAX_PLAYER_NAME);
+		} else {
+			s_RejectedHits[playerid][idx][e_Name][0] = '#';
+			s_RejectedHits[playerid][idx][e_Name][1] = '\0';
+		}
+
+		OnRejectedHit(playerid, s_RejectedHits[playerid][idx]);
 	}
-
-	new time, hour, minute, second;
-
-	time = gettime(hour, minute, second);
-
-	s_RejectedHits[playerid][idx][e_Reason] = reason;
-	s_RejectedHits[playerid][idx][e_Time] = time;
-	s_RejectedHits[playerid][idx][e_Weapon] = weapon;
-	s_RejectedHits[playerid][idx][e_Hour] = hour;
-	s_RejectedHits[playerid][idx][e_Minute] = minute;
-	s_RejectedHits[playerid][idx][e_Second] = second;
-	s_RejectedHits[playerid][idx][e_Info1] = _:i1;
-	s_RejectedHits[playerid][idx][e_Info2] = _:i2;
-	s_RejectedHits[playerid][idx][e_Info3] = _:i3;
-
-	if (damagedid != INVALID_PLAYER_ID) {
-		GetPlayerName(damagedid, s_RejectedHits[playerid][idx][e_Name], MAX_PLAYER_NAME);
-	} else {
-		s_RejectedHits[playerid][idx][e_Name][0] = '#';
-		s_RejectedHits[playerid][idx][e_Name][1] = '\0';
-	}
-
-	OnRejectedHit(playerid, s_RejectedHits[playerid][idx]);
 }
 
 forward WC_SecondKnifeAnim(playerid);
@@ -5413,7 +5415,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageTakenSound) {
 			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
-			for (new i = 0; i < MAX_PLAYERS; i++) {
+			for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 				if (s_Spectating[i] == playerid && i != playerid) {
 					PlayerPlaySound(i, s_DamageTakenSound, 0.0, 0.0, 0.0);
 				}
@@ -5423,7 +5425,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
-			for (new i = 0; i < MAX_PLAYERS; i++) {
+			for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 				if (s_Spectating[i] == issuerid && i != issuerid) {
 					PlayerPlaySound(i, s_DamageGivenSound, 0.0, 0.0, 0.0);
 				}
