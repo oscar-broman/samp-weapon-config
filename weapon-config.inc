@@ -1105,7 +1105,7 @@ stock SetDamageSounds(taken, given)
 	s_DamageGivenSound = given;
 }
 
-stock SetCbugAllowed(bool:enabled,playerid = INVALID_PLAYER_ID)
+stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
@@ -1115,10 +1115,10 @@ stock SetCbugAllowed(bool:enabled,playerid = INVALID_PLAYER_ID)
 				s_CbugAllowed[i] = enabled;
 			}
 		}
-	}
-	else {
+	} else {
 		s_CbugAllowed[playerid] = enabled;
 	}
+
 	return enabled;
 }
 
