@@ -271,7 +271,7 @@ SetCustomVendingMachines(bool:toggle);
 Toggle vending machines (they are removed and disabled by default)
 
 ```pawn
-SetCbugAllowed(bool:enabled,playerid = INVALID_PLAYER_ID);
+SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID);
 ```
 Toggle anti-cbug per player or globally. (Using no playerid param will default all users to default)
 
@@ -322,7 +322,7 @@ Modify a weapon's damage
 * `...` - If `damage_type` contains `RANGE`, the arguments should be a list of ranges and damage
     For example:
     ```pawn
-    SetWeaponDamage(WEAPON_SNIPER, DAMAGE_TYPE_RANGE, 40.0, 20.0, 30.0, 60.0, 20.0)
+    SetWeaponDamage(WEAPON_SNIPER, DAMAGE_TYPE_RANGE, 40.0, 20.0, 30.0, 60.0, 20.0);
     ```
     This will make sniper damage:
     * `40` if distance is less than `20`
