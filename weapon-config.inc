@@ -1127,6 +1127,7 @@ stock bool:GetCbugAllowed(playerid = INVALID_PLAYER_ID)
 	if (playerid == INVALID_PLAYER_ID) {
 		return s_CbugGlobal;
 	}
+
 	return s_CbugAllowed[playerid];
 }
 
