@@ -1108,10 +1108,11 @@ stock SetDamageSounds(taken, given)
 stock SetCbugAllowed(bool:enabled,playerid = INVALID_PLAYER_ID)
 {
 	if (playerid == INVALID_PLAYER_ID) {
+		s_CbugGlobal = enabled;
+
 		for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 			if (IsPlayerConnected(i)) {
 				s_CbugAllowed[i] = enabled;
-				s_CbugGlobal = enabled;
 			}
 		}
 	}
