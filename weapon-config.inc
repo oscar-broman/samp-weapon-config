@@ -2132,6 +2132,7 @@ public OnPlayerConnect(playerid)
 	s_DeathSkip[playerid] = 0;
 	s_LastVehicleTick[playerid] = 0;
 	s_PreviousHitI[playerid] = 0;
+	s_CbugAllowed[playerid] = s_CbugGlobal;
 	s_CbugFroze[playerid] = 0;
 	s_DeathTimer[playerid] = -1;
 	s_DelayedDeathTimer[playerid] = -1;
