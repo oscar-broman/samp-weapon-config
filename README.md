@@ -107,7 +107,7 @@ CallRemoteFunction("SetHealth", "i", playerid, health);
 ### New callbacks
 
 ```pawn
-public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart);
+public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 ```
 Called when damage is about to be inflicted on a player
 Most arguments can be modified (e.g. the damage could be adjusted)
@@ -121,7 +121,7 @@ Most arguments can be modified (e.g. the damage could be adjusted)
 Return 0 to prevent the damage from being inflicted
 
 ```pawn
-public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart);
+public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 ```
 Called after damage has been inflicted
 
@@ -130,7 +130,7 @@ Same parameters as above, but they can not be modified
 Return value ignored
 
 ```pawn
-public OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time);
+public OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time)
 ```
 Before the death animation is applied
 
@@ -143,7 +143,7 @@ Before the death animation is applied
 Return value ignored
 
 ```pawn
-public OnPlayerDeathFinished(playerid);
+public OnPlayerDeathFinished(playerid)
 ```
 When the death animation has finished and the player has been sent to respawn
 
@@ -152,7 +152,7 @@ When the death animation has finished and the player has been sent to respawn
 Return value ignored
 
 ```pawn
-public OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
+public OnRejectedHit(playerid, hit[E_REJECTED_HIT])
 ```
 When a shot or damage given is rejected
 See E_REJECTED_HIT and GetRejectedHit for more
@@ -163,7 +163,7 @@ See E_REJECTED_HIT and GetRejectedHit for more
 Return value ignored
 
 ```pawn
-public OnInvalidWeaponDamage(playerid, damagedid, Float:amount, weaponid, bodypart, error, bool:given);
+public OnInvalidWeaponDamage(playerid, damagedid, Float:amount, weaponid, bodypart, error, bool:given)
 ```
 When a player takes or gives invalid damage (WC_* errors above)
 * `playerid` - The player that inflicted the damage
