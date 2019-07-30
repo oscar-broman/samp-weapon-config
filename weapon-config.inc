@@ -1105,19 +1105,20 @@ stock SetDamageSounds(taken, given)
 	s_DamageGivenSound = given;
 }
 
-stock SetCbugAllowed(bool:enabled,playerid = INVALID_PLAYER_ID)
+stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
 	if (playerid == INVALID_PLAYER_ID) {
-		for (new i = 0; i < MAX_PLAYERS; i++) {
+		s_CbugGlobal = enabled;
+
+		for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 			if (IsPlayerConnected(i)) {
 				s_CbugAllowed[i] = enabled;
-				s_CbugGlobal = enabled;
 			}
 		}
-	}
-	else {
+	} else {
 		s_CbugAllowed[playerid] = enabled;
 	}
+
 	return enabled;
 }
 
@@ -1126,6 +1127,7 @@ stock bool:GetCbugAllowed(playerid = INVALID_PLAYER_ID)
 	if (playerid == INVALID_PLAYER_ID) {
 		return s_CbugGlobal;
 	}
+
 	return s_CbugAllowed[playerid];
 }
 
@@ -2131,6 +2133,7 @@ public OnPlayerConnect(playerid)
 	s_DeathSkip[playerid] = 0;
 	s_LastVehicleTick[playerid] = 0;
 	s_PreviousHitI[playerid] = 0;
+	s_CbugAllowed[playerid] = s_CbugGlobal;
 	s_CbugFroze[playerid] = 0;
 	s_DeathTimer[playerid] = -1;
 	s_DelayedDeathTimer[playerid] = -1;
