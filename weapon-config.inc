@@ -4,6 +4,7 @@
 #define _INC_WEAPON_CONFIG
 
 #include <a_samp>
+#include <YSI_Data\y_iterate>
 
 // Print debug messages in the chat and server log
 #if !defined WC_DEBUG
@@ -1110,10 +1111,8 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
 
-		for (new i = GetPlayerPoolSize(); i >= 0; --i) {
-			if (IsPlayerConnected(i)) {
-				s_CbugAllowed[i] = enabled;
-			}
+		foreach (new i : Player) {
+			s_CbugAllowed[i] = enabled;
 		}
 	} else {
 		s_CbugAllowed[playerid] = enabled;
@@ -1189,10 +1188,8 @@ stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
 
-	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
-		if (IsPlayerConnected(i)) {
-			DamageFeedUpdate(i);
-		}
+	foreach (new i : Player) {
+		DamageFeedUpdate(i);
 	}
 }
 
@@ -2237,11 +2234,7 @@ public OnPlayerDisconnect(playerid, reason)
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
 	}
 
-	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
-		if (!IsPlayerConnected(i)) {
-			continue;
-		}
-
+	foreach (new i : Player) {
 		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
 			if (s_PreviousHits[i][j][e_Issuer] == playerid) {
 				s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
@@ -2648,11 +2641,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				s_CbugFroze[playerid] = tick;
 
-				for (new i = GetPlayerPoolSize(); i >= 0; --i) {
-					if (!IsPlayerConnected(i) && !IsPlayerDying(i)) {
-						continue;
-					}
-
+				foreach (new i : Player) {
 					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
 						if (s_PreviousHits[i][j][e_Issuer] == playerid && tick - s_PreviousHits[i][j][e_Tick] <= 1200) {
 							s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
@@ -2829,8 +2818,8 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx*vx + vy*vy + vz*vz <= 0.05) {
-				for (new i = GetPlayerPoolSize(); i >= 0; --i) {
-					if (i != playerid && IsPlayerConnected(i) && IsPlayerStreamedIn(playerid, i)) {
+				foreach (new i : Player) {
+					if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 						SendLastSyncData(playerid, i);
 						ClearAnimationsForPlayer(playerid, i);
 					}
@@ -3602,8 +3591,8 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			new has_driver = false;
 			new has_passenger = false;
 
-			for (new otherid = GetPlayerPoolSize(); otherid >= 0; --otherid) {
-				if (otherid == playerid || !IsPlayerConnected(otherid)) {
+			foreach (new otherid : Player) {
+				if (otherid == playerid) {
 					continue;
 				}
 
@@ -3642,8 +3631,8 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
-			for (new otherid = GetPlayerPoolSize(); otherid >= 0; --otherid) {
-				if (otherid == playerid || !IsPlayerConnected(otherid)) {
+			foreach (new otherid : Player) {
+				if (otherid == playerid) {
 					continue;
 				}
 
@@ -3833,11 +3822,7 @@ static ScriptInit()
 
 	new tick = GetTickCount();
 
-	for (new playerid = GetPlayerPoolSize(); playerid >= 0; --playerid) {
-		if (!IsPlayerConnected(playerid)) {
-			continue;
-		}
-
+	foreach (new playerid : Player) {
 		new team = GetPlayerTeam(playerid);
 
 		if (team == 0xFE) {
@@ -3905,17 +3890,13 @@ static ScriptExit()
 		DestroyVendingMachines();
 	#endif
 
-	for (new playerid = GetPlayerPoolSize(); playerid >= 0; --playerid) {
+	foreach (new playerid : Player) {
 		#if WC_CUSTOM_VENDING_MACHINES
 			if (s_VendingUseTimer[playerid] != -1) {
 				KillTimer(s_VendingUseTimer[playerid]);
 				s_VendingUseTimer[playerid] = -1;
 			}
 		#endif
-
-		if (!IsPlayerConnected(playerid)) {
-			continue;
-		}
 
 		// Put things back the way they were
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
@@ -4149,8 +4130,8 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
-	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
-		if (i != playerid && IsPlayerConnected(i) && IsPlayerStreamedIn(playerid, i)) {
+	foreach (new i : Player) {
+		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncData(playerid, i);
 		}
 	}
@@ -4264,8 +4245,8 @@ public WC_SpawnForStreamedIn(playerid)
 
 	SpawnPlayerForWorld(playerid);
 
-	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
-		if (i != playerid && IsPlayerConnected(i) && IsPlayerStreamedIn(playerid, i)) {
+	foreach (new i : Player) {
+		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncData(playerid, i);
 			ClearAnimationsForPlayer(playerid, i);
 		}
@@ -5171,7 +5152,7 @@ static DamageFeedUpdateText(playerid)
 
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
-	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
+	foreach (new i : Player) {
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsGiven[i], i, issuerid, amount, weapon);
 		}
@@ -5182,7 +5163,7 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
-	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
+	foreach (new i : Player) {
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsTaken[i], i, issuerid, amount, weapon);
 		}
@@ -5430,7 +5411,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageTakenSound) {
 			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
-			for (new i = GetPlayerPoolSize(); i >= 0; --i) {
+			foreach (new i : Player) {
 				if (s_Spectating[i] == playerid && i != playerid) {
 					PlayerPlaySound(i, s_DamageTakenSound, 0.0, 0.0, 0.0);
 				}
@@ -5440,7 +5421,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
-			for (new i = GetPlayerPoolSize(); i >= 0; --i) {
+			foreach (new i : Player) {
 				if (s_Spectating[i] == issuerid && i != issuerid) {
 					PlayerPlaySound(i, s_DamageGivenSound, 0.0, 0.0, 0.0);
 				}
