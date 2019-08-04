@@ -5,6 +5,5 @@
     "dependencies": [
         "sampctl/samp-stdlib",
         "oscar-broman/SKY:1.0.0",
-        "pawn-lang/YSI-Includes@5.x"
     ]
 }
