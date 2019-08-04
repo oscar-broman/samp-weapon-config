@@ -4,7 +4,6 @@
 #define _INC_WEAPON_CONFIG
 
 #include <a_samp>
-#include <YSI_Data\y_iterate>
 
 // Print debug messages in the chat and server log
 #if !defined WC_DEBUG
@@ -1111,7 +1110,15 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
 
-		foreach (new i : Player) {
+		#if defined _inc_y_iterate
+			foreach (new i : Player) {
+		#else
+			for (new i = 0; i < MAX_PLAYERS; i++) {
+				if (!IsPlayerConnected(i)) {
+					continue;
+				}
+		#endif
+
 			s_CbugAllowed[i] = enabled;
 		}
 	} else {
@@ -1188,7 +1195,15 @@ stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
 
-	foreach (new i : Player) {
+	#if defined _inc_y_iterate
+		foreach (new i : Player) {
+	#else
+		for (new i = 0; i < MAX_PLAYERS; i++) {
+			if (!IsPlayerConnected(i)) {
+				continue;
+			}
+	#endif
+
 		DamageFeedUpdate(i);
 	}
 }
@@ -2234,7 +2249,15 @@ public OnPlayerDisconnect(playerid, reason)
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
 	}
 
-	foreach (new i : Player) {
+	#if defined _inc_y_iterate
+		foreach (new i : Player) {
+	#else
+		for (new i = 0; i < MAX_PLAYERS; i++) {
+			if (!IsPlayerConnected(i)) {
+				continue;
+			}
+	#endif
+
 		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
 			if (s_PreviousHits[i][j][e_Issuer] == playerid) {
 				s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
@@ -2641,7 +2664,15 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				s_CbugFroze[playerid] = tick;
 
-				foreach (new i : Player) {
+				#if defined _inc_y_iterate
+					foreach (new i : Player) {
+				#else
+					for (new i = 0; i < MAX_PLAYERS; i++) {
+						if (!IsPlayerConnected(i)) {
+							continue;
+						}
+				#endif
+
 					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
 						if (s_PreviousHits[i][j][e_Issuer] == playerid && tick - s_PreviousHits[i][j][e_Tick] <= 1200) {
 							s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
@@ -2818,7 +2849,15 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx*vx + vy*vy + vz*vz <= 0.05) {
-				foreach (new i : Player) {
+				#if defined _inc_y_iterate
+					foreach (new i : Player) {
+				#else
+					for (new i = 0; i < MAX_PLAYERS; i++) {
+						if (!IsPlayerConnected(i)) {
+							continue;
+						}
+				#endif
+
 					if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 						SendLastSyncData(playerid, i);
 						ClearAnimationsForPlayer(playerid, i);
@@ -3591,7 +3630,15 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			new has_driver = false;
 			new has_passenger = false;
 
-			foreach (new otherid : Player) {
+			#if defined _inc_y_iterate
+				foreach (new otherid : Player) {
+			#else
+				for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+					if (!IsPlayerConnected(otherid)) {
+						continue;
+					}
+			#endif
+
 				if (otherid == playerid) {
 					continue;
 				}
@@ -3631,7 +3678,15 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
-			foreach (new otherid : Player) {
+			#if defined _inc_y_iterate
+				foreach (new otherid : Player) {
+			#else
+				for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+					if (!IsPlayerConnected(otherid)) {
+						continue;
+					}
+			#endif
+
 				if (otherid == playerid) {
 					continue;
 				}
@@ -3822,7 +3877,15 @@ static ScriptInit()
 
 	new tick = GetTickCount();
 
-	foreach (new playerid : Player) {
+	#if defined _inc_y_iterate
+		foreach (new playerid : Player) {
+	#else
+		for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+			if (!IsPlayerConnected(playerid)) {
+				continue;
+			}
+	#endif
+
 		new team = GetPlayerTeam(playerid);
 
 		if (team == 0xFE) {
@@ -3890,7 +3953,15 @@ static ScriptExit()
 		DestroyVendingMachines();
 	#endif
 
-	foreach (new playerid : Player) {
+	#if defined _inc_y_iterate
+		foreach (new playerid : Player) {
+	#else
+		for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+			if (!IsPlayerConnected(playerid)) {
+				continue;
+			}
+	#endif
+
 		#if WC_CUSTOM_VENDING_MACHINES
 			if (s_VendingUseTimer[playerid] != -1) {
 				KillTimer(s_VendingUseTimer[playerid]);
@@ -4130,7 +4201,15 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
-	foreach (new i : Player) {
+	#if defined _inc_y_iterate
+		foreach (new i : Player) {
+	#else
+		for (new i = 0; i < MAX_PLAYERS; i++) {
+			if (!IsPlayerConnected(i)) {
+				continue;
+			}
+	#endif
+
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncData(playerid, i);
 		}
@@ -4245,7 +4324,15 @@ public WC_SpawnForStreamedIn(playerid)
 
 	SpawnPlayerForWorld(playerid);
 
-	foreach (new i : Player) {
+	#if defined _inc_y_iterate
+		foreach (new i : Player) {
+	#else
+		for (new i = 0; i < MAX_PLAYERS; i++) {
+			if (!IsPlayerConnected(i)) {
+				continue;
+			}
+	#endif
+
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncData(playerid, i);
 			ClearAnimationsForPlayer(playerid, i);
@@ -5152,7 +5239,15 @@ static DamageFeedUpdateText(playerid)
 
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
-	foreach (new i : Player) {
+	#if defined _inc_y_iterate
+		foreach (new i : Player) {
+	#else
+		for (new i = 0; i < MAX_PLAYERS; i++) {
+			if (!IsPlayerConnected(i)) {
+				continue;
+			}
+	#endif
+
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsGiven[i], i, issuerid, amount, weapon);
 		}
@@ -5163,7 +5258,15 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
-	foreach (new i : Player) {
+	#if defined _inc_y_iterate
+		foreach (new i : Player) {
+	#else
+		for (new i = 0; i < MAX_PLAYERS; i++) {
+			if (!IsPlayerConnected(i)) {
+				continue;
+			}
+	#endif
+
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsTaken[i], i, issuerid, amount, weapon);
 		}
@@ -5411,7 +5514,15 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageTakenSound) {
 			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
-			foreach (new i : Player) {
+			#if defined _inc_y_iterate
+				foreach (new i : Player) {
+			#else
+				for (new i = 0; i < MAX_PLAYERS; i++) {
+					if (!IsPlayerConnected(i)) {
+						continue;
+					}
+			#endif
+
 				if (s_Spectating[i] == playerid && i != playerid) {
 					PlayerPlaySound(i, s_DamageTakenSound, 0.0, 0.0, 0.0);
 				}
@@ -5421,7 +5532,15 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
-			foreach (new i : Player) {
+			#if defined _inc_y_iterate
+				foreach (new i : Player) {
+			#else
+				for (new i = 0; i < MAX_PLAYERS; i++) {
+					if (!IsPlayerConnected(i)) {
+						continue;
+					}
+			#endif
+
 				if (s_Spectating[i] == issuerid && i != issuerid) {
 					PlayerPlaySound(i, s_DamageGivenSound, 0.0, 0.0, 0.0);
 				}
