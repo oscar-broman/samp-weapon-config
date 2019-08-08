@@ -1111,12 +1111,12 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 		s_CbugGlobal = enabled;
 
 		#if defined _inc_y_iterate
-			foreach (new i : Player) {
+		foreach (new i : Player) {
 		#else
-			for (new i = 0; i < MAX_PLAYERS; i++) {
-				if (!IsPlayerConnected(i)) {
-					continue;
-				}
+		for (new i = 0; i < MAX_PLAYERS; i++) {
+			if (!IsPlayerConnected(i)) {
+				continue;
+			}
 		#endif
 
 			s_CbugAllowed[i] = enabled;
@@ -1196,12 +1196,12 @@ stock SetDamageFeed(bool:toggle)
 	s_DamageFeed = toggle;
 
 	#if defined _inc_y_iterate
-		foreach (new i : Player) {
+	foreach (new i : Player) {
 	#else
-		for (new i = 0; i < MAX_PLAYERS; i++) {
-			if (!IsPlayerConnected(i)) {
-				continue;
-			}
+	for (new i = 0; i < MAX_PLAYERS; i++) {
+		if (!IsPlayerConnected(i)) {
+			continue;
+		}
 	#endif
 
 		DamageFeedUpdate(i);
@@ -2250,12 +2250,12 @@ public OnPlayerDisconnect(playerid, reason)
 	}
 
 	#if defined _inc_y_iterate
-		foreach (new i : Player) {
+	foreach (new i : Player) {
 	#else
-		for (new i = 0; i < MAX_PLAYERS; i++) {
-			if (!IsPlayerConnected(i)) {
-				continue;
-			}
+	for (new i = 0; i < MAX_PLAYERS; i++) {
+		if (!IsPlayerConnected(i)) {
+			continue;
+		}
 	#endif
 
 		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
@@ -2665,12 +2665,12 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				s_CbugFroze[playerid] = tick;
 
 				#if defined _inc_y_iterate
-					foreach (new i : Player) {
+				foreach (new i : Player) {
 				#else
-					for (new i = 0; i < MAX_PLAYERS; i++) {
-						if (!IsPlayerConnected(i)) {
-							continue;
-						}
+				for (new i = 0; i < MAX_PLAYERS; i++) {
+					if (!IsPlayerConnected(i)) {
+						continue;
+					}
 				#endif
 
 					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
@@ -2850,12 +2850,12 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 
 			if (vx*vx + vy*vy + vz*vz <= 0.05) {
 				#if defined _inc_y_iterate
-					foreach (new i : Player) {
+				foreach (new i : Player) {
 				#else
-					for (new i = 0; i < MAX_PLAYERS; i++) {
-						if (!IsPlayerConnected(i)) {
-							continue;
-						}
+				for (new i = 0; i < MAX_PLAYERS; i++) {
+					if (!IsPlayerConnected(i)) {
+						continue;
+					}
 				#endif
 
 					if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
@@ -3631,12 +3631,12 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			new has_passenger = false;
 
 			#if defined _inc_y_iterate
-				foreach (new otherid : Player) {
+			foreach (new otherid : Player) {
 			#else
-				for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
-					if (!IsPlayerConnected(otherid)) {
-						continue;
-					}
+			for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+				if (!IsPlayerConnected(otherid)) {
+					continue;
+				}
 			#endif
 
 				if (otherid == playerid) {
@@ -3679,12 +3679,12 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			new has_occupent = false;
 
 			#if defined _inc_y_iterate
-				foreach (new otherid : Player) {
+			foreach (new otherid : Player) {
 			#else
-				for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
-					if (!IsPlayerConnected(otherid)) {
-						continue;
-					}
+			for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+				if (!IsPlayerConnected(otherid)) {
+					continue;
+				}
 			#endif
 
 				if (otherid == playerid) {
@@ -3878,12 +3878,12 @@ static ScriptInit()
 	new tick = GetTickCount();
 
 	#if defined _inc_y_iterate
-		foreach (new playerid : Player) {
+	foreach (new playerid : Player) {
 	#else
-		for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
-			if (!IsPlayerConnected(playerid)) {
-				continue;
-			}
+	for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+		if (!IsPlayerConnected(playerid)) {
+			continue;
+		}
 	#endif
 
 		new team = GetPlayerTeam(playerid);
@@ -3954,12 +3954,12 @@ static ScriptExit()
 	#endif
 
 	#if defined _inc_y_iterate
-		foreach (new playerid : Player) {
+	foreach (new playerid : Player) {
 	#else
-		for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
-			if (!IsPlayerConnected(playerid)) {
-				continue;
-			}
+	for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+		if (!IsPlayerConnected(playerid)) {
+			continue;
+		}
 	#endif
 
 		#if WC_CUSTOM_VENDING_MACHINES
@@ -4202,12 +4202,12 @@ static UpdateSyncData(playerid)
 	}
 
 	#if defined _inc_y_iterate
-		foreach (new i : Player) {
+	foreach (new i : Player) {
 	#else
-		for (new i = 0; i < MAX_PLAYERS; i++) {
-			if (!IsPlayerConnected(i)) {
-				continue;
-			}
+	for (new i = 0; i < MAX_PLAYERS; i++) {
+		if (!IsPlayerConnected(i)) {
+			continue;
+		}
 	#endif
 
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
@@ -4325,12 +4325,12 @@ public WC_SpawnForStreamedIn(playerid)
 	SpawnPlayerForWorld(playerid);
 
 	#if defined _inc_y_iterate
-		foreach (new i : Player) {
+	foreach (new i : Player) {
 	#else
-		for (new i = 0; i < MAX_PLAYERS; i++) {
-			if (!IsPlayerConnected(i)) {
-				continue;
-			}
+	for (new i = 0; i < MAX_PLAYERS; i++) {
+		if (!IsPlayerConnected(i)) {
+			continue;
+		}
 	#endif
 
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
@@ -5240,13 +5240,13 @@ static DamageFeedUpdateText(playerid)
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
 	#if defined _inc_y_iterate
-		foreach (new i : Player) {
+	foreach (new i : Player) {
 	#else
-		for (new i = 0; i < MAX_PLAYERS; i++) {
-			if (!IsPlayerConnected(i)) {
-				continue;
-			}
-	#endif
+	for (new i = 0; i < MAX_PLAYERS; i++) {
+		if (!IsPlayerConnected(i)) {
+			continue;
+		}
+	#endif		
 
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsGiven[i], i, issuerid, amount, weapon);
@@ -5259,12 +5259,12 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
 	#if defined _inc_y_iterate
-		foreach (new i : Player) {
+	foreach (new i : Player) {
 	#else
-		for (new i = 0; i < MAX_PLAYERS; i++) {
-			if (!IsPlayerConnected(i)) {
-				continue;
-			}
+	for (new i = 0; i < MAX_PLAYERS; i++) {
+		if (!IsPlayerConnected(i)) {
+			continue;
+		}
 	#endif
 
 		if (s_Spectating[i] == playerid && i != playerid) {
@@ -5515,12 +5515,12 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
 			#if defined _inc_y_iterate
-				foreach (new i : Player) {
+			foreach (new i : Player) {
 			#else
-				for (new i = 0; i < MAX_PLAYERS; i++) {
-					if (!IsPlayerConnected(i)) {
-						continue;
-					}
+			for (new i = 0; i < MAX_PLAYERS; i++) {
+				if (!IsPlayerConnected(i)) {
+					continue;
+				}
 			#endif
 
 				if (s_Spectating[i] == playerid && i != playerid) {
@@ -5533,12 +5533,12 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
 			#if defined _inc_y_iterate
-				foreach (new i : Player) {
+			foreach (new i : Player) {
 			#else
-				for (new i = 0; i < MAX_PLAYERS; i++) {
-					if (!IsPlayerConnected(i)) {
-						continue;
-					}
+			for (new i = 0; i < MAX_PLAYERS; i++) {
+				if (!IsPlayerConnected(i)) {
+					continue;
+				}
 			#endif
 
 				if (s_Spectating[i] == issuerid && i != issuerid) {
