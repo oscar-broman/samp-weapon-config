@@ -1787,127 +1787,127 @@ stock Text:WC_TextDrawCreate(Float:x, Float:y, text[])
 
 stock WC_TextDrawDestroy(Text:text)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawDestroy(text);
 }
 
 stock WC_TextDrawLetterSize(Text:text, Float:x, Float:y)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawLetterSize(text, x, y);
 }
 
 stock WC_TextDrawTextSize(Text:text, Float:x, Float:y)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawTextSize(text, x, y);
 }
 
 stock WC_TextDrawAlignment(Text:text, alignment)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawAlignment(text, alignment);
 }
 
 stock WC_TextDrawColor(Text:text, color)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawColor(text, color);
 }
 
 stock WC_TextDrawUseBox(Text:text, use)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawUseBox(text, use);
 }
 
 stock WC_TextDrawBoxColor(Text:text, color)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawBoxColor(text, color);
 }
 
 stock WC_TextDrawSetShadow(Text:text, size)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetShadow(text, size);
 }
 
 stock WC_TextDrawSetOutline(Text:text, size)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetOutline(text, size);
 }
 
 stock WC_TextDrawBackgroundColor(Text:text, color)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawBackgroundColor(text, color);
 }
 
 stock WC_TextDrawFont(Text:text, font)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawFont(text, font);
 }
 
 stock WC_TextDrawSetProportional(Text:text, set)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetProportional(text, set);
 }
 
 stock WC_TextDrawSetSelectable(Text:text, set)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetSelectable(text, set);
 }
 
 stock WC_TextDrawShowForPlayer(playerid, Text:text)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawShowForPlayer(playerid, text);
 }
 
 stock WC_TextDrawHideForPlayer(playerid, Text:text)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawHideForPlayer(playerid, text);
 }
 
 stock WC_TextDrawShowForAll(Text:text)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawShowForAll(text);
 }
 
 stock WC_TextDrawHideForAll(Text:text)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawHideForAll(text);
 }
 
 stock WC_TextDrawSetString(Text:text, string[])
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetString(text, string);
 }
 
 stock WC_TextDrawSetPreviewModel(Text:text, modelindex)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetPreviewModel(text, modelindex);
 }
 
 stock WC_TextDrawSetPreviewRot(Text:text, Float:fRotX, Float:fRotY, Float:fRotZ, Float:fZoom = 1.0)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetPreviewRot(text, fRotX, fRotY, fRotZ, fZoom);
 }
 
 stock WC_TextDrawSetPreviewVehCol(Text:text, color1, color2)
 {
-	if (_:text < 0 || text >= MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
+	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetPreviewVehCol(text, color1, color2);
 }
 
@@ -1926,133 +1926,133 @@ stock PlayerText:WC_CreatePlayerTextDraw(playerid, Float:x, Float:y, text[])
 stock WC_PlayerTextDrawDestroy(playerid, PlayerText:text)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawDestroy(playerid, text);
 }
 
 stock WC_PlayerTextDrawLetterSize(playerid, PlayerText:text, Float:x, Float:y)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawLetterSize(playerid, text, x, y);
 }
 
 stock WC_PlayerTextDrawTextSize(playerid, PlayerText:text, Float:x, Float:y)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawTextSize(playerid, text, x, y);
 }
 
 stock WC_PlayerTextDrawAlignment(playerid, PlayerText:text, alignment)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawAlignment(playerid, text, alignment);
 }
 
 stock WC_PlayerTextDrawColor(playerid, PlayerText:text, color)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawColor(playerid, text, color);
 }
 
 stock WC_PlayerTextDrawUseBox(playerid, PlayerText:text, use)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawUseBox(playerid, text, use);
 }
 
 stock WC_PlayerTextDrawBoxColor(playerid, PlayerText:text, color)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawBoxColor(playerid, text, color);
 }
 
 stock WC_PlayerTextDrawSetShadow(playerid, PlayerText:text, size)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawSetShadow(playerid, text, size);
 }
 
 stock WC_PlayerTextDrawSetOutline(playerid, PlayerText:text, size)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawSetOutline(playerid, text, size);
 }
 
 stock WC_PlayerTextDrawBackgroundColo(playerid, PlayerText:text, color)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawBackgroundColor(playerid, text, color);
 }
 
 stock WC_PlayerTextDrawFont(playerid, PlayerText:text, font)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawFont(playerid, text, font);
 }
 
 stock WC_PlayerTextDrawSetProportiona(playerid, PlayerText:text, set)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawSetProportional(playerid, text, set);
 }
 
 stock WC_PlayerTextDrawSetSelectable(playerid, PlayerText:text, set)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawSetSelectable(playerid, text, set);
 }
 
 stock WC_PlayerTextDrawShow(playerid, PlayerText:text)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawShow(playerid, text);
 }
 
 stock WC_PlayerTextDrawHide(playerid, PlayerText:text)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawHide(playerid, text);
 }
 
 stock WC_PlayerTextDrawSetString(playerid, PlayerText:text, string[])
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawSetString(playerid, text, string);
 }
 
 stock WC_PlayerTextDrawSetPreviewMode(playerid, PlayerText:text, modelindex)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawSetPreviewModel(playerid, text, modelindex);
 }
 
 stock WC_PlayerTextDrawSetPreviewRot(playerid, PlayerText:text, Float:fRotX, Float:fRotY, Float:fRotZ, Float:fZoom = 1.0)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawSetPreviewRot(playerid, text, fRotX, fRotY, fRotZ, fZoom);
 }
 
 stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
-	if (_:text < 0 || text >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
+	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
 	return PlayerTextDrawSetPreviewVehCol(playerid, text, color1, color2);
 }
 
