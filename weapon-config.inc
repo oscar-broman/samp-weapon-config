@@ -1521,7 +1521,7 @@ stock WC_GetWeaponName(weaponid, weapon[], len = sizeof(weapon))
 	return 1;
 }
 
-stock WC_ApplyAnimation(playerid, const animlib[], const animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
+stock WC_ApplyAnimation(playerid, animlib[], animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS || s_IsDying[playerid]) {
 		return 0;
@@ -1911,7 +1911,7 @@ stock WC_TextDrawSetPreviewVehCol(Text:text, color1, color2)
 	return TextDrawSetPreviewVehCol(text, color1, color2);
 }
 
-stock PlayerText:WC_CreatePlayerTextDraw(playerid, Float:x, Float:y, const text[])
+stock PlayerText:WC_CreatePlayerTextDraw(playerid, Float:x, Float:y, text[])
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return PlayerText:INVALID_TEXT_DRAW;
 	new PlayerText:td = CreatePlayerTextDraw(playerid, x, y, text);
