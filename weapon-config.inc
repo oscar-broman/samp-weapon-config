@@ -1219,6 +1219,15 @@ stock SetWeaponShootRate(weaponid, max_rate)
 	return 0;
 }
 
+stock GetWeaponShootRate(weaponid)
+{
+	if (0 <= weaponid < sizeof(s_MaxWeaponShootRate)) {
+		return s_MaxWeaponShootRate[weaponid];
+	}
+
+	return 0;
+}
+
 stock IsPlayerDying(playerid)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
@@ -1237,6 +1246,15 @@ stock SetWeaponMaxRange(weaponid, Float:range)
 	s_WeaponRange[weaponid] = range;
 
 	return 1;
+}
+
+stock Float:GetWeaponMaxRange(weaponid)
+{
+	if (!IsBulletWeapon(weaponid)) {
+		return 0.0;
+	}
+
+	return s_WeaponRange[weaponid];
 }
 
 stock SetPlayerMaxHealth(playerid, Float:value)
