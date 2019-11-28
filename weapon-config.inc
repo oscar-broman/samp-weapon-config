@@ -3302,7 +3302,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 {
-	if(playerid==INVALID_PLAYER_ID || IsPlayerNPC(playerid)) return 0;
+	if (playerid == INVALID_PLAYER_ID || IsPlayerNPC(playerid)) {
+		return 0;
+	}
+
 	UpdateHealthBar(playerid, true);
 
 	if (s_IsDying[playerid]) {
@@ -5281,7 +5284,7 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 		if (!IsPlayerConnected(i)) {
 			continue;
 		}
-	#endif		
+	#endif
 
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsGiven[i], i, issuerid, amount, weapon);
