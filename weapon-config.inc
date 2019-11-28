@@ -1113,7 +1113,7 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 		#if defined _inc_y_iterate
 		foreach (new i : Player) {
 		#else
-		for (new i = 0; i < MAX_PLAYERS; i++) {
+		for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 			if (!IsPlayerConnected(i)) {
 				continue;
 			}
@@ -1198,7 +1198,7 @@ stock SetDamageFeed(bool:toggle)
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (!IsPlayerConnected(i)) {
 			continue;
 		}
@@ -2270,7 +2270,7 @@ public OnPlayerDisconnect(playerid, reason)
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (!IsPlayerConnected(i)) {
 			continue;
 		}
@@ -2685,7 +2685,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				#if defined _inc_y_iterate
 				foreach (new i : Player) {
 				#else
-				for (new i = 0; i < MAX_PLAYERS; i++) {
+				for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 					if (!IsPlayerConnected(i)) {
 						continue;
 					}
@@ -2870,7 +2870,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 				#if defined _inc_y_iterate
 				foreach (new i : Player) {
 				#else
-				for (new i = 0; i < MAX_PLAYERS; i++) {
+				for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 					if (!IsPlayerConnected(i)) {
 						continue;
 					}
@@ -3651,7 +3651,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
 			#else
-			for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+			for (new otherid = GetPlayerPoolSize(); otherid >= 0; --otherid) {
 				if (!IsPlayerConnected(otherid)) {
 					continue;
 				}
@@ -3699,7 +3699,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
 			#else
-			for (new otherid = 0; otherid < MAX_PLAYERS; otherid++) {
+			for (new otherid = GetPlayerPoolSize(); otherid >= 0; --otherid) {
 				if (!IsPlayerConnected(otherid)) {
 					continue;
 				}
@@ -3898,7 +3898,7 @@ static ScriptInit()
 	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
 	#else
-	for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+	for (new playerid = GetPlayerPoolSize(); playerid >= 0; --playerid) {
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
@@ -3974,7 +3974,7 @@ static ScriptExit()
 	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
 	#else
-	for (new playerid = 0; playerid < MAX_PLAYERS; playerid++) {
+	for (new playerid = GetPlayerPoolSize(); playerid >= 0; --playerid) {
 		if (!IsPlayerConnected(playerid)) {
 			continue;
 		}
@@ -4222,7 +4222,7 @@ static UpdateSyncData(playerid)
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (!IsPlayerConnected(i)) {
 			continue;
 		}
@@ -4345,7 +4345,7 @@ public WC_SpawnForStreamedIn(playerid)
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (!IsPlayerConnected(i)) {
 			continue;
 		}
@@ -5260,7 +5260,7 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (!IsPlayerConnected(i)) {
 			continue;
 		}
@@ -5279,7 +5279,7 @@ static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i < MAX_PLAYERS; i++) {
+	for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 		if (!IsPlayerConnected(i)) {
 			continue;
 		}
@@ -5535,7 +5535,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			#if defined _inc_y_iterate
 			foreach (new i : Player) {
 			#else
-			for (new i = 0; i < MAX_PLAYERS; i++) {
+			for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 				if (!IsPlayerConnected(i)) {
 					continue;
 				}
@@ -5553,7 +5553,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			#if defined _inc_y_iterate
 			foreach (new i : Player) {
 			#else
-			for (new i = 0; i < MAX_PLAYERS; i++) {
+			for (new i = GetPlayerPoolSize(); i >= 0; --i) {
 				if (!IsPlayerConnected(i)) {
 					continue;
 				}
