@@ -1563,18 +1563,20 @@ stock WC_AddPlayerClass(modelid, Float:spawn_x, Float:spawn_y, Float:spawn_z, Fl
 {
 	new classid = AddPlayerClass(modelid, spawn_x, spawn_y, spawn_z, z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
 
-	s_ClassSpawnInfo[classid][e_Skin] = modelid;
-	s_ClassSpawnInfo[classid][e_Team] = 0x7FFFFFFF;
-	s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
-	s_ClassSpawnInfo[classid][e_PosY] = spawn_y;
-	s_ClassSpawnInfo[classid][e_PosZ] = spawn_z;
-	s_ClassSpawnInfo[classid][e_Rot] = z_angle;
-	s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
-	s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
-	s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
-	s_ClassSpawnInfo[classid][e_Ammo2] = weapon2_ammo;
-	s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
-	s_ClassSpawnInfo[classid][e_Ammo3] = weapon3_ammo;
+	if (0 <= classid <= 319) {
+		s_ClassSpawnInfo[classid][e_Skin] = modelid;
+		s_ClassSpawnInfo[classid][e_Team] = 0x7FFFFFFF;
+		s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
+		s_ClassSpawnInfo[classid][e_PosY] = spawn_y;
+		s_ClassSpawnInfo[classid][e_PosZ] = spawn_z;
+		s_ClassSpawnInfo[classid][e_Rot] = z_angle;
+		s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
+		s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
+		s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
+		s_ClassSpawnInfo[classid][e_Ammo2] = weapon2_ammo;
+		s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
+		s_ClassSpawnInfo[classid][e_Ammo3] = weapon3_ammo;
+	}
 
 	return classid;
 }
@@ -1583,62 +1585,72 @@ stock WC_AddPlayerClassEx(teamid, modelid, Float:spawn_x, Float:spawn_y, Float:s
 {
 	new classid = AddPlayerClassEx(teamid, modelid, spawn_x, spawn_y, spawn_z, z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
 
-	s_ClassSpawnInfo[classid][e_Skin] = modelid;
-	s_ClassSpawnInfo[classid][e_Team] = teamid;
-	s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
-	s_ClassSpawnInfo[classid][e_PosY] = spawn_y;
-	s_ClassSpawnInfo[classid][e_PosZ] = spawn_z;
-	s_ClassSpawnInfo[classid][e_Rot] = z_angle;
-	s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
-	s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
-	s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
-	s_ClassSpawnInfo[classid][e_Ammo2] = weapon2_ammo;
-	s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
-	s_ClassSpawnInfo[classid][e_Ammo3] = weapon3_ammo;
+	if (0 <= classid <= 319) {
+		s_ClassSpawnInfo[classid][e_Skin] = modelid;
+		s_ClassSpawnInfo[classid][e_Team] = teamid;
+		s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
+		s_ClassSpawnInfo[classid][e_PosY] = spawn_y;
+		s_ClassSpawnInfo[classid][e_PosZ] = spawn_z;
+		s_ClassSpawnInfo[classid][e_Rot] = z_angle;
+		s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
+		s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
+		s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
+		s_ClassSpawnInfo[classid][e_Ammo2] = weapon2_ammo;
+		s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
+		s_ClassSpawnInfo[classid][e_Ammo3] = weapon3_ammo;
+	}
 
 	return classid;
 }
 
 stock WC_SetSpawnInfo(playerid, team, skin, Float:x, Float:y, Float:z, Float:rotation, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo)
 {
-	s_PlayerClass[playerid] = -1;
-	s_SpawnInfoModified[playerid] = false;
+	if (SetSpawnInfo(playerid, team, skin, x, y, z, rotation, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo)) {
+		s_PlayerClass[playerid] = -1;
+		s_SpawnInfoModified[playerid] = false;
 
-	s_PlayerSpawnInfo[playerid][e_Skin] = skin;
-	s_PlayerSpawnInfo[playerid][e_Team] = team;
-	s_PlayerSpawnInfo[playerid][e_PosX] = x;
-	s_PlayerSpawnInfo[playerid][e_PosY] = y;
-	s_PlayerSpawnInfo[playerid][e_PosZ] = z;
-	s_PlayerSpawnInfo[playerid][e_Rot] = rotation;
-	s_PlayerSpawnInfo[playerid][e_Weapon1] = weapon1;
-	s_PlayerSpawnInfo[playerid][e_Ammo1] = weapon1_ammo;
-	s_PlayerSpawnInfo[playerid][e_Weapon2] = weapon2;
-	s_PlayerSpawnInfo[playerid][e_Ammo2] = weapon2_ammo;
-	s_PlayerSpawnInfo[playerid][e_Weapon3] = weapon3;
-	s_PlayerSpawnInfo[playerid][e_Ammo3] = weapon3_ammo;
+		s_PlayerSpawnInfo[playerid][e_Skin] = skin;
+		s_PlayerSpawnInfo[playerid][e_Team] = team;
+		s_PlayerSpawnInfo[playerid][e_PosX] = x;
+		s_PlayerSpawnInfo[playerid][e_PosY] = y;
+		s_PlayerSpawnInfo[playerid][e_PosZ] = z;
+		s_PlayerSpawnInfo[playerid][e_Rot] = rotation;
+		s_PlayerSpawnInfo[playerid][e_Weapon1] = weapon1;
+		s_PlayerSpawnInfo[playerid][e_Ammo1] = weapon1_ammo;
+		s_PlayerSpawnInfo[playerid][e_Weapon2] = weapon2;
+		s_PlayerSpawnInfo[playerid][e_Ammo2] = weapon2_ammo;
+		s_PlayerSpawnInfo[playerid][e_Weapon3] = weapon3;
+		s_PlayerSpawnInfo[playerid][e_Ammo3] = weapon3_ammo;
 
-	return SetSpawnInfo(playerid, team, skin, x, y, z, rotation, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
+		return 1;
+	}
+
+	return 0;
 }
 
 stock WC_TogglePlayerSpectating(playerid, toggle)
 {
-	if (toggle) {
-		if (s_DeathTimer[playerid] != -1) {
-			KillTimer(s_DeathTimer[playerid]);
-			s_DeathTimer[playerid] = -1;
+	if (TogglePlayerSpectating(playerid, toggle)) {
+		if (toggle) {
+			if (s_DeathTimer[playerid] != -1) {
+				KillTimer(s_DeathTimer[playerid]);
+				s_DeathTimer[playerid] = -1;
+			}
+
+			#if WC_CUSTOM_VENDING_MACHINES
+				if (s_VendingUseTimer[playerid] != -1) {
+					KillTimer(s_VendingUseTimer[playerid]);
+					s_VendingUseTimer[playerid] = -1;
+				}
+			#endif
+
+			s_IsDying[playerid] = false;
 		}
 
-		#if WC_CUSTOM_VENDING_MACHINES
-			if (s_VendingUseTimer[playerid] != -1) {
-				KillTimer(s_VendingUseTimer[playerid]);
-				s_VendingUseTimer[playerid] = -1;
-			}
-		#endif
-
-		s_IsDying[playerid] = false;
+		return 1;
 	}
 
-	return TogglePlayerSpectating(playerid, toggle);
+	return 0;
 }
 
 stock WC_TogglePlayerControllable(playerid, toggle)
@@ -1719,59 +1731,64 @@ stock WC_GetPlayerVirtualWorld(playerid)
 
 stock WC_PlayerSpectatePlayer(playerid, targetplayerid, mode = SPECTATE_MODE_NORMAL)
 {
-	if (playerid < 0 || playerid >= MAX_PLAYERS || targetplayerid < 0 || targetplayerid >= MAX_PLAYERS) {
-		return 0;
+	if (PlayerSpectatePlayer(playerid, targetplayerid, mode)) {
+		s_Spectating[playerid] = targetplayerid;
+		
+		return 1;
 	}
 
-	s_Spectating[playerid] = targetplayerid;
-
-	return PlayerSpectatePlayer(playerid, targetplayerid, mode);
+	return 0;
 }
 
 stock WC_DestroyVehicle(vehicleid)
 {
-	if (0 < vehicleid < MAX_VEHICLES) {
+	if (DestroyVehicle(vehicleid)) {
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
 		s_VehicleAlive[vehicleid] = false;
 		if (s_VehicleRespawnTimer[vehicleid] != -1) {
 			KillTimer(s_VehicleRespawnTimer[vehicleid]);
 			s_VehicleRespawnTimer[vehicleid] = -1;
 		}
+
+		return 1;
 	}
 
-	return DestroyVehicle(vehicleid);
+	return 0;
 }
 
 stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
 {
 	new id = CreateVehicle(modelid, x, y, z, angle, color1, color2, respawn_delay, addsiren);
+
 	if (id != INVALID_VEHICLE_ID) {
 		s_VehicleAlive[id] = true;
-		return id;
 	}
-	return INVALID_VEHICLE_ID;
+
+	return id;
 }
 
 
 stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2)
 {
 	new id = AddStaticVehicle(modelid, x, y, z, angle, color1, color2);
+
 	if (id != INVALID_VEHICLE_ID) {
 		s_VehicleAlive[id] = true;
-		return id;
 	}
-	return INVALID_VEHICLE_ID;
+
+	return id;
 }
 
 
 stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
 {
 	new id = AddStaticVehicleEx(modelid, x, y, z, angle, color1, color2, respawn_delay, addsiren);
+
 	if (id != INVALID_VEHICLE_ID) {
 		s_VehicleAlive[id] = true;
-		return id;
 	}
-	return INVALID_VEHICLE_ID;
+
+	return id;
 }
 
 stock WC_IsPlayerInCheckpoint(playerid)
