@@ -3296,6 +3296,10 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 		return 0;
 	}
 
+	if (s_InClassSelection[playerid] || s_ForceClassSelection[playerid]) {
+		return 0;
+	}
+
 	if (!IsHighRateWeapon(weaponid)) {
 		DebugMessage(playerid, "OnPlayerTakeDamage(%d took %f from %d by %d on bodypart %d)", playerid, amount, issuerid, weaponid, bodypart);
 	}
@@ -3331,10 +3335,6 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 	// Being knifed client-side
 	if (weaponid == WEAPON_KNIFE) {
-		if (s_IsDying[playerid]) {
-			return 0;
-		}
-
 		// With the plugin, this part is never actually used (it can't happen)
 		if (_:amount == _:0.0) {
 			if (s_KnifeTimeout[playerid] != -1) {
