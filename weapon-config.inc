@@ -2337,7 +2337,7 @@ public OnPlayerSpawn(playerid)
 			}
 		}
 
-		GivePlayerWeapon(playerid, s_SyncData[playerid][e_Weapon], 0);
+		SetPlayerArmedWeapon(playerid, s_SyncData[playerid][e_Weapon]);
 
 		return 1;
 	}
@@ -2666,7 +2666,7 @@ forward WC_CbugPunishment(playerid, weapon);
 public WC_CbugPunishment(playerid, weapon) {
 	FreezeSyncData(playerid, false);
 	ClearAnimations(playerid, 1);
-	GivePlayerWeapon(playerid, weapon, 0);
+	SetPlayerArmedWeapon(playerid, weapon);
 }
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
@@ -2694,7 +2694,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				ClearAnimations(playerid, 1);
 				ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 0, 1);
 				FreezeSyncData(playerid, true);
-				GivePlayerWeapon(playerid, w, 0);
+				SetPlayerArmedWeapon(playerid, w);
 				SetTimerEx("WC_CbugPunishment", 600, false, "ii", playerid, GetPlayerWeapon(playerid));
 
 				s_CbugFroze[playerid] = tick;
@@ -4349,7 +4349,7 @@ public WC_DeathSkipEnd(playerid)
 		}
 	}
 
-	GivePlayerWeapon(playerid, s_SyncData[playerid][e_Weapon], 0);
+	SetPlayerArmedWeapon(playerid, s_SyncData[playerid][e_Weapon]);
 	SetPlayerSpecialAction(playerid, 0);
 }
 
