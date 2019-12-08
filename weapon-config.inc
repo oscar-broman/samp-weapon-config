@@ -3355,6 +3355,10 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 	// Being knifed client-side
 	if (weaponid == WEAPON_KNIFE) {
+		if (s_IsDying[playerid]) {
+			return false;
+		}
+		
 		// With the plugin, this part is never actually used (it can't happen)
 		if (_:amount == _:0.0) {
 			if (s_KnifeTimeout[playerid] != -1) {
