@@ -1797,10 +1797,11 @@ stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, col
 stock WC_IsPlayerInCheckpoint(playerid)
 {
 	#if defined _YSF_included
-		if (!WC_IsPlayerSpawned(playerid)) {
+		if (!WC_IsPlayerSpawned(playerid))
 	#else
-		if (!IsPlayerSpawned(playerid)) {
+		if (!IsPlayerSpawned(playerid))
 	#endif
+	{
 		return 0;
 	}
 
@@ -2936,10 +2937,11 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 public OnPlayerPickUpPickup(playerid, pickupid)
 {
 	#if defined _YSF_included
-		if (!WC_IsPlayerSpawned(playerid)) {
+		if (!WC_IsPlayerSpawned(playerid))
 	#else
-		if (!IsPlayerSpawned(playerid)) {
+		if (!IsPlayerSpawned(playerid))
 	#endif
+	{		
 		return 0;
 	}
 
@@ -3869,10 +3871,11 @@ public OnVehicleDeath(vehicleid, killerid)
 public OnPlayerEnterCheckpoint(playerid)
 {
 	#if defined _YSF_included
-		if (!WC_IsPlayerSpawned(playerid)) {
+		if (!WC_IsPlayerSpawned(playerid))
 	#else
-		if (!IsPlayerSpawned(playerid)) {
+		if (!IsPlayerSpawned(playerid))
 	#endif
+	{
 		return 1;
 	}
 
