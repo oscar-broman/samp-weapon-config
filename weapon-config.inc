@@ -929,8 +929,11 @@ stock IsMeleeWeapon(weaponid)
 	return (WEAPON_UNARMED <= weaponid <= WEAPON_KATANA) || (WEAPON_DILDO <= weaponid <= WEAPON_CANE) || weaponid == WEAPON_PISTOLWHIP;
 }
 
-stock IsPlayerSpawned(playerid)
-{
+#if defined _YSF_included
+	stock WC_IsPlayerSpawned(playerid) {
+#else
+	stock IsPlayerSpawned(playerid) {
+#endif
 	if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
 		return false;
 	}
@@ -1793,7 +1796,11 @@ stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, col
 
 stock WC_IsPlayerInCheckpoint(playerid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	#if defined _YSF_included
+		if (!WC_IsPlayerSpawned(playerid)) {
+	#else
+		if (!IsPlayerSpawned(playerid)) {
+	#endif
 		return 0;
 	}
 
@@ -1802,7 +1809,12 @@ stock WC_IsPlayerInCheckpoint(playerid)
 
 stock WC_SetPlayerSpecialAction(playerid, actionid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+#if defined _YSF_included
+	if (!WC_IsPlayerSpawned(playerid))
+#else
+	if (!IsPlayerSpawned(playerid))
+#endif
+	{		
 		return 0;
 	}
 
@@ -2923,7 +2935,11 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 
 public OnPlayerPickUpPickup(playerid, pickupid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	#if defined _YSF_included
+		if (!WC_IsPlayerSpawned(playerid)) {
+	#else
+		if (!IsPlayerSpawned(playerid)) {
+	#endif
 		return 0;
 	}
 
@@ -3102,7 +3118,12 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		return 0;
 	}
 
-	if (!IsPlayerSpawned(playerid)) {
+#if defined _YSF_included
+	if (!WC_IsPlayerSpawned(playerid))
+#else
+	if (!IsPlayerSpawned(playerid))
+#endif
+	{
 		// Make sure the rejected hit wasn't added in OnPlayerWeaponShot
 		if (!IsBulletWeapon(weaponid) || s_LastShot[playerid][e_Valid]) {
 			AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
@@ -3192,7 +3213,12 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 	}
 
 	// Both players should see eachother
-	if ((!IsPlayerStreamedIn(playerid, damagedid) && !IsPlayerPaused(damagedid)) || !IsPlayerStreamedIn(damagedid, playerid)) {
+#if defined _YSF_included
+	if ((!IsPlayerStreamedIn(playerid, damagedid) && !WC_IsPlayerPaused(damagedid)) || !IsPlayerStreamedIn(damagedid, playerid))
+#else
+	if ((!IsPlayerStreamedIn(playerid, damagedid) && !IsPlayerPaused(damagedid)) || !IsPlayerStreamedIn(damagedid, playerid))
+#endif
+	{
 		AddRejectedHit(playerid, damagedid, HIT_UNSTREAMED, weaponid, damagedid);
 		return 0;
 	}
@@ -3528,7 +3554,12 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		return 0;
 	}
 
-	if (!IsPlayerSpawned(playerid)) {
+#if defined _YSF_included
+	if (!WC_IsPlayerSpawned(playerid))
+#else
+	if (!IsPlayerSpawned(playerid))
+#endif
+	{
 		AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
 
 		return 0;
@@ -3837,7 +3868,11 @@ public OnVehicleDeath(vehicleid, killerid)
 
 public OnPlayerEnterCheckpoint(playerid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	#if defined _YSF_included
+		if (!WC_IsPlayerSpawned(playerid)) {
+	#else
+		if (!IsPlayerSpawned(playerid)) {
+	#endif
 		return 1;
 	}
 
@@ -4083,8 +4118,11 @@ static HasSameTeam(playerid, otherid)
 	return (s_PlayerTeam[playerid] == s_PlayerTeam[otherid]);
 }
 
-static IsPlayerPaused(playerid)
-{
+#if defined _YSF_included
+	static WC_IsPlayerPaused(playerid) {
+#else
+	static IsPlayerPaused(playerid) {
+#endif
 	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
 }
 
@@ -4722,7 +4760,12 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 
 static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
-	if (!IsPlayerSpawned(playerid) || amount < 0.0) {
+#if defined _YSF_included
+	if (!WC_IsPlayerSpawned(playerid) || amount < 0.0)
+#else
+	if (!IsPlayerSpawned(playerid) || amount < 0.0)
+#endif
+	{
 		return;
 	}
 
