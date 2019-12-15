@@ -3486,7 +3486,6 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 	#endif
 
 	s_LastShot[playerid][e_Valid] = false;
-	s_LastShot[playerid][e_Hits] = false;
 
 	if (s_CbugFroze[playerid] && GetTickCount() - s_CbugFroze[playerid] < 900) {
 		return 0;
