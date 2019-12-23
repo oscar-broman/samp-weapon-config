@@ -63,6 +63,11 @@
 	#endif
 #endif
 
+// Make sure this native is available
+#if !defined IsValidVehicle
+	native IsValidVehicle(vehicleid);
+#endif
+
 // Given in OnInvalidWeaponDamage
 enum {
 	WC_NO_ERROR,
@@ -2556,7 +2561,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 	new vehicleid = GetPlayerVehicleID(playerid);
 
 	// Let's assume they died from an exploading vehicle
-	if (vehicleid) {
+	if (vehicleid != INVALID_VEHICLE_ID && IsValidVehicle(vehicleid)) {
 		reason = WEAPON_EXPLOSION;
 		killerid = INVALID_PLAYER_ID;
 
