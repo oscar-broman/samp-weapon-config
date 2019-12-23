@@ -2517,146 +2517,147 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
-	s_TrueDeath[playerid] = true;
-	s_InClassSelection[playerid] = false;
+	if(!IsPlayerNPC(playerid)) {
+		s_TrueDeath[playerid] = true;
+		s_InClassSelection[playerid] = false;
 
-	#if WC_CUSTOM_VENDING_MACHINES
-		if (s_VendingUseTimer[playerid] != -1) {
-			KillTimer(s_VendingUseTimer[playerid]);
-			s_VendingUseTimer[playerid] = -1;
-		}
-	#endif
+		#if WC_CUSTOM_VENDING_MACHINES
+			if (s_VendingUseTimer[playerid] != -1) {
+				KillTimer(s_VendingUseTimer[playerid]);
+				s_VendingUseTimer[playerid] = -1;
+			}
+		#endif
 
-	if (s_BeingResynced[playerid] || s_ForceClassSelection[playerid]) {
-		return 1;
-	}
-
-	// Probably fake death
-	if (killerid != INVALID_PLAYER_ID && !IsPlayerStreamedIn(killerid, playerid)) {
-		killerid = INVALID_PLAYER_ID;
-	}
-
-	DebugMessageRedAll("OnPlayerDeath(%d died by %d from %d)", playerid, reason, killerid);
-
-	if (s_DeathTimer[playerid] != -1) {
-		KillTimer(s_DeathTimer[playerid]);
-	}
-
-	if (s_IsDying[playerid]) {
-		DebugMessageRedAll("death while dying %d", playerid);
-
-		return 1;
-	}
-
-	// WEAPON_UNKNOWN
-	if (reason < 0 || reason > 55) {
-		reason = 55;
-	}
-
-	new vehicleid = GetPlayerVehicleID(playerid);
-
-	// Let's assume they died from an exploading vehicle
-	if (vehicleid) {
-		reason = WEAPON_EXPLOSION;
-		killerid = INVALID_PLAYER_ID;
-
-		if (!HasSameTeam(playerid, s_LastVehicleShooter[vehicleid])) {
-			killerid = s_LastVehicleShooter[vehicleid];
-		}
-	}
-
-	new Float:amount = 0.0;
-	new bodypart = BODY_PART_UNKNOWN;
-
-	if (reason == WEAPON_PARACHUTE) {
-		reason = WEAPON_COLLISION;
-	}
-
-	if (OnPlayerDamage(playerid, amount, killerid, reason, bodypart)) {
-		if (reason < 0 || reason > WEAPON_UNKNOWN) {
-			reason = WEAPON_UNKNOWN;
+		if (s_BeingResynced[playerid] || s_ForceClassSelection[playerid]) {
+			return 1;
 		}
 
-		if (amount == 0.0) {
-			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
+		// Probably fake death
+		if (killerid != INVALID_PLAYER_ID && !IsPlayerStreamedIn(killerid, playerid)) {
+			killerid = INVALID_PLAYER_ID;
 		}
 
-		if (reason == WEAPON_COLLISION || reason == WEAPON_DROWN || reason == WEAPON_CARPARK) {
-			if (amount <= 0.0) {
-				amount = s_PlayerHealth[playerid];
+		DebugMessageRedAll("OnPlayerDeath(%d died by %d from %d)", playerid, reason, killerid);
+
+		if (s_DeathTimer[playerid] != -1) {
+			KillTimer(s_DeathTimer[playerid]);
+		}
+
+		if (s_IsDying[playerid]) {
+			DebugMessageRedAll("death while dying %d", playerid);
+
+			return 1;
+		}
+
+		// WEAPON_UNKNOWN
+		if (reason < 0 || reason > 55) {
+			reason = 55;
+		}
+
+		new vehicleid = GetPlayerVehicleID(playerid);
+
+		// Let's assume they died from an exploading vehicle
+		if (vehicleid) {
+			reason = WEAPON_EXPLOSION;
+			killerid = INVALID_PLAYER_ID;
+
+			if (!HasSameTeam(playerid, s_LastVehicleShooter[vehicleid])) {
+				killerid = s_LastVehicleShooter[vehicleid];
+			}
+		}
+
+		new Float:amount = 0.0;
+		new bodypart = BODY_PART_UNKNOWN;
+
+		if (reason == WEAPON_PARACHUTE) {
+			reason = WEAPON_COLLISION;
+		}
+
+		if (OnPlayerDamage(playerid, amount, killerid, reason, bodypart)) {
+			if (reason < 0 || reason > WEAPON_UNKNOWN) {
+				reason = WEAPON_UNKNOWN;
 			}
 
-			s_PlayerHealth[playerid] -= amount;
-		} else {
-			if (amount <= 0.0) {
+			if (amount == 0.0) {
 				amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
 			}
 
-			s_PlayerArmour[playerid] -= amount;
-		}
+			if (reason == WEAPON_COLLISION || reason == WEAPON_DROWN || reason == WEAPON_CARPARK) {
+				if (amount <= 0.0) {
+					amount = s_PlayerHealth[playerid];
+				}
 
-		if (s_PlayerArmour[playerid] < 0.0) {
-			s_DamageDoneArmour[playerid] = amount + s_PlayerArmour[playerid];
-			s_DamageDoneHealth[playerid] = -s_PlayerArmour[playerid];
-			s_PlayerHealth[playerid] += s_PlayerArmour[playerid];
-			s_PlayerArmour[playerid] = 0.0;
-		} else {
-			s_DamageDoneArmour[playerid] = amount;
-			s_DamageDoneHealth[playerid] = 0.0;
-		}
-
-		if (s_PlayerHealth[playerid] <= 0.0) {
-			amount += s_PlayerHealth[playerid];
-			s_DamageDoneHealth[playerid] += s_PlayerHealth[playerid];
-			s_PlayerHealth[playerid] = 0.0;
-		}
-
-		OnPlayerDamageDone(playerid, amount, killerid, reason, bodypart);
-	}
-
-	if (s_PlayerHealth[playerid] <= 0.0005) {
-		s_PlayerHealth[playerid] = 0.0;
-		s_IsDying[playerid] = true;
-
-		new animlib[32], animname[32], anim_lock, respawn_time;
-
-		OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
-
-		#if defined WC_OnPlayerDeath
-			WC_OnPlayerDeath(playerid, killerid, reason);
-		#endif
-
-		OnPlayerDeathFinished(playerid, false);
-	} else {
-		if (vehicleid || WasPlayerInVehicle(playerid, 10000)) {
-			new Float:x, Float:y, Float:z, Float:r;
-
-			GetPlayerPos(playerid, x, y, z);
-			SetPlayerPos(playerid, x, y, z);
-			SaveSyncData(playerid);
-
-			if (vehicleid) {
-				GetVehicleZAngle(vehicleid, r);
+				s_PlayerHealth[playerid] -= amount;
 			} else {
-				GetPlayerFacingAngle(playerid, r);
+				if (amount <= 0.0) {
+					amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
+				}
+
+				s_PlayerArmour[playerid] -= amount;
 			}
 
-			s_DeathSkip[playerid] = 2;
+			if (s_PlayerArmour[playerid] < 0.0) {
+				s_DamageDoneArmour[playerid] = amount + s_PlayerArmour[playerid];
+				s_DamageDoneHealth[playerid] = -s_PlayerArmour[playerid];
+				s_PlayerHealth[playerid] += s_PlayerArmour[playerid];
+				s_PlayerArmour[playerid] = 0.0;
+			} else {
+				s_DamageDoneArmour[playerid] = amount;
+				s_DamageDoneHealth[playerid] = 0.0;
+			}
 
-			ForceClassSelection(playerid);
-			SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
-			TogglePlayerSpectating(playerid, true);
-			TogglePlayerSpectating(playerid, false);
-			SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
-			TogglePlayerControllable(playerid, true);
-			GivePlayerWeapon(playerid, 1, 1);
-		} else {
-			SpawnPlayerInPlace(playerid);
+			if (s_PlayerHealth[playerid] <= 0.0) {
+				amount += s_PlayerHealth[playerid];
+				s_DamageDoneHealth[playerid] += s_PlayerHealth[playerid];
+				s_PlayerHealth[playerid] = 0.0;
+			}
+
+			OnPlayerDamageDone(playerid, amount, killerid, reason, bodypart);
 		}
+
+		if (s_PlayerHealth[playerid] <= 0.0005) {
+			s_PlayerHealth[playerid] = 0.0;
+			s_IsDying[playerid] = true;
+
+			new animlib[32], animname[32], anim_lock, respawn_time;
+
+			OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
+
+			#if defined WC_OnPlayerDeath
+				WC_OnPlayerDeath(playerid, killerid, reason);
+			#endif
+
+			OnPlayerDeathFinished(playerid, false);
+		} else {
+			if (vehicleid || WasPlayerInVehicle(playerid, 10000)) {
+				new Float:x, Float:y, Float:z, Float:r;
+
+				GetPlayerPos(playerid, x, y, z);
+				SetPlayerPos(playerid, x, y, z);
+				SaveSyncData(playerid);
+
+				if (vehicleid) {
+					GetVehicleZAngle(vehicleid, r);
+				} else {
+					GetPlayerFacingAngle(playerid, r);
+				}
+
+				s_DeathSkip[playerid] = 2;
+
+				ForceClassSelection(playerid);
+				SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+				TogglePlayerSpectating(playerid, true);
+				TogglePlayerSpectating(playerid, false);
+				SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+				TogglePlayerControllable(playerid, true);
+				GivePlayerWeapon(playerid, 1, 1);
+			} else {
+				SpawnPlayerInPlace(playerid);
+			}
+		}
+
+		UpdateHealthBar(playerid);
 	}
-
-	UpdateHealthBar(playerid);
-
 	return 1;
 }
 
