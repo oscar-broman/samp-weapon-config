@@ -905,6 +905,7 @@ static Float:s_DamageDoneHealth[MAX_PLAYERS];
 static Float:s_DamageDoneArmour[MAX_PLAYERS];
 static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
 static bool:s_VehicleAlive[MAX_VEHICLES] = {false, ...};
+static bool:s_EnableHealthBar[MAX_PLAYERS];
 static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
@@ -1042,7 +1043,19 @@ stock ReturnWeaponName(weaponid)
 
 	return name;
 }
-
+stock EnableHealthBarForPlayer(playerid, bool:enable)
+{
+	if (playerid != INVALID_PLAYER_ID)
+	{		
+		s_EnableHealthBar[playerid] = enable;
+		SetHealthBarVisible(playerid, enable);
+		#if WC_DEBUG
+		DebugMessage(playerid, "health bar is %s for player", (s_EnableHealthBar[playerid]) ? ("enabled") : ("disabled"));
+		#endif
+		return true;
+	}
+	return false;
+}
 stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 {
 	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
@@ -2190,6 +2203,7 @@ public OnPlayerConnect(playerid)
 	s_DeathTimer[playerid] = -1;
 	s_DelayedDeathTimer[playerid] = -1;
 	s_DamageFeedPlayer[playerid] = -1;
+	s_EnableHealthBar[playerid] = true; //enable by default
 
 	for (new i = 0; i < sizeof(s_PreviousHits[]); i++) {
 		s_PreviousHits[playerid][i][e_Tick] = 0;
@@ -4176,6 +4190,10 @@ static UpdateHealthBar(playerid, bool:force = false)
 
 static SetHealthBarVisible(playerid, bool:toggle)
 {
+	if (!s_EnableHealthBar[playerid])
+	{
+		toggle = false;
+	}
 	if (s_HealthBarVisible[playerid] == toggle) {
 		return;
 	}
@@ -5210,11 +5228,12 @@ static DamageFeedUpdateText(playerid)
 			format(
 				buf,
 				sizeof(buf),
-				"%s%s - %s +%.2f~n~",
+				"%s%s - %s +%.2f (%.2f)~n~",
 				buf,
 				s_DamageFeedHitsGiven[playerid][i][e_Name],
 				weapon,
-				s_DamageFeedHitsGiven[playerid][i][e_Amount] + 0.009
+				s_DamageFeedHitsGiven[playerid][i][e_Amount] + 0.009,
+				s_PlayerHealth[s_DamageFeedHitsGiven[playerid][i][e_Issuer]]
 			);
 		}
 	}
@@ -5249,20 +5268,22 @@ static DamageFeedUpdateText(playerid)
 			format(
 				buf,
 				sizeof(buf),
-				"%s%s -%.2f~n~",
+				"%s%s -%.2f (%.2f)~n~",
 				buf,
 				weapon,
-				s_DamageFeedHitsTaken[playerid][i][e_Amount] + 0.009
+				s_DamageFeedHitsTaken[playerid][i][e_Amount] + 0.009,
+				s_PlayerHealth[playerid]
 			);
 		} else {
 			format(
 				buf,
 				sizeof(buf),
-				"%s%s - %s -%.2f~n~",
+				"%s%s - %s -%.2f (%.2f)~n~",
 				buf,
 				s_DamageFeedHitsTaken[playerid][i][e_Name],
 				weapon,
-				s_DamageFeedHitsTaken[playerid][i][e_Amount] + 0.009
+				s_DamageFeedHitsTaken[playerid][i][e_Amount] + 0.009,
+				s_PlayerHealth[s_DamageFeedHitsGiven[playerid][i][e_Issuer]]
 			);
 		}
 	}
