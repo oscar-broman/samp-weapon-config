@@ -1539,7 +1539,7 @@ stock WC_GetWeaponName(weaponid, weapon[], len = sizeof(weapon))
 	return 1;
 }
 
-stock WC_ApplyAnimation(playerid, const animlib[], const animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
+stock WC_ApplyAnimation(playerid, animlib[], animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS || s_IsDying[playerid]) {
 		return 0;
@@ -3156,10 +3156,9 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 			SetTimerEx("WC_SecondKnifeAnim", 2200, false, "i", damagedid);
 
-			// #if defined WC_OnPlayerDeathPlayerDeath
-			// 	WC_OnPlayerDeath(damagedid, playerid, weaponid);
-			// #endif
-			CallLocalFunction("OnPlayerDeath", "iii", damageid, playerid, weaponid);
+			#if defined WC_OnPlayerDeathPlayerDeath
+				WC_OnPlayerDeath(damagedid, playerid, weaponid);
+			#endif
 
 			DebugMessage(damagedid, "being knifed by %d", playerid);
 			DebugMessage(playerid, "knifing %d", damagedid);
@@ -4899,7 +4898,7 @@ public WC_DelayedDeath(playerid, issuerid, reason) {
 	#endif
 }
 
-static PlayerDeath(playerid, const animlib[32], const animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
+static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
 {
 	s_PlayerHealth[playerid] = 0.0;
 	s_PlayerArmour[playerid] = 0.0;
