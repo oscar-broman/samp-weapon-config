@@ -1045,7 +1045,7 @@ stock ReturnWeaponName(weaponid)
 }
 stock EnableHealthBarForPlayer(playerid, bool:enable)
 {
-	if (playerid != INVALID_PLAYER_ID)
+	if (IsPlayerConnected(playerid))
 	{		
 		s_EnableHealthBar[playerid] = enable;
 		SetHealthBarVisible(playerid, enable);
@@ -4190,10 +4190,9 @@ static UpdateHealthBar(playerid, bool:force = false)
 
 static SetHealthBarVisible(playerid, bool:toggle)
 {
-	if (!s_EnableHealthBar[playerid])
-	{
+	if (!s_EnableHealthBar[playerid]) 
 		toggle = false;
-	}
+	
 	if (s_HealthBarVisible[playerid] == toggle) {
 		return;
 	}
