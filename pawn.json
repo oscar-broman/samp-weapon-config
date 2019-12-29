@@ -2,5 +2,5 @@
   "user": "oscar-broman",
   "repo": "samp-weapon-config",
   "contributors": ["oscar-broman"],
-  "dependencies": ["sampctl/samp-stdlib", "oscar-broman/SKY:2.2.0"]
+  "dependencies": ["sampctl/samp-stdlib", "oscar-broman/SKY:2.2.1"]
 }
