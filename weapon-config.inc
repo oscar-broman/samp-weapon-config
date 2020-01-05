@@ -2214,7 +2214,7 @@ public OnPlayerConnect(playerid)
 	}
 
 	SetPlayerTeam(playerid, 0xFE);
-	FreezeSyncData(playerid, false);
+	FreezeSyncPacket(playerid, .toggle = false);
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
 
@@ -2417,7 +2417,7 @@ public OnPlayerSpawn(playerid)
 
 	UpdatePlayerVirtualWorld(playerid);
 	UpdateHealthBar(playerid, true);
-	FreezeSyncData(playerid, false);
+	FreezeSyncPacket(playerid, .toggle = false);
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
 
@@ -2489,7 +2489,7 @@ public OnPlayerRequestClass(playerid, classid)
 		s_IsDying[playerid] = false;
 	}
 
-	FreezeSyncData(playerid, false);
+	FreezeSyncPacket(playerid, .toggle = false);
 	UpdatePlayerVirtualWorld(playerid);
 
 	if (s_TrueDeath[playerid]) {
@@ -2678,7 +2678,7 @@ static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2);
 
 forward WC_CbugPunishment(playerid, weapon);
 public WC_CbugPunishment(playerid, weapon) {
-	FreezeSyncData(playerid, false);
+	FreezeSyncPacket(playerid, .toggle = false);
 	ClearAnimations(playerid, 1);
 	SetPlayerArmedWeapon(playerid, weapon);
 }
@@ -2707,7 +2707,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				ClearAnimations(playerid, 1);
 				ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 0, 1);
-				FreezeSyncData(playerid, true);
+				FreezeSyncPacket(playerid, .toggle = true);
 				SetPlayerArmedWeapon(playerid, w);
 				SetTimerEx("WC_CbugPunishment", 600, false, "ii", playerid, GetPlayerWeapon(playerid));
 
@@ -2738,7 +2738,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 								s_DelayedDeathTimer[i] = -1;
 								ClearAnimations(i, 1);
 								SetFakeFacingAngle(i, _);
-								FreezeSyncData(i, false);
+								FreezeSyncPacket(i, .toggle = false);
 
 								s_IsDying[i] = false;
 
@@ -2833,7 +2833,7 @@ public OnPlayerStreamIn(playerid, forplayerid)
 {
 	// Send ped floor_hit_f
 	if (s_IsDying[playerid]) {
-		SendLastSyncData(playerid, forplayerid, 0x2e040000 + 1150);
+		SendLastSyncPacket(playerid, forplayerid, .animation = 0x2e040000 + 1150);
 	}
 
 	#if defined WC_OnPlayerStreamIn
@@ -2908,7 +2908,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 				#endif
 
 					if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
-						SendLastSyncData(playerid, i);
+						SendLastSyncPacket(playerid, i);
 						ClearAnimationsForPlayer(playerid, i);
 					}
 				}
@@ -4036,7 +4036,7 @@ static ScriptExit()
 
 		SetFakeHealth(playerid, 255);
 		SetFakeArmour(playerid, 255);
-		FreezeSyncData(playerid, false);
+		FreezeSyncPacket(playerid, .toggle = false);
 		SetFakeFacingAngle(playerid, _);
 		SetHealthBarVisible(playerid, false);
 
@@ -4265,7 +4265,7 @@ static UpdateSyncData(playerid)
 	#endif
 
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
-			SendLastSyncData(playerid, i);
+			SendLastSyncPacket(playerid, i);
 		}
 	}
 }
@@ -4388,7 +4388,7 @@ public WC_SpawnForStreamedIn(playerid)
 	#endif
 
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
-			SendLastSyncData(playerid, i);
+			SendLastSyncPacket(playerid, i);
 			ClearAnimationsForPlayer(playerid, i);
 		}
 	}
@@ -4940,7 +4940,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 	OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
 
 	UpdateHealthBar(playerid);
-	FreezeSyncData(playerid, freeze_sync);
+	FreezeSyncPacket(playerid, .toggle = freeze_sync);
 
 	if (respawn_time == -1) {
 		respawn_time = s_RespawnTime;
@@ -5517,7 +5517,7 @@ public WC_PlayerDeathRespawn(playerid)
 	if (!OnPlayerDeathFinished(playerid, true)) {
 		UpdateHealthBar(playerid);
 		SetFakeFacingAngle(playerid, _);
-		FreezeSyncData(playerid, false);
+		FreezeSyncPacket(playerid, .toggle = false);
 
 		return;
 	}
