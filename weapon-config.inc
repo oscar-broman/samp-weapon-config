@@ -921,21 +921,38 @@ stock IsMeleeWeapon(weaponid)
 	return (WEAPON_UNARMED <= weaponid <= WEAPON_KATANA) || (WEAPON_DILDO <= weaponid <= WEAPON_CANE) || weaponid == WEAPON_PISTOLWHIP;
 }
 
-stock IsPlayerSpawned(playerid)
-{
-	if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
-		return false;
-	}
+#if defined _YSF_included
+    stock HOOK_IsPlayerSpawned(playerid)
+    {
+        if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
+            return false;
+        }
+        
+        return (IsPlayerSpawned(playerid));
+    }
+    #if defined _ALS_IsPlayerSpawned
+        #undef IsPlayerSpawned
+    #else
+        #define _ALS_IsPlayerSpawned
+    #endif
+    #define IsPlayerSpawned HOOK_IsPlayerSpawned
+#else
+    stock IsPlayerSpawned(playerid)
+    {
+        if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
+            return false;
+        }
 
-	switch (GetPlayerState(playerid)) {
-		case PLAYER_STATE_ONFOOT .. PLAYER_STATE_PASSENGER,
-		     PLAYER_STATE_SPAWNED: {
-			return true;
-		}
-	}
+        switch (GetPlayerState(playerid)) {
+            case PLAYER_STATE_ONFOOT .. PLAYER_STATE_PASSENGER,
+                PLAYER_STATE_SPAWNED: {
+                return true;
+            }
+        }
 
-	return false;
-}
+        return false;
+    }
+#endif
 
 stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 {
@@ -3197,7 +3214,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 	}
 
 	// Both players should see eachother
-	if ((!IsPlayerStreamedIn(playerid, damagedid) && !IsPlayerPaused(damagedid)) || !IsPlayerStreamedIn(damagedid, playerid)) {
+	if ((!IsPlayerStreamedIn(playerid, damagedid) && !WC_IsPlayerPaused(damagedid)) || !IsPlayerStreamedIn(damagedid, playerid)) {
 		AddRejectedHit(playerid, damagedid, HIT_UNSTREAMED, weaponid, damagedid);
 		return 0;
 	}
@@ -4087,7 +4104,7 @@ static HasSameTeam(playerid, otherid)
 	return (s_PlayerTeam[playerid] == s_PlayerTeam[otherid]);
 }
 
-static IsPlayerPaused(playerid)
+static WC_IsPlayerPaused(playerid)
 {
 	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
 }
