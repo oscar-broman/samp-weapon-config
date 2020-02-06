@@ -3433,19 +3433,33 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 	}
 
 	// Should still be damaged by grenades or fire after someone has died
-	if (issuerid != INVALID_PLAYER_ID) {
+	if (issuerid != INVALID_PLAYER_ID && IsPlayerConnected(issuerid)) {
 		if (HasSameTeam(playerid, issuerid)) {
 			return 0;
 		}
 
 		if (s_IsDying[issuerid] && (IsBulletWeapon(weaponid) || IsMeleeWeapon(weaponid))) {
 			DebugMessageRed(playerid, "shot/punched by dead player (%d)", issuerid);
-
 			return 0;
 		}
 
 		if (s_BeingResynced[issuerid]) {
 			return 0;
+		}
+
+		// https://github.com/oscar-broman/samp-weapon-config/issues/104
+		if(weaponid == WEAPON_COLLISION
+		|| weaponid == WEAPON_DROWN) {
+			return 0;
+		}
+
+		// https://github.com/oscar-broman/samp-weapon-config/issues/104
+		if(weaponid == WEAPON_VEHICLE
+		|| weaponid == WEAPON_CARPARK 
+		|| weaponid == WEAPON_HELIBLADES) {
+			if(!IsPlayerInAnyVehicle(issuerid)) {
+				return 0;
+			}
 		}
 	}
 
