@@ -63,6 +63,16 @@
 	#endif
 #endif
 
+// Provides a way for const correctness support
+// when used with the newer standard libraries
+// https://github.com/sampctl/samp-stdlib/
+// https://github.com/sampctl/pawn-stdlib
+#if !defined SAMP_CONST_CORRECT
+	#define WC_CONST
+#else 
+	#define WC_CONST const
+#endif
+
 // Given in OnInvalidWeaponDamage
 enum {
 	WC_NO_ERROR,
@@ -243,7 +253,7 @@ forward OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart);
 // After OnPlayerDamage
 forward OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart);
 // Before the death animation is applied
-forward OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time);
+forward OnPlayerPrepareDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], &anim_lock, &respawn_time);
 // When the death animation is finished and the player has been sent to respawn
 forward OnPlayerDeathFinished(playerid, bool:cancelable);
 // When a shot or damage given is rejected
@@ -4920,7 +4930,7 @@ public WC_DelayedDeath(playerid, issuerid, reason) {
 	#endif
 }
 
-static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
+static PlayerDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
 {
 	s_PlayerHealth[playerid] = 0.0;
 	s_PlayerArmour[playerid] = 0.0;
@@ -4972,7 +4982,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 	#endif
 }
 
-public OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time)
+public OnPlayerPrepareDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], &anim_lock, &respawn_time)
 {
 	#if defined WC_OnPlayerPrepareDeath
 		WC_OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
