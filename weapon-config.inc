@@ -921,38 +921,21 @@ stock IsMeleeWeapon(weaponid)
 	return (WEAPON_UNARMED <= weaponid <= WEAPON_KATANA) || (WEAPON_DILDO <= weaponid <= WEAPON_CANE) || weaponid == WEAPON_PISTOLWHIP;
 }
 
-#if defined _YSF_included
-    stock HOOK_IsPlayerSpawned(playerid)
-    {
-        if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
-            return false;
-        }
-        
-        return (IsPlayerSpawned(playerid));
-    }
-    #if defined _ALS_IsPlayerSpawned
-        #undef IsPlayerSpawned
-    #else
-        #define _ALS_IsPlayerSpawned
-    #endif
-    #define IsPlayerSpawned HOOK_IsPlayerSpawned
-#else
-    stock IsPlayerSpawned(playerid)
-    {
-        if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
-            return false;
-        }
+stock WC_IsPlayerSpawned(playerid)
+{
+	if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
+		return false;
+	}
 
-        switch (GetPlayerState(playerid)) {
-            case PLAYER_STATE_ONFOOT .. PLAYER_STATE_PASSENGER,
-                PLAYER_STATE_SPAWNED: {
-                return true;
-            }
-        }
+	switch (GetPlayerState(playerid)) {
+		case PLAYER_STATE_ONFOOT .. PLAYER_STATE_PASSENGER,
+		     PLAYER_STATE_SPAWNED: {
+			return true;
+		}
+	}
 
-        return false;
-    }
-#endif
+	return false;
+}
 
 stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 {
@@ -1814,7 +1797,7 @@ stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, col
 
 stock WC_IsPlayerInCheckpoint(playerid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
@@ -1823,7 +1806,7 @@ stock WC_IsPlayerInCheckpoint(playerid)
 
 stock WC_SetPlayerSpecialAction(playerid, actionid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
@@ -2945,7 +2928,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 
 public OnPlayerPickUpPickup(playerid, pickupid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
@@ -3124,7 +3107,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		return 0;
 	}
 
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		// Make sure the rejected hit wasn't added in OnPlayerWeaponShot
 		if (!IsBulletWeapon(weaponid) || s_LastShot[playerid][e_Valid]) {
 			AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
@@ -3549,7 +3532,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		return 0;
 	}
 
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
 
 		return 0;
@@ -3858,7 +3841,7 @@ public OnVehicleDeath(vehicleid, killerid)
 
 public OnPlayerEnterCheckpoint(playerid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 1;
 	}
 
@@ -4746,7 +4729,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 
 static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
-	if (!IsPlayerSpawned(playerid) || amount < 0.0) {
+	if (!WC_IsPlayerSpawned(playerid) || amount < 0.0) {
 		return;
 	}
 
