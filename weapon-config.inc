@@ -1553,7 +1553,7 @@ stock WC_GetWeaponName(weaponid, weapon[], len = sizeof(weapon))
 	return 1;
 }
 
-stock WC_ApplyAnimation(playerid, animlib[], animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
+stock WC_ApplyAnimation(playerid, WC_CONST animlib[], WC_CONST animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS || s_IsDying[playerid]) {
 		return 0;
@@ -1823,7 +1823,7 @@ stock WC_SetPlayerSpecialAction(playerid, actionid)
 	return SetPlayerSpecialAction(playerid, actionid);
 }
 
-stock Text:WC_TextDrawCreate(Float:x, Float:y, text[])
+stock Text:WC_TextDrawCreate(Float:x, Float:y, WC_CONST text[])
 {
 	new Text:td = TextDrawCreate(x, y, text);
 
@@ -1936,7 +1936,7 @@ stock WC_TextDrawHideForAll(Text:text)
 	return TextDrawHideForAll(text);
 }
 
-stock WC_TextDrawSetString(Text:text, string[])
+stock WC_TextDrawSetString(Text:text, WC_CONST string[])
 {
 	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
 	return TextDrawSetString(text, string);
@@ -1960,7 +1960,7 @@ stock WC_TextDrawSetPreviewVehCol(Text:text, color1, color2)
 	return TextDrawSetPreviewVehCol(text, color1, color2);
 }
 
-stock PlayerText:WC_CreatePlayerTextDraw(playerid, Float:x, Float:y, text[])
+stock PlayerText:WC_CreatePlayerTextDraw(playerid, Float:x, Float:y, WC_CONST text[])
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return PlayerText:INVALID_TEXT_DRAW;
 	new PlayerText:td = CreatePlayerTextDraw(playerid, x, y, text);
@@ -2077,7 +2077,7 @@ stock WC_PlayerTextDrawHide(playerid, PlayerText:text)
 	return PlayerTextDrawHide(playerid, text);
 }
 
-stock WC_PlayerTextDrawSetString(playerid, PlayerText:text, string[])
+stock WC_PlayerTextDrawSetString(playerid, PlayerText:text, WC_CONST string[])
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
 	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
@@ -5912,7 +5912,7 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 #endif
 #define OnPlayerPrepareDeath WC_OnPlayerPrepareDeath
 #if defined WC_OnPlayerPrepareDeath
-	forward WC_OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time);
+	forward WC_OnPlayerPrepareDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], &anim_lock, &respawn_time);
 #endif
 
 
