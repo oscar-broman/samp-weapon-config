@@ -903,6 +903,7 @@ static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
 static bool:s_VehicleAlive[MAX_VEHICLES] = {false, ...};
 static bool:s_EnableHealthBar[MAX_PLAYERS];
 static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
+static bool:s_OnPlayerDeathHooked[MAX_PLAYERS];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -2226,6 +2227,7 @@ public OnPlayerConnect(playerid)
 	#endif
 
 	s_AlreadyConnected[playerid] = false;
+	s_OnPlayerDeathHooked[playerid] = false;
 
 	#if defined WC_OnPlayerConnect
 		return WC_OnPlayerConnect(playerid);
@@ -2486,7 +2488,7 @@ public OnPlayerRequestClass(playerid, classid)
 	}
 
 	if (s_IsDying[playerid]) {
-		OnPlayerDeathFinished(playerid, false);
+		CallLocalFunction("OnPlayerDeathFinished", "ii", playerid, false);
 		s_IsDying[playerid] = false;
 	}
 
@@ -2532,6 +2534,11 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
+	if(s_OnPlayerDeathHooked[playerid]) {
+		s_OnPlayerDeathHooked[playerid] = false;
+		return 1;
+	}	
+
 	s_TrueDeath[playerid] = true;
 	s_InClassSelection[playerid] = false;
 
@@ -2587,7 +2594,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 		reason = WEAPON_COLLISION;
 	}
 
-	if (OnPlayerDamage(playerid, amount, killerid, reason, bodypart)) {
+	if (CallLocalFunction("OnPlayerDamage", "ifiii", playerid, amount, killerid, reason, bodypart)) {
 		if (reason < 0 || reason > WEAPON_UNKNOWN) {
 			reason = WEAPON_UNKNOWN;
 		}
@@ -2626,7 +2633,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 			s_PlayerHealth[playerid] = 0.0;
 		}
 
-		OnPlayerDamageDone(playerid, amount, killerid, reason, bodypart);
+		CallLocalFunction("OnPlayerDamageDone", "ifiii", playerid, amount, killerid, reason, bodypart);
 	}
 
 	if (s_PlayerHealth[playerid] <= 0.0005) {
@@ -2635,13 +2642,12 @@ public OnPlayerDeath(playerid, killerid, reason)
 
 		new animlib[32], animname[32], anim_lock, respawn_time;
 
-		OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
+		CallLocalFunction("OnPlayerPrepareDeath", "issii", playerid, animlib, animname, anim_lock, respawn_time);
 
-		#if defined WC_OnPlayerDeath
-			WC_OnPlayerDeath(playerid, killerid, reason);
-		#endif
+		s_OnPlayerDeathHooked[playerid] = true;
+		CallLocalFunction("OnPlayerDeath", "iii", playerid, killerid, reason);
 
-		OnPlayerDeathFinished(playerid, false);
+		CallLocalFunction("OnPlayerDeathFinished", "ii", playerid, false);
 	} else {
 		if (vehicleid || WasPlayerInVehicle(playerid, 10000)) {
 			new Float:x, Float:y, Float:z, Float:r;
@@ -3080,10 +3086,8 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 	}
 
 	// Nobody got damaged
-	if (!IsPlayerConnected(damagedid)) {
-		#if defined OnInvalidWeaponDamage
-			OnInvalidWeaponDamage(playerid, damagedid, amount, weaponid, bodypart, WC_NO_DAMAGED, true);
-		#endif
+	if (damagedid == INVALID_PLAYER_ID) {
+		CallLocalFunction("OnInvalidWeaponDamage", "iifiiii", playerid, damagedid, amount, weaponid, bodypart, WC_NO_DAMAGED, true);
 
 		AddRejectedHit(playerid, damagedid, HIT_NO_DAMAGEDID, weaponid);
 
@@ -3153,7 +3157,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 				return 0;
 			}
 
-			if (!OnPlayerDamage(damagedid, amount, playerid, weaponid, bodypart)) {
+			if (!CallLocalFunction("OnPlayerDamage", "ifiii", damagedid, amount, playerid, weaponid, bodypart)) {
 				if (s_KnifeTimeout[damagedid] != -1) {
 					KillTimer(s_KnifeTimeout[damagedid]);
 				}
@@ -3168,7 +3172,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 			s_DamageDoneHealth[playerid] = s_PlayerHealth[playerid];
 			s_DamageDoneArmour[playerid] = s_PlayerArmour[playerid];
 
-			OnPlayerDamageDone(damagedid, s_PlayerHealth[damagedid] + s_PlayerArmour[damagedid], playerid, weaponid, bodypart);
+			CallLocalFunction("OnPlayerDamageDone", "ifiii", damagedid, s_PlayerHealth[damagedid] + s_PlayerArmour[damagedid], playerid, weaponid, bodypart);
 
 			ClearAnimations(damagedid, 1);
 
@@ -3176,9 +3180,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 			SetTimerEx("WC_SecondKnifeAnim", 2200, false, "i", damagedid);
 
-			#if defined WC_OnPlayerDeath
-				WC_OnPlayerDeath(damagedid, playerid, weaponid);
-			#endif
+			CallLocalFunction("OnPlayerDeath", "iii", damagedid, playerid, weaponid);
 
 			DebugMessage(damagedid, "being knifed by %d", playerid);
 			DebugMessage(playerid, "knifing %d", damagedid);
@@ -3225,9 +3227,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		}
 
 		if (err != WC_INVALID_DISTANCE) {
-			#if defined OnInvalidWeaponDamage
-				OnInvalidWeaponDamage(playerid, damagedid, amount, weaponid, bodypart, err, true);
-			#endif
+			CallLocalFunction("OnInvalidWeaponDamage", "iifiiii", playerid, damagedid, amount, weaponid, bodypart, err, true);			
 		}
 
 		return 0;
@@ -3311,7 +3311,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 	}
 
 	if (npc) {
-		OnPlayerDamageDone(damagedid, amount, playerid, weaponid, bodypart);
+		CallLocalFunction("OnPlayerDamageDone", "ifiii", damagedid, amount, playerid, weaponid, bodypart);
 	} else {
 		InflictDamage(damagedid, amount, playerid, weaponid, bodypart);
 	}
@@ -3389,7 +3389,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 				return 0;
 			}
 
-			if (!OnPlayerDamage(playerid, amount, issuerid, weaponid, bodypart)) {
+			if (!CallLocalFunction("OnPlayerDamage", "ifiii", playerid, amount, issuerid, weaponid, bodypart)) {
 				ResyncPlayer(playerid);
 
 				return 0;
@@ -3402,13 +3402,15 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			s_DamageDoneHealth[playerid] = s_PlayerHealth[playerid];
 			s_DamageDoneArmour[playerid] = s_PlayerArmour[playerid];
 
-			OnPlayerDamageDone(playerid, s_PlayerHealth[playerid] + s_PlayerArmour[playerid], issuerid, weaponid, bodypart);
+			CallLocalFunction("OnPlayerDamageDone", "ifiii", playerid, s_PlayerHealth[playerid] + s_PlayerArmour[playerid], issuerid, weaponid, bodypart);
 
 			PlayerDeath(playerid, "KNIFE", "KILL_Knife_Ped_Die", _, 4000 - GetPlayerPing(playerid));
 
-			#if defined WC_OnPlayerDeath
-				WC_OnPlayerDeath(playerid, issuerid, weaponid);
-			#endif
+			// #if defined WC_OnPlayerDeath
+			// 	WC_OnPlayerDeath(playerid, issuerid, weaponid);
+			// #endif
+
+			CallLocalFunction("OnPlayerDeath", "iii", playerid, issuerid, weaponid);
 
 			SetPlayerHealth(playerid, Float:0x7f7fffff);
 
@@ -3486,9 +3488,11 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 		}
 
 		if (err != WC_INVALID_DISTANCE) {
-			#if defined OnInvalidWeaponDamage
-				OnInvalidWeaponDamage(issuerid, playerid, amount, weaponid, bodypart, err, false);
-			#endif
+			// #if defined OnInvalidWeaponDamage
+			// 	OnInvalidWeaponDamage(issuerid, playerid, amount, weaponid, bodypart, err, false);
+			// #endif
+
+			CallLocalFunction("OnInvalidWeaponDamage", "iifiiii", issuerid, playerid, amount, weaponid, bodypart, err, false);
 		}
 
 		return 0;
@@ -3829,8 +3833,6 @@ public WC_OnDeadVehicleSpawn(vehicleid)
 	return SetVehicleToRespawn(vehicleid);
 }
 
-
-
 public OnVehicleSpawn(vehicleid)
 {
 	if (s_VehicleRespawnTimer[vehicleid] != -1) {
@@ -3847,7 +3849,6 @@ public OnVehicleSpawn(vehicleid)
 		return 1;
 	#endif
 }
-
 
 public OnVehicleDeath(vehicleid, killerid)
 {
@@ -3866,7 +3867,6 @@ public OnVehicleDeath(vehicleid, killerid)
 	}
 	return 1;
 }
-
 
 public OnPlayerEnterCheckpoint(playerid)
 {
@@ -4756,7 +4756,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		return;
 	}
 
-	if (!OnPlayerDamage(playerid, amount, issuerid, weaponid, bodypart)) {
+	if (!CallLocalFunction("OnPlayerDamage", "ifiii", playerid, amount, issuerid, weaponid, bodypart)) {
 		UpdateHealthBar(playerid);
 
 		if (weaponid < 0 || weaponid > WEAPON_UNKNOWN) {
@@ -4828,7 +4828,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		s_PlayerHealth[playerid] = 0.0;
 	}
 
-	OnPlayerDamageDone(playerid, amount, issuerid, weaponid, bodypart);
+	CallLocalFunction("OnPlayerDamageDone", "ifiii", playerid, amount, issuerid, weaponid, bodypart);
 
 	if (s_PlayerHealth[playerid] <= 0.0005) {
 		new vehicleid = GetPlayerVehicleID(playerid);
@@ -4908,13 +4908,12 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 			}
 		}
 
-		#if defined WC_OnPlayerDeath
-			if (s_CbugAllowed[playerid]) {
-				WC_OnPlayerDeath(playerid, issuerid, weaponid);
-			} else {
-				s_DelayedDeathTimer[playerid] = SetTimerEx(#WC_DelayedDeath, 1200, false, "iii", playerid, issuerid, weaponid);
-			}
-		#endif
+		if (s_CbugAllowed[playerid]) {
+			s_OnPlayerDeathHooked[playerid] = true;
+			CallLocalFunction("OnPlayerDeath", "iii", playerid, issuerid, weaponid);
+		} else {
+			s_DelayedDeathTimer[playerid] = SetTimerEx(#WC_DelayedDeath, 1200, false, "iii", playerid, issuerid, weaponid);
+		}
 	}
 
 	UpdateHealthBar(playerid);
@@ -4924,9 +4923,11 @@ forward WC_DelayedDeath(playerid, issuerid, reason);
 public WC_DelayedDeath(playerid, issuerid, reason) {
 	s_DelayedDeathTimer[playerid] = -1;
 
-	#if defined WC_OnPlayerDeath
-		WC_OnPlayerDeath(playerid, issuerid, reason);
-	#endif
+	// #if defined WC_OnPlayerDeath
+	// 	WC_OnPlayerDeath(playerid, issuerid, reason);
+	// #endif
+
+	CallLocalFunction("OnPlayerDeath", "iii", playerid, issuerid, reason);
 }
 
 static PlayerDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
@@ -4951,7 +4952,7 @@ static PlayerDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], anim_l
 		}
 	}
 
-	OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
+	CallLocalFunction("OnPlayerPrepareDeath", "issii", playerid, animlib, animname, anim_lock, respawn_time);
 
 	UpdateHealthBar(playerid);
 	FreezeSyncPacket(playerid, .toggle = freeze_sync);
@@ -5509,7 +5510,7 @@ static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 
 			s_RejectedHits[playerid][idx][e_Name][1] = '\0';
 		}
 
-		OnRejectedHit(playerid, s_RejectedHits[playerid][idx]);
+		CallLocalFunction("OnRejectedHit", "iad", playerid, s_RejectedHits[playerid][idx], sizeof(s_RejectedHits[][]));
 	}
 }
 
@@ -5528,7 +5529,7 @@ public WC_PlayerDeathRespawn(playerid)
 
 	s_IsDying[playerid] = false;
 
-	if (!OnPlayerDeathFinished(playerid, true)) {
+	if(!CallLocalFunction("OnPlayerDeathFinished", "ii", playerid, true)) {
 		UpdateHealthBar(playerid);
 		SetFakeFacingAngle(playerid, _);
 		FreezeSyncPacket(playerid, .toggle = false);
