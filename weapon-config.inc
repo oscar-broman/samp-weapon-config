@@ -3401,10 +3401,6 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 			PlayerDeath(playerid, "KNIFE", "KILL_Knife_Ped_Die", _, 4000 - GetPlayerPing(playerid));
 
-			// #if defined WC_OnPlayerDeath
-			// 	WC_OnPlayerDeath(playerid, issuerid, weaponid);
-			// #endif
-
 			CallLocalFunction("OnPlayerDeath", "iii", playerid, issuerid, weaponid);
 
 			SetPlayerHealth(playerid, Float:0x7f7fffff);
@@ -3483,10 +3479,6 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 		}
 
 		if (err != WC_INVALID_DISTANCE) {
-			// #if defined OnInvalidWeaponDamage
-			// 	OnInvalidWeaponDamage(issuerid, playerid, amount, weaponid, bodypart, err, false);
-			// #endif
-
 			CallLocalFunction("OnInvalidWeaponDamage", "iifiiii", issuerid, playerid, amount, weaponid, bodypart, err, false);
 		}
 
@@ -4923,11 +4915,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 forward WC_DelayedDeath(playerid, issuerid, reason);
 public WC_DelayedDeath(playerid, issuerid, reason) {
 	s_DelayedDeathTimer[playerid] = -1;
-
-	// #if defined WC_OnPlayerDeath
-	// 	WC_OnPlayerDeath(playerid, issuerid, reason);
-	// #endif
-
+	
 	CallLocalFunction("OnPlayerDeath", "iii", playerid, issuerid, reason);
 }
 
