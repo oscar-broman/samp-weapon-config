@@ -1042,7 +1042,7 @@ stock ReturnWeaponName(weaponid)
 stock EnableHealthBarForPlayer(playerid, bool:enable)
 {
 	if (IsPlayerConnected(playerid))
-	{		
+	{
 		s_EnableHealthBar[playerid] = enable;
 		SetHealthBarVisible(playerid, enable);
 		#if WC_DEBUG
