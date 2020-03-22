@@ -69,7 +69,7 @@
 // https://github.com/sampctl/pawn-stdlib
 #if !defined SAMP_CONST_CORRECT
 	#define WC_CONST
-#else 
+#else
 	#define WC_CONST const
 #endif
 
@@ -1747,7 +1747,6 @@ stock WC_PlayerSpectatePlayer(playerid, targetplayerid, mode = SPECTATE_MODE_NOR
 {
 	if (PlayerSpectatePlayer(playerid, targetplayerid, mode)) {
 		s_Spectating[playerid] = targetplayerid;
-		
 		return 1;
 	}
 
@@ -2239,7 +2238,7 @@ public OnPlayerDisconnect(playerid, reason)
 	#if defined WC_OnPlayerDisconnect
 		WC_OnPlayerDisconnect(playerid, reason);
 	#endif
-	
+
 	#if WC_CUSTOM_VENDING_MACHINES
 		if (s_VendingUseTimer[playerid] != -1) {
 			KillTimer(s_VendingUseTimer[playerid]);
@@ -3465,7 +3464,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 		// https://github.com/oscar-broman/samp-weapon-config/issues/104
 		if(weaponid == WEAPON_VEHICLE
-		|| weaponid == WEAPON_CARPARK 
+		|| weaponid == WEAPON_CARPARK
 		|| weaponid == WEAPON_HELIBLADES) {
 			if(!IsPlayerInAnyVehicle(issuerid)) {
 				return 0;
@@ -4672,7 +4671,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 			}
 		}
 	}
-	
+
 	// Check deagle damage
 	if (weaponid == WEAPON_DEAGLE) {
 		switch (amount) {
