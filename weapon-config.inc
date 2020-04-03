@@ -3170,7 +3170,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 			SetTimerEx("WC_SecondKnifeAnim", 2200, false, "i", damagedid);
 
-			#if defined WC_OnPlayerDeathPlayerDeath
+			#if defined WC_OnPlayerDeath
 				WC_OnPlayerDeath(damagedid, playerid, weaponid);
 			#endif
 
