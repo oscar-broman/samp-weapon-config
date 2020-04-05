@@ -5507,7 +5507,7 @@ static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 
 		s_RejectedHits[playerid][idx][e_Info2] = _:i2;
 		s_RejectedHits[playerid][idx][e_Info3] = _:i3;
 
-		if (if (0 <= damageid < MAX_PLAYERS) {) {
+		if (0 <= damagedid < MAX_PLAYERS) {
 			GetPlayerName(damagedid, s_RejectedHits[playerid][idx][e_Name], MAX_PLAYER_NAME);
 		} else {
 			s_RejectedHits[playerid][idx][e_Name][0] = '#';
