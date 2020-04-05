@@ -3321,7 +3321,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 {
-	if (playerid == INVALID_PLAYER_ID || IsPlayerNPC(playerid)) {
+	if (!IsPlayerConnected(playerid) || IsPlayerNPC(playerid)) {
 		return 0;
 	}
 
@@ -5480,7 +5480,7 @@ static IsPlayerBehindPlayer(playerid, targetid, Float:diff = 90.0)
 
 static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 0)
 {
-	if (IsPlayerConnected(playerid)) {
+	if (0 <= playerid < MAX_PLAYERS) {
 		new idx = s_RejectedHitsIdx[playerid];
 
 		if (s_RejectedHits[playerid][idx][e_Time]) {
@@ -5507,7 +5507,7 @@ static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 
 		s_RejectedHits[playerid][idx][e_Info2] = _:i2;
 		s_RejectedHits[playerid][idx][e_Info3] = _:i3;
 
-		if (IsPlayerConnected(damagedid)) {
+		if (if (0 <= damageid < MAX_PLAYERS) {) {
 			GetPlayerName(damagedid, s_RejectedHits[playerid][idx][e_Name], MAX_PLAYER_NAME);
 		} else {
 			s_RejectedHits[playerid][idx][e_Name][0] = '#';
