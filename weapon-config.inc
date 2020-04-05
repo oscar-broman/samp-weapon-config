@@ -3069,12 +3069,17 @@ public OnPlayerUpdate(playerid)
 
 public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 {
+	if(!IsPlayerConnected(playerid))
+	{
+		return 0;
+	}
+
 	if (!IsHighRateWeapon(weaponid)) {
 		DebugMessage(playerid, "OnPlayerGiveDamage(%d gave %f to %d using %d on bodypart %d)", playerid, amount, damagedid, weaponid, bodypart);
 	}
 
 	// Nobody got damaged
-	if (damagedid == INVALID_PLAYER_ID) {
+	if (!IsPlayerConnected(damagedid)) {
 		#if defined OnInvalidWeaponDamage
 			OnInvalidWeaponDamage(playerid, damagedid, amount, weaponid, bodypart, WC_NO_DAMAGED, true);
 		#endif
