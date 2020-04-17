@@ -2658,10 +2658,10 @@ public OnPlayerDeath(playerid, killerid, reason)
 			s_DeathSkip[playerid] = 2;
 
 			ForceClassSelection(playerid);
-			SetSpawnInfo(playerid, /*0xFE*/s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 			TogglePlayerSpectating(playerid, true);
 			TogglePlayerSpectating(playerid, false);
-			SetSpawnInfo(playerid, /*0xFE*/s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 			TogglePlayerControllable(playerid, true);
 			GivePlayerWeapon(playerid, 1, 1);
 		} else {
@@ -2962,7 +2962,7 @@ public OnPlayerUpdate(playerid)
 				GetPlayerPos(playerid, x, y, z);
 				GetPlayerFacingAngle(playerid, r);
 
-				SetSpawnInfo(playerid, /*0xFE*/s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+				SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 
 				s_DeathSkipTick[playerid] = 0;
 
@@ -4244,7 +4244,7 @@ static SpawnPlayerInPlace(playerid) {
 	GetPlayerPos(playerid, x, y, z);
 	GetPlayerFacingAngle(playerid, r);
 
-	SetSpawnInfo(playerid, /*0xFE*/s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+	SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 
 	s_SpawnInfoModified[playerid] = true;
 
