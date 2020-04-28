@@ -3956,13 +3956,7 @@ static ScriptInit()
 		}
 	#endif
 
-		new team = GetPlayerTeam(playerid);
-
-		if (team == 0xFE) {
-			s_PlayerTeam[playerid] = NO_TEAM;
-		} else {
-			s_PlayerTeam[playerid] = team;
-		}
+		s_PlayerTeam[playerid] = GetPlayerTeam(playerid);
 
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 		DamageFeedUpdate(playerid);
