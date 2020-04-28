@@ -2213,7 +2213,7 @@ public OnPlayerConnect(playerid)
 		s_DamageFeedHitsTaken[playerid][i][e_Tick] = 0;
 	}
 
-	SetPlayerTeam(playerid, 0xFE);
+	SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 	FreezeSyncPacket(playerid, .toggle = false);
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
@@ -2421,8 +2421,8 @@ public OnPlayerSpawn(playerid)
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
 
-	if (GetPlayerTeam(playerid) != 0xFE) {
-		SetPlayerTeam(playerid, 0xFE);
+	if (GetPlayerTeam(playerid) != s_PlayerTeam[playerid]) {
+		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 	}
 
 	if (s_DeathSkip[playerid] == 2) {
@@ -2658,10 +2658,10 @@ public OnPlayerDeath(playerid, killerid, reason)
 			s_DeathSkip[playerid] = 2;
 
 			ForceClassSelection(playerid);
-			SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 			TogglePlayerSpectating(playerid, true);
 			TogglePlayerSpectating(playerid, false);
-			SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 			TogglePlayerControllable(playerid, true);
 			GivePlayerWeapon(playerid, 1, 1);
 		} else {
@@ -2962,7 +2962,7 @@ public OnPlayerUpdate(playerid)
 				GetPlayerPos(playerid, x, y, z);
 				GetPlayerFacingAngle(playerid, r);
 
-				SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+				SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 
 				s_DeathSkipTick[playerid] = 0;
 
@@ -3956,15 +3956,9 @@ static ScriptInit()
 		}
 	#endif
 
-		new team = GetPlayerTeam(playerid);
+		s_PlayerTeam[playerid] = GetPlayerTeam(playerid);
 
-		if (team == 0xFE) {
-			s_PlayerTeam[playerid] = NO_TEAM;
-		} else {
-			s_PlayerTeam[playerid] = team;
-		}
-
-		SetPlayerTeam(playerid, 0xFE);
+		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 		DamageFeedUpdate(playerid);
 
 		new worldid = GetPlayerVirtualWorld(playerid);
@@ -4244,7 +4238,7 @@ static SpawnPlayerInPlace(playerid) {
 	GetPlayerPos(playerid, x, y, z);
 	GetPlayerFacingAngle(playerid, r);
 
-	SetSpawnInfo(playerid, 0xFE, GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
+	SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 
 	s_SpawnInfoModified[playerid] = true;
 
