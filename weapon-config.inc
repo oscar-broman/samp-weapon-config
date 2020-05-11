@@ -1552,7 +1552,6 @@ stock WC_GetWeaponName(weaponid, weapon[], len = sizeof(weapon))
 
 	return 1;
 }
-
 stock WC_ApplyAnimation(playerid, WC_CONST animlib[], WC_CONST animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS || s_IsDying[playerid]) {
@@ -3216,16 +3215,16 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		return 0;
 	}
 
-	new Float:bullets, err;
+	new Float:bullets, error;
 
-	if ((err = ProcessDamage(damagedid, playerid, amount, weaponid, bodypart, bullets))) {
-		if (err == WC_INVALID_DAMAGE) {
+	if ((error = ProcessDamage(damagedid, playerid, amount, weaponid, bodypart, bullets))) {
+		if (error == WC_INVALID_DAMAGE) {
 			AddRejectedHit(playerid, damagedid, HIT_INVALID_DAMAGE, weaponid, _:amount);
 		}
 
-		if (err != WC_INVALID_DISTANCE) {
+		if (error != WC_INVALID_DISTANCE) {
 			#if defined OnInvalidWeaponDamage
-				OnInvalidWeaponDamage(playerid, damagedid, amount, weaponid, bodypart, err, true);
+				OnInvalidWeaponDamage(playerid, damagedid, amount, weaponid, bodypart, error, true);
 			#endif
 		}
 
@@ -3477,16 +3476,16 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 		}
 	}
 
-	new Float:bullets = 0.0, err;
+	new Float:bullets = 0.0, error;
 
-	if ((err = ProcessDamage(playerid, issuerid, amount, weaponid, bodypart, bullets))) {
-		if (err == WC_INVALID_DAMAGE) {
+	if ((error = ProcessDamage(playerid, issuerid, amount, weaponid, bodypart, bullets))) {
+		if (error == WC_INVALID_DAMAGE) {
 			AddRejectedHit(issuerid, playerid, HIT_INVALID_DAMAGE, weaponid, _:amount);
 		}
 
-		if (err != WC_INVALID_DISTANCE) {
+		if (error != WC_INVALID_DISTANCE) {
 			#if defined OnInvalidWeaponDamage
-				OnInvalidWeaponDamage(issuerid, playerid, amount, weaponid, bodypart, err, false);
+				OnInvalidWeaponDamage(issuerid, playerid, amount, weaponid, bodypart, error, false);
 			#endif
 		}
 
@@ -5487,16 +5486,16 @@ static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 
 			s_RejectedHitsIdx[playerid] = idx;
 		}
 
-		new time, hour, minute, second;
+		new vreme, satic, minutic, seconda;
 
-		time = gettime(hour, minute, second);
+		vreme = gettime(satic, minutic, seconda);
 
 		s_RejectedHits[playerid][idx][e_Reason] = reason;
-		s_RejectedHits[playerid][idx][e_Time] = time;
+		s_RejectedHits[playerid][idx][e_Time] = vreme;
 		s_RejectedHits[playerid][idx][e_Weapon] = weapon;
-		s_RejectedHits[playerid][idx][e_Hour] = hour;
-		s_RejectedHits[playerid][idx][e_Minute] = minute;
-		s_RejectedHits[playerid][idx][e_Second] = second;
+		s_RejectedHits[playerid][idx][e_Hour] = satic;
+		s_RejectedHits[playerid][idx][e_Minute] = minutic;
+		s_RejectedHits[playerid][idx][e_Second] = seconda;
 		s_RejectedHits[playerid][idx][e_Info1] = _:i1;
 		s_RejectedHits[playerid][idx][e_Info2] = _:i2;
 		s_RejectedHits[playerid][idx][e_Info3] = _:i3;
