@@ -2644,8 +2644,12 @@ public OnPlayerDeath(playerid, killerid, reason)
 
 		CallLocalFunction("OnPlayerPrepareDeath", "issii", playerid, animlib, animname, anim_lock, respawn_time);
 
+		#if defined WC_OnPlayerDeath
+			WC_OnPlayerDeath(playerid, killerid, reason);
+		#endif
+
 		s_OnPlayerDeathHooked[playerid] = true;
-		CallLocalFunction("OnPlayerDeath", "iii", playerid, killerid, reason);
+		CallLocalFunction("OnPlayerDeath", "iii", playerid, killerid, reason);		
 
 		CallLocalFunction("OnPlayerDeathFinished", "ii", playerid, false);
 	} else {
