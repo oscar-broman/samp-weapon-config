@@ -1508,6 +1508,7 @@ stock WC_SetPlayerTeam(playerid, team)
 	}
 
 	s_PlayerTeam[playerid] = team;
+	SetPlayerTeam(playerid, team);
 
 	return 1;
 }
