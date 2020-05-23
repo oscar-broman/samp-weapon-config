@@ -3070,11 +3070,6 @@ public OnPlayerUpdate(playerid)
 
 public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 {
-	if(!IsPlayerConnected(playerid))
-	{
-		return 0;
-	}
-
 	if (!IsHighRateWeapon(weaponid)) {
 		DebugMessage(playerid, "OnPlayerGiveDamage(%d gave %f to %d using %d on bodypart %d)", playerid, amount, damagedid, weaponid, bodypart);
 	}
@@ -3322,7 +3317,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 {
-	if (!IsPlayerConnected(playerid) || IsPlayerNPC(playerid)) {
+	if (IsPlayerNPC(playerid)) {
 		return 0;
 	}
 
