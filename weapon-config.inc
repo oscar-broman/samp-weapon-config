@@ -556,7 +556,7 @@ static Float:s_WeaponRange[] = {
 	0.0, // 1 - Brass knuckles
 	0.0, // 2 - Golf club
 	0.0, // 3 - Nitestick
-	25.0, // 4 - Knife
+	0.0, // 4 - Knife
 	0.0, // 5 - Bat
 	0.0, // 6 - Shovel
 	0.0, // 7 - Pool cue
