@@ -2133,7 +2133,7 @@ public OnGameModeInit()
 {
 	ScriptInit();
 
-	return WC_OnScriptInit();
+	return WC_OnGameModeInit();
 }
 
 public OnGameModeExit()
