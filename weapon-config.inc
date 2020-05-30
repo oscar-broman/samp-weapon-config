@@ -3052,10 +3052,6 @@ public OnPlayerUpdate(playerid)
 					DebugMessage(playerid, "fall dmg: %.5f (vz: %f, anim: %d, prev: %d)", amount, vz, anim, prev);
 
 					InflictDamage(playerid, amount, INVALID_PLAYER_ID, WEAPON_COLLISION, 3);
-
-					if (amount == 0.0) {
-						amount = s_PlayerHealth[playerid];
-					}
 				}
 			}
 		}
