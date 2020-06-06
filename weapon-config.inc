@@ -283,7 +283,7 @@ forward OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart);
 // After OnPlayerDamage
 forward OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart);
 // Before the death animation is applied
-forward OnPlayerPrepareDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], &anim_lock, &respawn_time);
+forward OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time);
 // When the death animation is finished and the player has been sent to respawn
 forward OnPlayerDeathFinished(playerid, bool:cancelable);
 // When a shot or damage given is rejected
@@ -2670,7 +2670,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 			new tick = GetTickCount();
 			new diff = tick - s_LastShot[playerid][e_Tick];
 
-			if (s_LastShot[playerid][e_Tick] && diff < 1200 && !s_CbugFroze[playerid]) {
+			if (s_LastShot[playerid][e_Tick] && diff < 1200 && !s_CbugFroze[playerid]) {	
 				PlayerPlaySound(playerid, 1055, 0.0, 0.0, 0.0);
 
 				if (s_LastShot[playerid][e_Valid] && floatabs(s_LastShot[playerid][e_HX]) > 1.0 && floatabs(s_LastShot[playerid][e_HY]) > 1.0) {
@@ -4823,9 +4823,9 @@ static PlayerDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], anim_l
 	}
 }
 
-public OnPlayerPrepareDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], &anim_lock, &respawn_time)
+public OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time)
 {
-	WC_OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
+	return WC_OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
 }
 
 public OnRejectedHit(playerid, hit[E_REJECTED_HIT])
@@ -5659,7 +5659,7 @@ CHAIN_FORWARD:WC_OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &b
 	#define _ALS_OnPlayerPrepareDeath
 #endif
 #define OnPlayerPrepareDeath(%0) CHAIN_PUBLIC:WC_OnPlayerPrepareDeath(%0)
-CHAIN_FORWARD:WC_OnPlayerPrepareDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], &anim_lock, &respawn_time) = 1;
+CHAIN_FORWARD:WC_OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time) = 1;
 
 
 #if defined _ALS_OnRejectedHit
