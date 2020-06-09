@@ -88,7 +88,7 @@
 
 CHAIN_HOOK(WC)
 #undef CHAIN_ORDER
-#define CHAIN_ORDER() CHAIN_NEXT(WC)
+#define CHAIN_ORDER CHAIN_NEXT(WC)
 
 static stock _WC_IncludeStates() <_ALS : _ALS_x0, _ALS : _ALS_x1, _ALS : _ALS_x2, _ALS : _ALS_x3> {}
 static stock _WC_IncludeStates() <_ALS : _ALS_go> {}
