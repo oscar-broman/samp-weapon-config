@@ -1568,7 +1568,7 @@ stock WC_GetWeaponName(weaponid, weapon[], len = sizeof(weapon))
 	return 1;
 }
 
-stock WC_ApplyAnimation(playerid, WC_CONST animlib[], WC_CONST animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
+stock WC_ApplyAnimation(playerid, const animlib[], const animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS || s_IsDying[playerid]) {
 		return 0;
@@ -2417,13 +2417,17 @@ public OnPlayerSpawn(playerid)
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 	}
 
+	new animlib[32], animname[32];
+
 	if (s_DeathSkip[playerid] == 2) {
 		DebugMessage(playerid, "Death skipped");
 		SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
 		GivePlayerWeapon(playerid, 0, 1);
 		SetPlayerArmedWeapon(playerid, 0);
 		ClearAnimations(playerid);
-		ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 1, 1);
+
+		animlib = "PED", animname = "IDLE_stance";
+		ApplyAnimation(playerid, animlib, animname, 4.1, 1, 0, 0, 0, 1, 1);
 
 		s_DeathSkip[playerid] = 1;
 		s_DeathSkipTick[playerid] = GetTickCount();
@@ -2436,7 +2440,8 @@ public OnPlayerSpawn(playerid)
 
 		#if WC_CUSTOM_VENDING_MACHINES
 			if (s_CustomVendingMachines) {
-				ApplyAnimation(playerid, "VENDING", "null", 0, 0, 0, 0, 0, 0);
+				animlib = "VENDING", animname = "null";
+				ApplyAnimation(playerid, animlib, animname, 0, 0, 0, 0, 0, 0);
 			}
 		#endif
 	}
@@ -2665,6 +2670,8 @@ public WC_CbugPunishment(playerid, weapon) {
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
+	new animlib[32], animname[32];
+
 	if (!s_CbugAllowed[playerid] && !IsPlayerDying(playerid) && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
 		if (newkeys & KEY_CROUCH) {
 			new tick = GetTickCount();
@@ -2685,8 +2692,9 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				new w, a;
 				GetPlayerWeaponData(playerid, 0, w, a);
 
+				animlib = "PED", animname = "IDLE_stance";
 				ClearAnimations(playerid, 1);
-				ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 0, 1);
+				ApplyAnimation(playerid, animlib, animname, 4.1, 1, 0, 0, 0, 0, 1);
 				FreezeSyncPacket(playerid, .toggle = true);
 				SetPlayerArmedWeapon(playerid, w);
 				SetTimerEx("WC_CbugPunishment", 600, false, "ii", playerid, GetPlayerWeapon(playerid));
@@ -2764,9 +2772,10 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 						if (OnPlayerUseVendingMachine(playerid, health_given)) {
 							s_VendingUseTimer[playerid] = SetTimerEx("WC_VendingMachineUsed", 2500, false, "if", playerid, health_given);
 
+							animlib = "VENDING", animname = "VEND_USE";
 							SetPlayerFacingAngle(playerid, sc_VendingMachines[i][e_RotZ]);
 							SetPlayerPos(playerid, sc_VendingMachines[i][e_FrontX], sc_VendingMachines[i][e_FrontY], z);
-							ApplyAnimation(playerid, "VENDING", "VEND_USE", 4.1, 0, 0, 1, 0, 0, 1);
+							ApplyAnimation(playerid, animlib, animname, 4.1, 0, 0, 1, 0, 0, 1);
 
 							PlayerPlaySound(playerid, 42600, 0.0, 0.0, 0.0);
 						} else {
@@ -2906,7 +2915,8 @@ public OnPlayerUpdate(playerid)
 
 				s_DeathSkipTick[playerid] = 0;
 
-				ApplyAnimation(playerid, "PED", "IDLE_stance", 4.1, 1, 0, 0, 0, 1, 1);
+				new animlib[32] = "PED", animname[32] = "IDLE_stance";
+				ApplyAnimation(playerid, animlib, animname, 4.1, 1, 0, 0, 0, 1, 1);
 			}
 		} else {
 			if (GetPlayerAnimationIndex(playerid) != 1189) {
@@ -3096,7 +3106,8 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 			ClearAnimations(damagedid, 1);
 
-			PlayerDeath(damagedid, "KNIFE", "KILL_Knife_Ped_Damage", _, 5200);
+			new animlib[32] = "KNIFE", animname[32] = "KILL_Knife_Ped_Damage";
+			PlayerDeath(damagedid, animlib, animname, _, 5200);
 
 			SetTimerEx("WC_SecondKnifeAnim", 2200, false, "i", damagedid);
 
@@ -3122,7 +3133,8 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 				forcesync = 1;
 			}
 
-			ApplyAnimation(playerid, "KNIFE", "KILL_Knife_Player", 4.1, 0, 1, 1, 0, 1800, forcesync);
+			animlib = "KNIFE", animname = "KILL_Knife_Player";
+			ApplyAnimation(playerid, animlib, animname, 4.1, 0, 1, 1, 0, 1800, forcesync);
 
 			return 0;
 		}
@@ -3324,7 +3336,8 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 			OnPlayerDamageDone(playerid, s_PlayerHealth[playerid] + s_PlayerArmour[playerid], issuerid, weaponid, bodypart);
 
-			PlayerDeath(playerid, "KNIFE", "KILL_Knife_Ped_Die", _, 4000 - GetPlayerPing(playerid));
+			new animlib[32] = "KNIFE", animname[32] = "KILL_Knife_Ped_Die";
+			PlayerDeath(playerid, animlib, animname, _, 4000 - GetPlayerPing(playerid));
 
 			WC_OnPlayerDeath(playerid, issuerid, weaponid);
 
@@ -3350,7 +3363,8 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 				forcesync = 1;
 			}
 
-			ApplyAnimation(issuerid, "KNIFE", "KILL_Knife_Player", 4.1, 0, 1, 1, 0, 1800, forcesync);
+			animlib = "KNIFE", animname = "KILL_Knife_Player";
+			ApplyAnimation(issuerid, animlib, animname, 4.1, 0, 1, 1, 0, 1800, forcesync);
 
 			return 0;
 		}
@@ -4677,6 +4691,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 	}
 
 	OnPlayerDamageDone(playerid, amount, issuerid, weaponid, bodypart);
+	new animlib[32] = "PED", animname[32];
 
 	if (s_PlayerHealth[playerid] <= 0.0005) {
 		new vehicleid = GetPlayerVehicleID(playerid);
@@ -4694,22 +4709,27 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 					GetVehicleVelocity(vehicleid, vx, vy, vz);
 
 					if (vx*vx + vy*vy + vz*vz >= 0.4) {
-						PlayerDeath(playerid, "PED", "BIKE_fallR", 0);
+						animname = "BIKE_fallR";
+						PlayerDeath(playerid, animlib, animname, 0);
 					} else {
-						PlayerDeath(playerid, "PED", "BIKE_fall_off", 0);
+						animname = "BIKE_fall_off";
+						PlayerDeath(playerid, animlib, animname, 0);
 					}
 				}
 
 				default: {
 					if (seat & 1) {
-						PlayerDeath(playerid, "PED", "CAR_dead_LHS");
+						animname = "CAR_dead_LHS";
+						PlayerDeath(playerid, animlib, animname);
 					} else {
-						PlayerDeath(playerid, "PED", "CAR_dead_RHS");
+						animname = "CAR_dead_RHS";
+						PlayerDeath(playerid, animlib, animname);
 					}
 				}
 			}
 		} else if (GetPlayerSpecialAction(playerid) == SPECIAL_ACTION_USEJETPACK) {
-			PlayerDeath(playerid, "PED", "KO_skid_back", .freeze_sync = false);
+			animname = "KO_skid_back";
+			PlayerDeath(playerid, animlib, animname, .freeze_sync = false);
 		} else {
 			if (gettime() - s_LastVehicleEnterTime[playerid] < 10) {
 				TogglePlayerControllable(playerid, false);
@@ -4719,42 +4739,55 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 
 			if (anim == 1250 || (1538 <= anim <= 1544) || weaponid == WEAPON_DROWN) {
 				// In water
-				PlayerDeath(playerid, "PED", "Drown");
+				animname = "Drown";
+				PlayerDeath(playerid, animlib, animname);
 			} else if (1195 <= anim <= 1198) {
 				// Jumping animation
-				PlayerDeath(playerid, "PED", "KO_skid_back");
+				animname = "KO_skid_back";
+				PlayerDeath(playerid, animlib, animname);
 			} else if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 				if (IsPlayerBehindPlayer(issuerid, playerid)) {
+					animname = "KO_shot_front";
 					MakePlayerFacePlayer(playerid, issuerid, true);
-					PlayerDeath(playerid, "PED", "KO_shot_front");
+					PlayerDeath(playerid, animlib, animname);
 				} else {
+					animname = "BIKE_fall_off";
 					MakePlayerFacePlayer(playerid, issuerid);
-					PlayerDeath(playerid, "PED", "BIKE_fall_off");
+					PlayerDeath(playerid, animlib, animname);
 				}
 			} else if (WEAPON_RIFLE <= weaponid <= WEAPON_SNIPER) {
 				if (bodypart == 9) {
-					PlayerDeath(playerid, "PED", "KO_shot_face");
+					animname = "KO_shot_face";
+					PlayerDeath(playerid, animlib, animname);
 				} else if (IsPlayerBehindPlayer(issuerid, playerid)) {
-					PlayerDeath(playerid, "PED", "KO_shot_front");
+					animname = "KO_shot_front";
+					PlayerDeath(playerid, animlib, animname);
 				} else {
-					PlayerDeath(playerid, "PED", "KO_shot_stom");
+					animname = "KO_shot_stom";
+					PlayerDeath(playerid, animlib, animname);
 				}
 			} else if (IsBulletWeapon(weaponid)) {
 				if (bodypart == 9) {
-					PlayerDeath(playerid, "PED", "KO_shot_face");
+					animname = "KO_shot_face";
+					PlayerDeath(playerid, animlib, animname);
 				} else {
-					PlayerDeath(playerid, "PED", "KO_shot_front");
+					animname = "KO_shot_front";
+					PlayerDeath(playerid, animlib, animname);
 				}
 			} else if (weaponid == WEAPON_PISTOLWHIP) {
-				PlayerDeath(playerid, "PED", "KO_spin_R");
+				animname = "KO_spin_R";
+				PlayerDeath(playerid, animlib, animname);
 			} else if (IsMeleeWeapon(weaponid) || weaponid == WEAPON_CARPARK) {
-				PlayerDeath(playerid, "PED", "KO_skid_front");
+				animname = "KO_skid_front";
+				PlayerDeath(playerid, animlib, animname);
 			} else if (weaponid == WEAPON_SPRAYCAN || weaponid == WEAPON_FIREEXTINGUISHER) {
-				PlayerDeath(playerid, "KNIFE", "KILL_Knife_Ped_Die");
+				animlib = "KNIFE", animname = "KILL_Knife_Ped_Die";
+				PlayerDeath(playerid, animlib, animname);
 			} else {
-				PlayerDeath(playerid, "PED", "KO_skid_back");
+				animname = "KO_skid_back";
+				PlayerDeath(playerid, animlib, animname);
 			}
-		}
+		}		
 
 		if (s_CbugAllowed[playerid]) {
 			WC_OnPlayerDeath(playerid, issuerid, weaponid);
@@ -4773,7 +4806,7 @@ public WC_DelayedDeath(playerid, issuerid, reason) {
 	WC_OnPlayerDeath(playerid, issuerid, reason);
 }
 
-static PlayerDeath(playerid, WC_CONST animlib[32], WC_CONST animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
+static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_time = -1, bool:freeze_sync = true, anim_freeze = 1)
 {
 	s_PlayerHealth[playerid] = 0.0;
 	s_PlayerArmour[playerid] = 0.0;
@@ -5326,7 +5359,8 @@ static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 
 forward WC_SecondKnifeAnim(playerid);
 public WC_SecondKnifeAnim(playerid)
 {
-	ApplyAnimation(playerid, "KNIFE", "KILL_Knife_Ped_Die", 4.1, 0, 1, 1, 1, 3000, 1);
+	new animlib[32] = "KNIFE", animname[32] = "KILL_Knife_Ped_Die";
+	ApplyAnimation(playerid, animlib, animname, 4.1, 0, 1, 1, 1, 3000, 1);
 }
 
 forward WC_PlayerDeathRespawn(playerid);
