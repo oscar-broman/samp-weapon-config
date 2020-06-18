@@ -3749,6 +3749,7 @@ public OnVehicleSpawn(vehicleid)
 	}
 
 	s_VehicleAlive[vehicleid] = true;
+	s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
 
 	return WC_OnVehicleSpawn(vehicleid);
 }
