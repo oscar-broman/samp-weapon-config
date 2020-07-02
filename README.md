@@ -91,7 +91,7 @@ public SetHealth(playerid, Float:health) {
     SetPlayerHealth(playerid, health);
 }
 // In the filterscript
-CallRemoteFunction("SetHealth", "i", playerid, health);
+CallRemoteFunction("SetHealth", "if", playerid, health);
 ```
 
 # API
