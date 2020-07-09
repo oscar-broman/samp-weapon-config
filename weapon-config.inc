@@ -3151,6 +3151,11 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		return 0;
 	}
 
+	// Driver doesn't call this even if he damage someone
+	if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER) {
+		return 0;
+	}
+
 	new Float:bullets, err;
 
 	if ((err = ProcessDamage(damagedid, playerid, amount, weaponid, bodypart, bullets))) {
