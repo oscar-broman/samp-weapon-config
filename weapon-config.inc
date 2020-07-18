@@ -2441,7 +2441,7 @@ public OnPlayerSpawn(playerid)
 		#if WC_CUSTOM_VENDING_MACHINES
 			if (s_CustomVendingMachines) {
 				animlib = "VENDING", animname = "null";
-				ApplyAnimation(playerid, animlib, animname, 0, 0, 0, 0, 0, 0);
+				ApplyAnimation(playerid, animlib, animname, 0.0, 0, 0, 0, 0, 0, 0);
 			}
 		#endif
 	}
