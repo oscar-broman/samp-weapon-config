@@ -50,11 +50,6 @@
 	#define WC_CUSTOM_VENDING_MACHINES true
 #endif
 
-// YSI Packages by default is turn on, if someone not use this package he can turn off it.
-#if !defined WC_YSI_PACKAGE
-	#define WC_YSI_PACKAGE true
-#endif
-
 #if WC_USE_STREAMER && !defined Streamer_IncludeFileVersion
 	#error streamer.inc is required when WC_USE_STREAMER=true
 #endif
@@ -67,15 +62,11 @@
 		#error The SKY plugin is required, get it here: github.com/oscar-broman/sky
 	#endif
 #endif
-#if !defined _inc_y_iterate
-	#if WC_YSI_PACKAGE == true
-	#tryinclude <YSI_Data\y_iterate>
 
-	#if !defined _inc_y_iterate
-		#error #error the YSI library is required, get it here: github.com/pawn-lang/YSI-Includes
-	#endif
-	#endif
+#if !defined _inc_y_iterate
+	#tryinclude <YSI_Data\y_iterate>
 #endif
+
 // Pre-hooks for hooking callbacks
 #if !defined CHAIN_ORDER
 	#define CHAIN_ORDER() 0
@@ -1158,12 +1149,12 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
-		#if WC_YSI_PACKAGE == true
-		foreach (new i : Player) {		
-		#else
+		#if defined _inc_y_iterate
+		foreach (new i : Player) {
+		#else 
 		for (new i = GetPlayerPoolSize(); i != -1; i--) {
-		#endif	
-		s_CbugAllowed[i] = enabled;	
+		#endif
+			s_CbugAllowed[i] = enabled;
 		}
 	} else {
 		s_CbugAllowed[playerid] = enabled;
@@ -1239,10 +1230,10 @@ stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
 
-	#if WC_YSI_PACKAGE == true
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else
-	for (new i = GetPlayerPoolSize(); i != -1; i--) {		
+	#else 
+	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		DamageFeedUpdate(i);
 	}
@@ -2308,18 +2299,20 @@ public OnPlayerDisconnect(playerid, reason)
 
 	for (new i = 0; i < sizeof(s_InternalPlayerTextDraw[]); i++) {
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
-	}	
-	#if WC_YSI_PACKAGE == true
+	}
+
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else
+	#else 
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
-	#endif	
+	#endif
 		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
 			if (s_PreviousHits[i][j][e_Issuer] == playerid) {
 				s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
 			}
-		}	
+		}
 	}
+
 	return 1;
 }
 
@@ -2714,11 +2707,12 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				SetTimerEx("WC_CbugPunishment", 600, false, "ii", playerid, GetPlayerWeapon(playerid));
 
 				s_CbugFroze[playerid] = tick;
-				#if WC_YSI_PACKAGE == true	
+
+				#if defined _inc_y_iterate
 				foreach (new i : Player) {
-				#else
+				#else 
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
-				#endif	
+				#endif
 					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
 						if (s_PreviousHits[i][j][e_Issuer] == playerid && tick - s_PreviousHits[i][j][e_Tick] <= 1200) {
 							s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
@@ -2880,11 +2874,11 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx*vx + vy*vy + vz*vz <= 0.05) {
-					#if WC_YSI_PACKAGE == true
-					foreach (new i : Player) {
-					#else
-					for (new i = GetPlayerPoolSize(); i != -1; i--) {
-					#endif
+				#if defined _inc_y_iterate
+				foreach (new i : Player) {
+				#else 
+				for (new i = GetPlayerPoolSize(); i != -1; i--) {
+				#endif
 					if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 						SendLastSyncPacket(playerid, i);
 						ClearAnimationsForPlayer(playerid, i);
@@ -3652,9 +3646,9 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			new has_driver = false;
 			new has_passenger = false;
 
-			#if WC_YSI_PACKAGE == true
+			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
-			#else
+			#else 
 			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
 			#endif
 				if (otherid == playerid) {
@@ -3696,9 +3690,9 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
-			#if WC_YSI_PACKAGE == true
+			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
-			#else
+			#else 
 			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
 			#endif
 				if (otherid == playerid) {
@@ -3871,9 +3865,9 @@ static ScriptInit()
 
 	new tick = GetTickCount();
 
-	#if WC_YSI_PACKAGE == true
+	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
-	#else
+	#else 
 	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
 	#endif
 		s_PlayerTeam[playerid] = GetPlayerTeam(playerid);
@@ -3937,9 +3931,9 @@ static ScriptExit()
 		DestroyVendingMachines();
 	#endif
 
-	#if WC_YSI_PACKAGE == true
+	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
-	#else
+	#else 
 	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
 	#endif
 		#if WC_CUSTOM_VENDING_MACHINES
@@ -4184,9 +4178,9 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
-	#if WC_YSI_PACKAGE == true
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else
+	#else 
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
@@ -4303,9 +4297,9 @@ public WC_SpawnForStreamedIn(playerid)
 
 	SpawnPlayerForWorld(playerid);
 
-	#if WC_YSI_PACKAGE == true
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else
+	#else 
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
@@ -5215,9 +5209,9 @@ static DamageFeedUpdateText(playerid)
 
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
-	#if WC_YSI_PACKAGE == true
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else
+	#else 
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (s_Spectating[i] == playerid && i != playerid) {
@@ -5230,9 +5224,9 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
-	#if WC_YSI_PACKAGE == true
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else
+	#else 
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (s_Spectating[i] == playerid && i != playerid) {
@@ -5481,9 +5475,9 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageTakenSound) {
 			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
-			#if WC_YSI_PACKAGE == true
+			#if defined _inc_y_iterate
 			foreach (new i : Player) {
-			#else
+			#else 
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
 				if (s_Spectating[i] == playerid && i != playerid) {
@@ -5495,9 +5489,9 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
-			#if WC_YSI_PACKAGE == true
+			#if defined _inc_y_iterate
 			foreach (new i : Player) {
-			#else
+			#else 
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
 				if (s_Spectating[i] == issuerid && i != issuerid) {
