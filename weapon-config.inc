@@ -67,13 +67,13 @@
 		#error The SKY plugin is required, get it here: github.com/oscar-broman/sky
 	#endif
 #endif
-#if WC_YSI_PACKAGE == true
-	#if !defined _inc_y_iterate
-		#tryinclude <YSI_Data\y_iterate>
+#if !defined _inc_y_iterate
+	#if WC_YSI_PACKAGE == true
+	#tryinclude <YSI_Data\y_iterate>
 
-		#if !defined _inc_y_iterate
-			#error #error the YSI library is required, get it here: github.com/pawn-lang/YSI-Includes
-		#endif
+	#if !defined _inc_y_iterate
+		#error #error the YSI library is required, get it here: github.com/pawn-lang/YSI-Includes
+	#endif
 	#endif
 #endif
 // Pre-hooks for hooking callbacks
