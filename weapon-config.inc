@@ -1527,16 +1527,23 @@ stock WC_SetPlayerTeam(playerid, team)
 
 stock WC_SendDeathMessage(killer, killee, weapon)
 {
-	if (weapon == WEAPON_CARPARK) {
-		weapon = WEAPON_VEHICLE;
-	} else if (weapon == WEAPON_PISTOLWHIP) {
-		weapon = WEAPON_UNARMED;
-	} else if (weapon == WEAPON_UNKNOWN) {
-		weapon = WEAPON_DROWN;
-	} else if (weapon == WEAPON_VEHICLE_M4) {
-		weapon = WEAPON_M4;
-	} if (weapon == WEAPON_VEHICLE_MINIGUN) {
-		weapon = WEAPON_MINIGUN;
+	switch (weapon) {
+
+		case WEAPON_CARPARK: {
+			weapon = WEAPON_VEHICLE;
+		}
+		case WEAPON_PISTOLWHIP: {
+			weapon = WEAPON_UNARMED;
+		}
+		case WEAPON_UNKNOWN: {
+			weapon = WEAPON_DROWN;
+		}
+		case WEAPON_VEHICLE_M4: {
+			weapon = WEAPON_M4;
+		}
+		case WEAPON_VEHICLE_MINIGUN: {
+			weapon = WEAPON_MINIGUN;
+		}
 	}
 
 	SendDeathMessage(killer, killee, weapon);
