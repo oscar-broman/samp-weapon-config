@@ -65,10 +65,6 @@
 
 #if !defined _inc_y_iterate
 	#tryinclude <YSI_Data\y_iterate>
-
-	#if !defined _inc_y_iterate
-		#error #error the YSI library is required, get it here: github.com/pawn-lang/YSI-Includes
-	#endif
 #endif
 
 // Pre-hooks for hooking callbacks
@@ -1153,8 +1149,11 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
-
+		#if defined _inc_y_iterate
 		foreach (new i : Player) {
+		#else 
+		for (new i = GetPlayerPoolSize(); i != -1; i--) {
+		#endif
 			s_CbugAllowed[i] = enabled;
 		}
 	} else {
@@ -1231,7 +1230,11 @@ stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
 
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
+	#else 
+	for (new i = GetPlayerPoolSize(); i != -1; i--) {
+	#endif
 		DamageFeedUpdate(i);
 	}
 }
@@ -2298,7 +2301,11 @@ public OnPlayerDisconnect(playerid, reason)
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
 	}
 
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
+	#else 
+	for (new i = GetPlayerPoolSize(); i != -1; i--) {
+	#endif
 		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
 			if (s_PreviousHits[i][j][e_Issuer] == playerid) {
 				s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
@@ -2701,7 +2708,11 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				s_CbugFroze[playerid] = tick;
 
+				#if defined _inc_y_iterate
 				foreach (new i : Player) {
+				#else 
+				for (new i = GetPlayerPoolSize(); i != -1; i--) {
+				#endif
 					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
 						if (s_PreviousHits[i][j][e_Issuer] == playerid && tick - s_PreviousHits[i][j][e_Tick] <= 1200) {
 							s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
@@ -2863,7 +2874,11 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx*vx + vy*vy + vz*vz <= 0.05) {
+				#if defined _inc_y_iterate
 				foreach (new i : Player) {
+				#else 
+				for (new i = GetPlayerPoolSize(); i != -1; i--) {
+				#endif
 					if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 						SendLastSyncPacket(playerid, i);
 						ClearAnimationsForPlayer(playerid, i);
@@ -3631,7 +3646,11 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			new has_driver = false;
 			new has_passenger = false;
 
+			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
+			#else 
+			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
+			#endif
 				if (otherid == playerid) {
 					continue;
 				}
@@ -3671,7 +3690,11 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
+			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
+			#else 
+			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
+			#endif
 				if (otherid == playerid) {
 					continue;
 				}
@@ -3842,7 +3865,11 @@ static ScriptInit()
 
 	new tick = GetTickCount();
 
+	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
+	#else 
+	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
+	#endif
 		s_PlayerTeam[playerid] = GetPlayerTeam(playerid);
 
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
@@ -3904,7 +3931,11 @@ static ScriptExit()
 		DestroyVendingMachines();
 	#endif
 
+	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
+	#else 
+	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
+	#endif
 		#if WC_CUSTOM_VENDING_MACHINES
 			if (s_VendingUseTimer[playerid] != -1) {
 				KillTimer(s_VendingUseTimer[playerid]);
@@ -4147,7 +4178,11 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
+	#else 
+	for (new i = GetPlayerPoolSize(); i != -1; i--) {
+	#endif
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncPacket(playerid, i);
 		}
@@ -4262,7 +4297,11 @@ public WC_SpawnForStreamedIn(playerid)
 
 	SpawnPlayerForWorld(playerid);
 
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
+	#else 
+	for (new i = GetPlayerPoolSize(); i != -1; i--) {
+	#endif
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncPacket(playerid, i);
 			ClearAnimationsForPlayer(playerid, i);
@@ -5170,7 +5209,11 @@ static DamageFeedUpdateText(playerid)
 
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
+	#else 
+	for (new i = GetPlayerPoolSize(); i != -1; i--) {
+	#endif
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsGiven[i], i, issuerid, amount, weapon);
 		}
@@ -5181,7 +5224,11 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
+	#if defined _inc_y_iterate
 	foreach (new i : Player) {
+	#else 
+	for (new i = GetPlayerPoolSize(); i != -1; i--) {
+	#endif
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsTaken[i], i, issuerid, amount, weapon);
 		}
@@ -5428,7 +5475,11 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageTakenSound) {
 			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
+			#if defined _inc_y_iterate
 			foreach (new i : Player) {
+			#else 
+			for (new i = GetPlayerPoolSize(); i != -1; i--) {
+			#endif
 				if (s_Spectating[i] == playerid && i != playerid) {
 					PlayerPlaySound(i, s_DamageTakenSound, 0.0, 0.0, 0.0);
 				}
@@ -5438,7 +5489,11 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
+			#if defined _inc_y_iterate
 			foreach (new i : Player) {
+			#else 
+			for (new i = GetPlayerPoolSize(); i != -1; i--) {
+			#endif
 				if (s_Spectating[i] == issuerid && i != issuerid) {
 					PlayerPlaySound(i, s_DamageGivenSound, 0.0, 0.0, 0.0);
 				}
