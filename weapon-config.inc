@@ -65,6 +65,10 @@
 
 #if !defined _inc_y_iterate
 	#tryinclude <YSI_Data\y_iterate>
+
+	#if !defined _inc_y_iterate
+		forward OnScriptInit();
+	#endif
 #endif
 
 // Pre-hooks for hooking callbacks
