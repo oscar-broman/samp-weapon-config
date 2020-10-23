@@ -1580,7 +1580,7 @@ stock WC_GetWeaponName(weaponid, weapon[], len = sizeof(weapon))
 	return 1;
 }
 
-stock WC_ApplyAnimation(playerid, const animlib[], const animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
+stock WC_ApplyAnimation(playerid, WC_CONST animlib[], WC_CONST animname[], Float:fDelta, loop, lockx, locky, freeze, time, forcesync = 0)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS || s_IsDying[playerid]) {
 		return 0;
