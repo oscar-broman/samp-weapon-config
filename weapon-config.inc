@@ -65,10 +65,6 @@
 
 #if !defined _inc_y_iterate
 	#tryinclude <YSI_Data\y_iterate>
-
-	#if !defined _inc_y_iterate
-		forward OnScriptInit();
-	#endif
 #endif
 
 // Pre-hooks for hooking callbacks
@@ -2134,15 +2130,10 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 /*
  * Hooked callbacks
  */
-public OnScriptInit()
+public OnGameModeInit()
 {
 	state _ALS : _ALS_go;
 
-	return WC_OnScriptInit();
-}
-
-public OnGameModeInit()
-{
 	ScriptInit();
 
 	return WC_OnGameModeInit();
@@ -2157,6 +2148,8 @@ public OnGameModeExit()
 
 public OnFilterScriptInit()
 {
+	state _ALS : _ALS_go;
+
 	ScriptInit();
 
 	return WC_OnFilterScriptExit();
@@ -5527,15 +5520,6 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 /*
  * ALS callbacks
  */
-#if defined _ALS_OnScriptInit
-	#undef OnScriptInit
-#else
-	#define _ALS_OnScriptInit
-#endif
-#define OnScriptInit(%0) CHAIN_PUBLIC:WC_OnScriptInit(%0)
-CHAIN_FORWARD:WC_OnScriptInit() = 1;
-
-
 #if defined _ALS_OnGameModeInit
 	#undef OnGameModeInit
 #else
