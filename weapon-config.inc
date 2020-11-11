@@ -955,7 +955,7 @@ stock IsMeleeWeapon(weaponid)
 	return (WEAPON_UNARMED <= weaponid <= WEAPON_KATANA) || (WEAPON_DILDO <= weaponid <= WEAPON_CANE) || weaponid == WEAPON_PISTOLWHIP;
 }
 
-stock IsPlayerSpawned(playerid)
+stock WC_IsPlayerSpawned(playerid)
 {
 	if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
 		return false;
@@ -1149,7 +1149,7 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 		s_CbugGlobal = enabled;
 		#if defined _inc_y_iterate
 		foreach (new i : Player) {
-		#else 
+		#else
 		for (new i = GetPlayerPoolSize(); i != -1; i--) {
 		#endif
 			s_CbugAllowed[i] = enabled;
@@ -1230,7 +1230,7 @@ stock SetDamageFeed(bool:toggle)
 
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else 
+	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		DamageFeedUpdate(i);
@@ -1829,7 +1829,7 @@ stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, col
 
 stock WC_IsPlayerInCheckpoint(playerid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
@@ -1838,7 +1838,7 @@ stock WC_IsPlayerInCheckpoint(playerid)
 
 stock WC_SetPlayerSpecialAction(playerid, actionid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
@@ -2305,7 +2305,7 @@ public OnPlayerDisconnect(playerid, reason)
 
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else 
+	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
@@ -2686,7 +2686,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 			new tick = GetTickCount();
 			new diff = tick - s_LastShot[playerid][e_Tick];
 
-			if (s_LastShot[playerid][e_Tick] && diff < 1200 && !s_CbugFroze[playerid]) {	
+			if (s_LastShot[playerid][e_Tick] && diff < 1200 && !s_CbugFroze[playerid]) {
 				PlayerPlaySound(playerid, 1055, 0.0, 0.0, 0.0);
 
 				if (s_LastShot[playerid][e_Valid] && floatabs(s_LastShot[playerid][e_HX]) > 1.0 && floatabs(s_LastShot[playerid][e_HY]) > 1.0) {
@@ -2712,7 +2712,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				#if defined _inc_y_iterate
 				foreach (new i : Player) {
-				#else 
+				#else
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
 				#endif
 					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
@@ -2878,7 +2878,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			if (vx*vx + vy*vy + vz*vz <= 0.05) {
 				#if defined _inc_y_iterate
 				foreach (new i : Player) {
-				#else 
+				#else
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
 				#endif
 					if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
@@ -2907,7 +2907,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 
 public OnPlayerPickUpPickup(playerid, pickupid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
@@ -3073,7 +3073,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		return 0;
 	}
 
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		// Make sure the rejected hit wasn't added in OnPlayerWeaponShot
 		if (!IsBulletWeapon(weaponid) || s_LastShot[playerid][e_Valid]) {
 			AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
@@ -3163,7 +3163,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 	}
 
 	// Both players should see eachother
-	if ((!IsPlayerStreamedIn(playerid, damagedid) && !IsPlayerPaused(damagedid)) || !IsPlayerStreamedIn(damagedid, playerid)) {
+	if ((!IsPlayerStreamedIn(playerid, damagedid) && !WC_IsPlayerPaused(damagedid)) || !IsPlayerStreamedIn(damagedid, playerid)) {
 		AddRejectedHit(playerid, damagedid, HIT_UNSTREAMED, weaponid, damagedid);
 		return 0;
 	}
@@ -3508,7 +3508,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		return 0;
 	}
 
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
 
 		return 0;
@@ -3650,7 +3650,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 
 			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
-			#else 
+			#else
 			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
 			#endif
 				if (otherid == playerid) {
@@ -3694,7 +3694,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 
 			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
-			#else 
+			#else
 			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
 			#endif
 				if (otherid == playerid) {
@@ -3797,7 +3797,7 @@ public OnVehicleDeath(vehicleid, killerid)
 
 public OnPlayerEnterCheckpoint(playerid)
 {
-	if (!IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 1;
 	}
 
@@ -3869,7 +3869,7 @@ static ScriptInit()
 
 	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
-	#else 
+	#else
 	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
 	#endif
 		s_PlayerTeam[playerid] = GetPlayerTeam(playerid);
@@ -3935,7 +3935,7 @@ static ScriptExit()
 
 	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
-	#else 
+	#else
 	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
 	#endif
 		#if WC_CUSTOM_VENDING_MACHINES
@@ -4021,7 +4021,7 @@ static HasSameTeam(playerid, otherid)
 	return (s_PlayerTeam[playerid] == s_PlayerTeam[otherid]);
 }
 
-static IsPlayerPaused(playerid)
+static WC_IsPlayerPaused(playerid)
 {
 	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
 }
@@ -4182,7 +4182,7 @@ static UpdateSyncData(playerid)
 
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else 
+	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
@@ -4301,7 +4301,7 @@ public WC_SpawnForStreamedIn(playerid)
 
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else 
+	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
@@ -4655,7 +4655,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 
 static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
-	if (!IsPlayerSpawned(playerid) || amount < 0.0) {
+	if (!WC_IsPlayerSpawned(playerid) || amount < 0.0) {
 		return;
 	}
 
@@ -4701,7 +4701,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		}
 	#endif
 
-	if (!ignore_armour && weaponid != WEAPON_COLLISION && weaponid != WEAPON_DROWN && weaponid != WEAPON_CARPARK && weaponid != WEAPON_UNKNOWN 
+	if (!ignore_armour && weaponid != WEAPON_COLLISION && weaponid != WEAPON_DROWN && weaponid != WEAPON_CARPARK && weaponid != WEAPON_UNKNOWN
 	&& (!s_DamageArmourToggle[0] || (s_DamageArmour[weaponid][0] && (!s_DamageArmourToggle[1] || ((s_DamageArmour[weaponid][1] && bodypart == 3) || (!s_DamageArmour[weaponid][1])))))) {
 		if (amount <= 0.0) {
 			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
@@ -4829,7 +4829,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 				animname = "KO_skid_back";
 				PlayerDeath(playerid, animlib, animname);
 			}
-		}		
+		}
 
 		if (s_CbugAllowed[playerid]) {
 			WC_OnPlayerDeath(playerid, issuerid, weaponid);
@@ -5213,7 +5213,7 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else 
+	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (s_Spectating[i] == playerid && i != playerid) {
@@ -5228,7 +5228,7 @@ static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
-	#else 
+	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (s_Spectating[i] == playerid && i != playerid) {
@@ -5479,7 +5479,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 
 			#if defined _inc_y_iterate
 			foreach (new i : Player) {
-			#else 
+			#else
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
 				if (s_Spectating[i] == playerid && i != playerid) {
@@ -5493,7 +5493,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 
 			#if defined _inc_y_iterate
 			foreach (new i : Player) {
-			#else 
+			#else
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
 				if (s_Spectating[i] == issuerid && i != issuerid) {
