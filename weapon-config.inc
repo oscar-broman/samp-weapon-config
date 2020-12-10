@@ -4628,7 +4628,14 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 
 		case DAMAGE_TYPE_RANGE,
 		     DAMAGE_TYPE_RANGE_MULTIPLIER: {
-			new Float:length = s_LastShot[issuerid][e_Length];
+			new Float:length = 0.0;
+			if(s_LagCompMode) {
+				length = s_LastShot[issuerid][e_Length];
+			} else {
+				new Float:X, Float:Y, Float:Z;
+				GetPlayerPos(issuerid, X, Y, Z);
+				length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
+			}
 
 			for (new i = s_DamageRangeSteps[weaponid] - 1; i >= 0; i--) {
 				if (i == 0 || length >= s_DamageRangeRanges[weaponid][i]) {
