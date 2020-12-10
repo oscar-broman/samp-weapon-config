@@ -229,7 +229,7 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 	#define DebugMessage(%1,%2) \
 		format(s_DebugMsgBuf,512,%2),printf("(wc:%d) %s",%1,s_DebugMsgBuf)
 
-	#define DebugMessageRed(%1,%2) \ 
+	#define DebugMessageRed(%1,%2) \
 		format(s_DebugMsgBuf,512,%2),printf("(wc:%d) WARN: %s",%1,s_DebugMsgBuf)
 
 	#define DebugMessageAll(%1) \
@@ -2792,7 +2792,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (hitid < 0 || hitid > MAX_VEHICLES || !WC_IsValidVehicle(hitid)) {
 			AddRejectedHit(playerid, damagedid, HIT_INVALID_VEHICLE, weaponid, hitid);
 			return 0;
-		} 
+		}
 
 		new vehicleid = GetPlayerVehicleID(playerid);
 
@@ -2842,7 +2842,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				SetVehicleHealth(hitid, health);
 			}
 		}
-		
+
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
@@ -3652,7 +3652,14 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 
 		case DAMAGE_TYPE_RANGE,
 		     DAMAGE_TYPE_RANGE_MULTIPLIER: {
-			new Float:length = s_LastShot[issuerid][e_Length];
+			new Float:length = 0.0;
+			if(s_LagCompMode) {
+				length = s_LastShot[issuerid][e_Length];
+			} else {
+				new Float:X, Float:Y, Float:Z;
+				GetPlayerPos(issuerid, X, Y, Z);
+				length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
+			}
 
 			for (new i = s_DamageRangeSteps[weaponid] - 1; i >= 0; i--) {
 				if (i == 0 || length >= s_DamageRangeRanges[weaponid][i]) {
