@@ -3442,7 +3442,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 		if(weaponid == WEAPON_VEHICLE
 		|| weaponid == WEAPON_CARPARK
 		|| weaponid == WEAPON_HELIBLADES) {
-			if(!IsPlayerInAnyVehicle(issuerid)) {
+			if(GetPlayerState(issuerid) != PLAYER_STATE_DRIVER) {
 				return 0;
 			}
 		}
