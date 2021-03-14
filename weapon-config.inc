@@ -576,25 +576,25 @@ static s_DamageType[] = {
 // Note that due to various bugs, these can be exceeded, but
 // this include blocks out-of-range values.
 static Float:s_WeaponRange[] = {
-	0.0, // 0 - Fist
-	0.0, // 1 - Brass knuckles
-	0.0, // 2 - Golf club
-	0.0, // 3 - Nitestick
-	0.0, // 4 - Knife
-	0.0, // 5 - Bat
-	0.0, // 6 - Shovel
-	0.0, // 7 - Pool cue
-	0.0, // 8 - Katana
-	0.0, // 9 - Chainsaw
-	0.0, // 10 - Dildo
-	0.0, // 11 - Dildo 2
-	0.0, // 12 - Vibrator
-	0.0, // 13 - Vibrator 2
-	0.0, // 14 - Flowers
-	0.0, // 15 - Cane
-	0.0, // 16 - Grenade
-	0.0, // 17 - Teargas
-	0.0, // 18 - Molotov
+	1.6, // 0 - Fist
+	1.6, // 1 - Brass knuckles
+	1.6, // 2 - Golf club
+	1.6, // 3 - Nitestick
+	1.6, // 4 - Knife
+	1.6, // 5 - Bat
+	1.6, // 6 - Shovel
+	1.6, // 7 - Pool cue
+	1.6, // 8 - Katana
+	1.6, // 9 - Chainsaw
+	1.6, // 10 - Dildo
+	1.6, // 11 - Dildo 2
+	1.6, // 12 - Vibrator
+	1.6, // 13 - Vibrator 2
+	1.6, // 14 - Flowers
+	1.6, // 15 - Cane
+	40.0, // 16 - Grenade
+	40.0, // 17 - Teargas
+	40.0, // 18 - Molotov
 	90.0, // 19 - Vehicle M4 (custom)
 	75.0, // 20 - Vehicle minigun (custom)
 	0.0, // 21
@@ -611,10 +611,18 @@ static Float:s_WeaponRange[] = {
 	35.0, // 32 - Tec9
 	100.0, // 33 - Cuntgun
 	320.0, // 34 - Sniper
-	0.0, // 35 - Rocket launcher
-	0.0, // 36 - Heatseeker
-	0.0, // 37 - Flamethrower
-	75.0  // 38 - Minigun
+	55.0, // 35 - Rocket launcher
+	55.0, // 36 - Heatseeker
+	5.1, // 37 - Flamethrower
+	75.0, // 38 - Minigun
+	40.0, // 39 - Satchel
+	25.0, // 40 - Detonator
+	6.1, // 41 - Spraycan
+	10.1, // 42 - Fire extinguisher
+	100.0, // 43 - Camera
+	100.0, // 44 - Night vision
+	100.0, // 45 - Infrared
+	1.6  // 46 - Parachute
 };
 
 // The fastest possible gap between weapon shots in milliseconds
@@ -952,7 +960,7 @@ stock IsHighRateWeapon(weaponid)
 
 stock IsMeleeWeapon(weaponid)
 {
-	return (WEAPON_UNARMED <= weaponid <= WEAPON_KATANA) || (WEAPON_DILDO <= weaponid <= WEAPON_CANE) || weaponid == WEAPON_PISTOLWHIP;
+	return (WEAPON_UNARMED <= weaponid <= WEAPON_CANE) || weaponid == WEAPON_PISTOLWHIP;
 }
 
 stock WC_IsPlayerSpawned(playerid)
@@ -4401,9 +4409,16 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 			GetPlayerPos(issuerid, x, y, z);
 			dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
-			if (dist > 15.0) {
-				AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:dist);
-				return WC_INVALID_DISTANCE;
+			if (weaponid == WEAPON_CARPARK) {
+				if (dist > 15.0) {
+					AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:dist);
+					return WC_INVALID_DISTANCE;
+				}
+			} else {
+				if (dist > s_WeaponRange[weaponid] + 2.0) {
+					AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:dist, _:s_WeaponRange[weaponid]);
+					return WC_INVALID_DISTANCE;
+				}
 			}
 		}
 
@@ -4482,7 +4497,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 			case 6.6000003814697265625: {
 				if (!melee) {
 					switch (weaponid) {
-						case WEAPON_UZI, WEAPON_TEC9, WEAPON_CHAINSAW,
+						case WEAPON_UZI, WEAPON_TEC9,
 						     WEAPON_SHOTGUN, WEAPON_SAWEDOFF: {}
 
 						default: {
@@ -4522,8 +4537,8 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 		GetPlayerPos(issuerid, x, y, z);
 		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
-		if (dist > 15.0) {
-			AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:dist);
+		if (dist > s_WeaponRange[weaponid] + 2.0) {
+			AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:dist, _:s_WeaponRange[weaponid]);
 			return WC_INVALID_DISTANCE;
 		}
 	}
@@ -4826,7 +4841,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 			} else if (weaponid == WEAPON_PISTOLWHIP) {
 				animname = "KO_spin_R";
 				PlayerDeath(playerid, animlib, animname);
-			} else if (IsMeleeWeapon(weaponid) || weaponid == WEAPON_CARPARK) {
+			} else if (weaponid == WEAPON_CARPARK || IsMeleeWeapon(weaponid) && weaponid != WEAPON_CHAINSAW) {
 				animname = "KO_skid_front";
 				PlayerDeath(playerid, animlib, animname);
 			} else if (weaponid == WEAPON_SPRAYCAN || weaponid == WEAPON_FIREEXTINGUISHER) {
