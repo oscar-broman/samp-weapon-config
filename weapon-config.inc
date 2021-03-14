@@ -3241,22 +3241,35 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		new valid = true;
 
 		if (!s_LastShot[playerid][e_Valid]) {
-			//AddRejectedHit(playerid, damagedid, HIT_LAST_SHOT_INVALID, weaponid);
 			valid = false;
+			//AddRejectedHit(playerid, damagedid, HIT_LAST_SHOT_INVALID, weaponid);
 			DebugMessageRed(playerid, "last shot not valid");
 		} else if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
-			// Let's assume someone won't hit 3 players with 1 shotgun shot, and that one OnPlayerWeaponShot can be out of sync
-			if (s_LastShot[playerid][e_Hits] >= 3) {
+			// Let's assume someone won't hit 2 players with 1 shotgun shot, and that one OnPlayerWeaponShot can be out of sync
+			if (s_LastShot[playerid][e_Hits] >= 2) {
 				valid = false;
 				AddRejectedHit(playerid, damagedid, HIT_MULTIPLE_PLAYERS_SHOTGUN, weaponid, s_LastShot[playerid][e_Hits] + 1);
 			}
 		} else if (s_LastShot[playerid][e_Hits] > 0) {
 			// Sniper doesn't always send OnPlayerWeaponShot
-			if (s_LastShot[playerid][e_Hits] > 4 && weaponid != WEAPON_SNIPER) {
+			if (s_LastShot[playerid][e_Hits] > 3 && weaponid != WEAPON_SNIPER) {
 				valid = false;
 				AddRejectedHit(playerid, damagedid, HIT_MULTIPLE_PLAYERS, weaponid, s_LastShot[playerid][e_Hits] + 1);
 			} else {
 				DebugMessageRed(playerid, "hit %d players with 1 shot", s_LastShot[playerid][e_Hits] + 1);
+			}
+		}
+
+		if (valid) {
+			new Float:dist = GetPlayerDistanceFromPoint(damagedid, s_LastShot[playerid][e_HX], s_LastShot[playerid][e_HY], s_LastShot[playerid][e_HZ]);
+
+			if (dist > 15.0) {
+				new in_veh = IsPlayerInAnyVehicle(damagedid) || GetPlayerSurfingVehicleID(damagedid) != INVALID_VEHICLE_ID;
+
+				if ((!in_veh && GetPlayerSurfingObjectID(damagedid) == INVALID_OBJECT_ID) || dist > 50.0) {
+					valid = false;
+					AddRejectedHit(playerid, damagedid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:dist);
+				}
 			}
 		}
 
@@ -3538,9 +3551,9 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 	new Float:origin_dist = VectorSize(fOriginX - x, fOriginY - y, fOriginZ - z);
 
 	if (origin_dist > 15.0) {
-		new in_veh = IsPlayerInAnyVehicle(hitid) || GetPlayerSurfingVehicleID(hitid) != INVALID_VEHICLE_ID;
+		new in_veh = IsPlayerInAnyVehicle(playerid) || GetPlayerSurfingVehicleID(playerid) != INVALID_VEHICLE_ID;
 
-		if ((!in_veh && GetPlayerSurfingVehicleID(playerid) == INVALID_VEHICLE_ID) || origin_dist > 50.0) {
+		if ((!in_veh && GetPlayerSurfingObjectID(playerid) == INVALID_OBJECT_ID) || origin_dist > 50.0) {
 			AddRejectedHit(playerid, damagedid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:origin_dist);
 
 			return 0;
