@@ -246,9 +246,14 @@ IsPlayerDying(playerid);
 Returns true if the player is between the dying animation and spawning
 
 ```pawn
-IsPlayerSpawned(playerid);
+WC_IsPlayerSpawned(playerid);
 ```
 Returns true if the player is spawned and not in a dying animation
+
+```pawn
+WC_IsPlayerPaused(playerid);
+```
+Returns true if the player is paused (AFK) within last two seconds
 
 ```pawn
 GetWeaponName(weaponid, weapon[], len = sizeof(weapon));
