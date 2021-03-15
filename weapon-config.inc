@@ -4335,12 +4335,6 @@ public WC_SetSpawnForStreamedIn(playerid)
 	s_SpawnForStreamedIn[playerid] = true;
 }
 
-forward WC_SpawnPlayerInPlace(playerid);
-public WC_SpawnPlayerInPlace(playerid)
-{
-	SpawnPlayerInPlace(playerid);
-}
-
 static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, &Float:bullets)
 {
 	if (amount < 0.0) {
