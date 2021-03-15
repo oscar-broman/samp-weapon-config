@@ -853,8 +853,8 @@ static s_LastHitWeapons[MAX_PLAYERS][10];
 static s_LastHitIdx[MAX_PLAYERS];
 static s_ShotsFired[MAX_PLAYERS];
 static s_HitsIssued[MAX_PLAYERS];
-static s_MaxShootRateSamples = 5;
-static s_MaxHitRateSamples = 5;
+static s_MaxShootRateSamples = 3;
+static s_MaxHitRateSamples = 3;
 static Float:s_PlayerMaxHealth[MAX_PLAYERS] = {100.0, ...};
 static Float:s_PlayerHealth[MAX_PLAYERS] = {100.0, ...};
 static Float:s_PlayerMaxArmour[MAX_PLAYERS] = {100.0, ...};
@@ -950,8 +950,8 @@ stock IsBulletWeapon(weaponid)
 stock IsHighRateWeapon(weaponid)
 {
 	switch (weaponid) {
-		case WEAPON_FLAMETHROWER, WEAPON_DROWN, WEAPON_CARPARK,
-		     WEAPON_SPRAYCAN, WEAPON_FIREEXTINGUISHER: {
+		case WEAPON_FLAMETHROWER, WEAPON_SPRAYCAN, WEAPON_FIREEXTINGUISHER,
+		     WEAPON_CARPARK, WEAPON_DROWN: {
 			return true;
 		}
 	}
@@ -1745,7 +1745,7 @@ stock WC_SetPlayerVelocity(playerid, Float:X, Float:Y, Float:Z)
 	return SetPlayerVelocity(playerid, X, Y, Z);
 }
 
-stock wc_SetPlayerVirtualWorld(playerid, worldid)
+stock WC_SetPlayerVirtualWorld(playerid, worldid)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) {
 		return 0;
@@ -1805,7 +1805,7 @@ stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, 
 {
 	new id = CreateVehicle(modelid, x, y, z, angle, color1, color2, respawn_delay, addsiren);
 
-	if (id != INVALID_VEHICLE_ID) {
+	if (0 < id < MAX_VEHICLES) {
 		s_VehicleAlive[id] = true;
 	}
 
@@ -1817,7 +1817,7 @@ stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color
 {
 	new id = AddStaticVehicle(modelid, x, y, z, angle, color1, color2);
 
-	if (id != INVALID_VEHICLE_ID) {
+	if (0 < id < MAX_VEHICLES) {
 		s_VehicleAlive[id] = true;
 	}
 
@@ -1829,7 +1829,7 @@ stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, col
 {
 	new id = AddStaticVehicleEx(modelid, x, y, z, angle, color1, color2, respawn_delay, addsiren);
 
-	if (id != INVALID_VEHICLE_ID) {
+	if (0 < id < MAX_VEHICLES) {
 		s_VehicleAlive[id] = true;
 	}
 
@@ -2887,7 +2887,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			new Float:vx, Float:vy, Float:vz;
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
-			if (vx*vx + vy*vy + vz*vz <= 0.05) {
+			if (vx * vx + vy * vy + vz * vz <= 0.05) {
 				#if defined _inc_y_iterate
 				foreach (new i : Player) {
 				#else
@@ -2946,7 +2946,7 @@ public OnPlayerUpdate(playerid)
 
 				s_DeathSkipTick[playerid] = 0;
 
-				new animlib[32] = "PED", animname[32] = "IDLE_stance";
+				new animlib[] = "PED", animname[] = "IDLE_stance";
 				ApplyAnimation(playerid, animlib, animname, 4.1, 1, 0, 0, 0, 1, 1);
 			}
 		} else {
@@ -2977,7 +2977,7 @@ public OnPlayerUpdate(playerid)
 
 		new surfing = GetPlayerSurfingVehicleID(playerid);
 
-		if (surfing && surfing == INVALID_VEHICLE_ID) {
+		if (surfing == INVALID_VEHICLE_ID) {
 			surfing = GetPlayerSurfingObjectID(playerid) != INVALID_OBJECT_ID;
 		} else {
 			surfing = 1;
@@ -3165,7 +3165,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 				forcesync = 1;
 			}
 
-			animlib = "KNIFE", animname = "KILL_Knife_Player";
+			animname = "KILL_Knife_Player";
 			ApplyAnimation(playerid, animlib, animname, 4.1, 0, 1, 1, 0, 1800, forcesync);
 
 			return 0;
@@ -3241,7 +3241,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		}
 	}
 
-	if (IsBulletWeapon(weaponid) && _:amount != _:2.6400001049041748046875 && !(IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0)) {
+	if (IsBulletWeapon(weaponid) && _:amount != _:2.6400001049041748046875 && GetPlayerState(playerid) != PLAYER_STATE_DRIVER) {
 		new valid = true;
 
 		if (!s_LastShot[playerid][e_Valid]) {
@@ -3405,7 +3405,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 				forcesync = 1;
 			}
 
-			animlib = "KNIFE", animname = "KILL_Knife_Player";
+			animname = "KILL_Knife_Player";
 			ApplyAnimation(issuerid, animlib, animname, 4.1, 0, 1, 1, 0, 1800, forcesync);
 
 			return 0;
@@ -3414,7 +3414,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 	// If it's lagcomp, only allow damage that's valid for both modes
 	if (s_LagCompMode && s_ValidDamageTaken[weaponid] != 2) {
-		if (issuerid != INVALID_PLAYER_ID && IsPlayerInAnyVehicle(issuerid) && GetPlayerVehicleSeat(issuerid) == 0 && (weaponid == WEAPON_M4 || weaponid == WEAPON_MINIGUN)) {
+		if (issuerid != INVALID_PLAYER_ID && GetPlayerState(issuerid) == PLAYER_STATE_DRIVER && (weaponid == WEAPON_M4 || weaponid == WEAPON_MINIGUN)) {
 			weaponid = weaponid == WEAPON_M4 ? WEAPON_VEHICLE_M4 : WEAPON_VEHICLE_MINIGUN;
 		} else {
 			return 0;
@@ -5450,7 +5450,7 @@ static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 
 forward WC_SecondKnifeAnim(playerid);
 public WC_SecondKnifeAnim(playerid)
 {
-	new animlib[32] = "KNIFE", animname[32] = "KILL_Knife_Ped_Die";
+	new animlib[] = "KNIFE", animname[] = "KILL_Knife_Ped_Die";
 	ApplyAnimation(playerid, animlib, animname, 4.1, 0, 1, 1, 1, 3000, 1);
 }
 
@@ -5982,7 +5982,7 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 #else
 	#define _ALS_SetPlayerVirtualWorld
 #endif
-#define SetPlayerVirtualWorld wc_SetPlayerVirtualWorld
+#define SetPlayerVirtualWorld WC_SetPlayerVirtualWorld
 
 
 #if defined _ALS_GetPlayerVirtualWorld
