@@ -3088,7 +3088,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 	new tick = GetTickCount();
 	if (tick == 0) tick = 1;
 
-	if (!WC_IsPlayerSpawned(playerid) && tick - s_LastDeathTick[playerid] > 40) {
+	if (!WC_IsPlayerSpawned(playerid) && tick - s_LastDeathTick[playerid] > 80) {
 		// Make sure the rejected hit wasn't added in OnPlayerWeaponShot
 		if (!IsBulletWeapon(weaponid) || s_LastShot[playerid][e_Valid]) {
 			AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
@@ -3427,7 +3427,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			return 0;
 		}
 
-		if (s_IsDying[issuerid] && (IsBulletWeapon(weaponid) || IsMeleeWeapon(weaponid)) && GetTickCount() - s_LastDeathTick[issuerid] > 40) {
+		if (s_IsDying[issuerid] && (IsBulletWeapon(weaponid) || IsMeleeWeapon(weaponid)) && GetTickCount() - s_LastDeathTick[issuerid] > 80) {
 			DebugMessageRed(playerid, "shot/punched by dead player (%d)", issuerid);
 			return 0;
 		}
@@ -3536,7 +3536,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		return 0;
 	}
 
-	if (!WC_IsPlayerSpawned(playerid) && tick - s_LastDeathTick[playerid] > 40) {
+	if (!WC_IsPlayerSpawned(playerid) && tick - s_LastDeathTick[playerid] > 80) {
 		AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
 
 		return 0;
