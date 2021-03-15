@@ -3779,15 +3779,12 @@ public WC_KillVehicle(vehicleid, killerid)
 	return 1;
 }
 
-
 forward WC_OnDeadVehicleSpawn(vehicleid);
 public WC_OnDeadVehicleSpawn(vehicleid)
 {
 	s_VehicleRespawnTimer[vehicleid] = -1;
 	return SetVehicleToRespawn(vehicleid);
 }
-
-
 
 public OnVehicleSpawn(vehicleid)
 {
@@ -3802,7 +3799,6 @@ public OnVehicleSpawn(vehicleid)
 	return WC_OnVehicleSpawn(vehicleid);
 }
 
-
 public OnVehicleDeath(vehicleid, killerid)
 {
 	if (s_VehicleRespawnTimer[vehicleid] != -1) {
@@ -3816,7 +3812,6 @@ public OnVehicleDeath(vehicleid, killerid)
 	}
 	return 1;
 }
-
 
 public OnPlayerEnterCheckpoint(playerid)
 {
