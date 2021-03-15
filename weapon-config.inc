@@ -926,6 +926,7 @@ static bool:s_SpawnInfoModified[MAX_PLAYERS];
 static bool:s_AlreadyConnected[MAX_PLAYERS];
 static s_DeathSkip[MAX_PLAYERS];
 static s_DeathSkipTick[MAX_PLAYERS];
+static s_LastDeathTick[MAX_PLAYERS];
 static s_LastVehicleTick[MAX_PLAYERS];
 static s_PreviousHits[MAX_PLAYERS][10][E_HIT_INFO];
 static s_PreviousHitI[MAX_PLAYERS];
@@ -2340,8 +2341,9 @@ public OnPlayerSpawn(playerid)
 		return 1;
 	}
 
-	s_LastUpdate[playerid] = GetTickCount();
-	s_LastStop[playerid] = GetTickCount();
+	new tick = GetTickCount();
+	s_LastUpdate[playerid] = tick;
+	s_LastStop[playerid] = tick;
 
 	if (s_BeingResynced[playerid]) {
 		s_BeingResynced[playerid] = false;
@@ -2447,7 +2449,7 @@ public OnPlayerSpawn(playerid)
 		ApplyAnimation(playerid, animlib, animname, 4.1, 1, 0, 0, 0, 1, 1);
 
 		s_DeathSkip[playerid] = 1;
-		s_DeathSkipTick[playerid] = GetTickCount();
+		s_DeathSkipTick[playerid] = tick;
 
 		return 1;
 	}
@@ -2635,6 +2637,8 @@ public OnPlayerDeath(playerid, killerid, reason)
 	if (s_PlayerHealth[playerid] <= 0.0005) {
 		s_PlayerHealth[playerid] = 0.0;
 		s_IsDying[playerid] = true;
+
+		s_LastDeathTick[playerid] = GetTickCount();
 
 		new animlib[32], animname[32], anim_lock, respawn_time;
 
@@ -2928,9 +2932,11 @@ public OnPlayerUpdate(playerid)
 		return 1;
 	}
 
+	new tick = GetTickCount();
+
 	if (s_DeathSkip[playerid] == 1) {
 		if (s_DeathSkipTick[playerid]) {
-			if (GetTickCount() - s_DeathSkipTick[playerid] > 1000) {
+			if (tick - s_DeathSkipTick[playerid] > 1000) {
 				new Float:x, Float:y, Float:z, Float:r;
 
 				GetPlayerPos(playerid, x, y, z);
@@ -2959,8 +2965,6 @@ public OnPlayerUpdate(playerid)
 
 		s_SpawnForStreamedIn[playerid] = false;
 	}
-
-	new tick = GetTickCount();
 
 	s_LastUpdate[playerid] = tick;
 
@@ -3081,7 +3085,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		return 0;
 	}
 
-	if (!WC_IsPlayerSpawned(playerid)) {
+	new tick = GetTickCount();
+	if (tick == 0) tick = 1;
+
+	if (!WC_IsPlayerSpawned(playerid) && tick - s_LastDeathTick[playerid] > 50) {
 		// Make sure the rejected hit wasn't added in OnPlayerWeaponShot
 		if (!IsBulletWeapon(weaponid) || s_LastShot[playerid][e_Valid]) {
 			AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
@@ -3189,9 +3196,6 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 		return 0;
 	}
-
-	new tick = GetTickCount();
-	if (tick == 0) tick = 1;
 
 	new idx = (s_LastHitIdx[playerid] + 1) % sizeof(s_LastHitTicks[]);
 
@@ -3423,7 +3427,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			return 0;
 		}
 
-		if (s_IsDying[issuerid] && (IsBulletWeapon(weaponid) || IsMeleeWeapon(weaponid))) {
+		if (s_IsDying[issuerid] && (IsBulletWeapon(weaponid) || IsMeleeWeapon(weaponid)) && GetTickCount() - s_LastDeathTick[issuerid] > 50) {
 			DebugMessageRed(playerid, "shot/punched by dead player (%d)", issuerid);
 			return 0;
 		}
@@ -3489,7 +3493,10 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 
 	s_LastShot[playerid][e_Valid] = false;
 
-	if (s_CbugFroze[playerid] && GetTickCount() - s_CbugFroze[playerid] < 900) {
+	new tick = GetTickCount();
+	if (tick == 0) tick = 1;
+
+	if (s_CbugFroze[playerid] && tick - s_CbugFroze[playerid] < 900) {
 		return 0;
 	}
 
@@ -3529,7 +3536,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		return 0;
 	}
 
-	if (!WC_IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid) && tick - s_LastDeathTick[playerid] > 50) {
 		AddRejectedHit(playerid, damagedid, HIT_NOT_SPAWNED, weaponid);
 
 		return 0;
@@ -3586,9 +3593,6 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			}
 		}
 	}
-
-	new tick = GetTickCount();
-	if (tick == 0) tick = 1;
 
 	new idx = (s_LastShotIdx[playerid] + 1) % sizeof(s_LastShotTicks[]);
 
@@ -4888,6 +4892,8 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 	s_PlayerHealth[playerid] = 0.0;
 	s_PlayerArmour[playerid] = 0.0;
 	s_IsDying[playerid] = true;
+
+	s_LastDeathTick[playerid] = GetTickCount();
 
 	new action = GetPlayerSpecialAction(playerid);
 
