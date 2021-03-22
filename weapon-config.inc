@@ -2161,7 +2161,7 @@ public OnFilterScriptInit()
 
 	ScriptInit();
 
-	return WC_OnFilterScriptExit();
+	return WC_OnFilterScriptInit();
 }
 
 public OnFilterScriptExit()
