@@ -361,3 +361,8 @@ Set custom rules for a weapon. The defaults aren't going to comfort EVERYONE, so
 * `weaponid` - The ID of the weapon to modify the rules of.
 * `affects_armour` - Whether this weapon will distribute damage over armour and health or just damage health directly.
 * `torso_only` - Whether this weapon will only damage armour when the 'hit' bodypart is the torso or all bodyparts. Only works when `torso_rules` are enabled using `SetCustomArmourRules`.
+
+```pawn
+EnableHealthBarForPlayer(playerid, bool:enable)
+```
+Show or hide health bar for player.
