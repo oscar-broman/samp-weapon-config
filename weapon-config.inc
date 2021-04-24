@@ -1072,6 +1072,7 @@ stock ReturnWeaponName(weaponid)
 
 	return name;
 }
+
 stock EnableHealthBarForPlayer(playerid, bool:enable)
 {
 	if (IsPlayerConnected(playerid))
@@ -1085,6 +1086,7 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	}
 	return false;
 }
+
 stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 {
 	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
@@ -1126,6 +1128,15 @@ stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 	}
 
 	return 0;
+}
+
+stock Float:GetWeaponDamage(weaponid)
+{
+	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
+		return 0.0;
+	}
+
+	return s_WeaponDamage[weaponid];
 }
 
 stock SetCustomArmourRules(bool:armour_rules, bool:torso_rules = false)
@@ -1812,7 +1823,6 @@ stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, 
 	return id;
 }
 
-
 stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2)
 {
 	new id = AddStaticVehicle(modelid, x, y, z, angle, color1, color2);
@@ -1823,7 +1833,6 @@ stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color
 
 	return id;
 }
-
 
 stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
 {
