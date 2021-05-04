@@ -477,17 +477,17 @@ static Float:s_WeaponDamage[] = {
 	0.0, // 21
 	8.25, // 22 - Colt 45
 	13.2, // 23 - Silenced
-	46.2, // 24 - Deagle
-	3.3, // 25 - Shotgun
-	3.3, // 26 - Sawed-off
-	4.95, // 27 - Spas
-	6.6, // 28 - UZI
+	34.0, // 24 - Deagle
+	1.6, // 25 - Shotgun
+	1.4, // 26 - Sawed-off
+	2.0, // 27 - Spas
+	4.0, // 28 - UZI
 	8.25, // 29 - MP5
-	9.9, // 30 - AK47
-	9.9, // 31 - M4
+	15.0, // 30 - AK47
+	12.0, // 31 - M4
 	6.6, // 32 - Tec9
 	24.75, // 33 - Cuntgun
-	41.25, // 34 - Sniper
+	60.0, // 34 - Sniper
 	82.5, // 35 - Rocket launcher
 	82.5, // 36 - Heatseeker
 	1.0, // 37 - Flamethrower
@@ -879,8 +879,8 @@ static s_DamageFeedMaxUpdateRate = 250;
 static s_VehiclePassengerDamage = false;
 static s_VehicleUnoccupiedDamage = false;
 static Float:s_FallDeathVelocity = -0.6;
-static s_DamageTakenSound = 1190;
-static s_DamageGivenSound = 17802;
+static s_DamageTakenSound[MAX_PLAYERS];
+static s_DamageGivenSound[MAX_PLAYERS];
 static s_RejectedHits[MAX_PLAYERS][WC_MAX_REJECTED_HITS][E_REJECTED_HIT];
 static s_RejectedHitsIdx[MAX_PLAYERS];
 static s_World[MAX_PLAYERS];
@@ -1072,7 +1072,6 @@ stock ReturnWeaponName(weaponid)
 
 	return name;
 }
-
 stock EnableHealthBarForPlayer(playerid, bool:enable)
 {
 	if (IsPlayerConnected(playerid))
@@ -1086,7 +1085,6 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	}
 	return false;
 }
-
 stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 {
 	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
@@ -1130,15 +1128,6 @@ stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 	return 0;
 }
 
-stock Float:GetWeaponDamage(weaponid)
-{
-	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
-		return 0.0;
-	}
-
-	return s_WeaponDamage[weaponid];
-}
-
 stock SetCustomArmourRules(bool:armour_rules, bool:torso_rules = false)
 {
 	s_DamageArmourToggle[0] = armour_rules;
@@ -1157,10 +1146,10 @@ stock SetWeaponArmourRule(weaponid, bool:affects_armour, bool:torso_only = false
 	return 1;
 }
 
-stock SetDamageSounds(taken, given)
+stock SetDamageSounds(playerid, taken, given)
 {
-	s_DamageTakenSound = taken;
-	s_DamageGivenSound = given;
+	s_DamageTakenSound[playerid] = taken;
+	s_DamageGivenSound[playerid] = given;
 }
 
 stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
@@ -1823,6 +1812,7 @@ stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, 
 	return id;
 }
 
+
 stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2)
 {
 	new id = AddStaticVehicle(modelid, x, y, z, angle, color1, color2);
@@ -1833,6 +1823,7 @@ stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color
 
 	return id;
 }
+
 
 stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
 {
@@ -3854,7 +3845,6 @@ static ScriptInit()
 	if (s_LagCompMode) {
 		SetKnifeSync(false);
 	} else {
-		s_DamageTakenSound = 0;
 		SetKnifeSync(true);
 	}
 
@@ -5543,8 +5533,8 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 	if (!IsHighRateWeapon(weapon)) {
 		DebugMessageAll("OnPlayerDamageDone(%d did %f to %d with %d on bodypart %d)", issuerid, amount, playerid, weapon, bodypart);
 
-		if (s_DamageTakenSound) {
-			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
+		if (s_DamageTakenSound[playerid]) {
+			PlayerPlaySound(playerid, s_DamageTakenSound[playerid], 0.0, 0.0, 0.0);
 
 			#if defined _inc_y_iterate
 			foreach (new i : Player) {
@@ -5552,13 +5542,13 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
 				if (s_Spectating[i] == playerid && i != playerid) {
-					PlayerPlaySound(i, s_DamageTakenSound, 0.0, 0.0, 0.0);
+					PlayerPlaySound(i, s_DamageTakenSound[i], 0.0, 0.0, 0.0);
 				}
 			}
 		}
 
-		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
-			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
+		if (issuerid != INVALID_PLAYER_ID && s_DamageGivenSound[issuerid]) {
+			PlayerPlaySound(issuerid, s_DamageGivenSound[issuerid], 0.0, 0.0, 0.0);
 
 			#if defined _inc_y_iterate
 			foreach (new i : Player) {
@@ -5566,7 +5556,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
 				if (s_Spectating[i] == issuerid && i != issuerid) {
-					PlayerPlaySound(i, s_DamageGivenSound, 0.0, 0.0, 0.0);
+					PlayerPlaySound(i, s_DamageGivenSound[i], 0.0, 0.0, 0.0);
 				}
 			}
 		}
