@@ -1,5 +1,5 @@
 {
-  "user": "oscar-broman",
+  "user": "BrasilNewStart",
   "repo": "samp-weapon-config",
   "contributors": ["oscar-broman"],
   "dependencies": ["sampctl/samp-stdlib", "oscar-broman/SKY:2.3.0"]
