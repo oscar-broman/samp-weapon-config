@@ -335,6 +335,11 @@ Modify a weapon's damage
     * `20` for any other distance
 
 ```pawn
+Float:GetWeaponDamage(weaponid);
+```
+Get the amount of damage of a weapon
+
+```pawn
 SetWeaponMaxRange(weaponid, Float:range);
 ```
 Set the max range of a weapon. The default value is those from weapon.dat
@@ -342,10 +347,20 @@ Because of a SA-MP bug, weapons can (and will) exceed this range.
 This script, however, will block those out-of-range shots and give a rejected hit.
 
 ```pawn
+Float:GetWeaponMaxRange(weaponid);
+```
+Get the max range of a weapon
+
+```pawn
 SetWeaponShootRate(weaponid, max_rate);
 ```
 Set the max allowed shoot rate of a weapon.
 Could be used to prevent C-bug damage or allow infinite shooting if a script uses GivePlayerWeapon to do so.
+
+```pawn
+GetWeaponShootRate(weaponid);
+```
+Get the max allowed shoot rate of a weapon
 
 ```pawn
 SetCustomArmourRules(bool:armour_rules, bool:torso_rules);
