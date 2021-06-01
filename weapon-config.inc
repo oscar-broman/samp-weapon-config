@@ -50,6 +50,10 @@
 	#define WC_CUSTOM_VENDING_MACHINES true
 #endif
 
+#if !defined WC_HEALTH_BAR_BG_COLOR
+	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C10FF //dark red
+#endif
+
 #if WC_USE_STREAMER && !defined Streamer_IncludeFileVersion
 	#error streamer.inc is required when WC_USE_STREAMER=true
 #endif
@@ -3887,7 +3891,7 @@ static ScriptInit()
 
 		TextDrawTextSize		(s_HealthBarBackground, 60.000000, 6.000000);
 		TextDrawAlignment		(s_HealthBarBackground, 1);
-		TextDrawColor			(s_HealthBarBackground, 0x5A0C10FF); //dark red
+		TextDrawColor			(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
 		TextDrawSetShadow		(s_HealthBarBackground, 0);
 		TextDrawBackgroundColor	(s_HealthBarBackground, 255);
 		TextDrawFont			(s_HealthBarBackground, 4);
