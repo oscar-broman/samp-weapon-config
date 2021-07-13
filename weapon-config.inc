@@ -2573,6 +2573,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 
 	if (s_DeathTimer[playerid] != -1) {
 		KillTimer(s_DeathTimer[playerid]);
+		s_DeathTimer[playerid] = -1;
 	}
 
 	if (s_IsDying[playerid]) {
