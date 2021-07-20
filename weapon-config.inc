@@ -50,8 +50,12 @@
 	#define WC_CUSTOM_VENDING_MACHINES true
 #endif
 
+#if !defined WC_HEALTH_BAR_FG_COLOR
+	#define WC_HEALTH_BAR_FG_COLOR 0xB4191DFF //red
+#endif
+
 #if !defined WC_HEALTH_BAR_BG_COLOR
-	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C10FF //dark red
+	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C0EFF //dark red
 #endif
 
 #if WC_USE_STREAMER && !defined Streamer_IncludeFileVersion
@@ -2233,6 +2237,21 @@ public OnPlayerConnect(playerid)
 	s_DamageFeedPlayer[playerid] = -1;
 	s_EnableHealthBar[playerid] = true; //enable by default
 
+	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
+		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
+		s_DamageFeedGiven[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_DamageFeedTaken[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]] = false;
+		s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
 	for (new i = 0; i < sizeof(s_PreviousHits[]); i++) {
 		s_PreviousHits[playerid][i][e_Tick] = 0;
 	}
@@ -2290,19 +2309,16 @@ public OnPlayerDisconnect(playerid, reason)
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
-		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
 		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
 	if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
-		s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
 		s_DamageFeedGiven[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
 	if (s_DamageFeedTaken[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawDestroy(playerid, s_DamageFeedTaken[playerid]);
-		s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]] = false;
 		s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
@@ -3867,14 +3883,14 @@ static ScriptInit()
 		s_ClassSpawnInfo[i][e_Skin] = -1;
 	}
 
-	s_HealthBarBorder = TextDrawCreate(546.112854, 66.333282, "LD_SPAC:white");
+	s_HealthBarBorder = TextDrawCreate(546.2, 66.4, "LD_SPAC:white");
 
 	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar border textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBorder] = true;
 
-		TextDrawTextSize		(s_HealthBarBorder, 63.000000, 9.000000);
+		TextDrawTextSize		(s_HealthBarBorder, 61.5, 8.8);
 		TextDrawAlignment		(s_HealthBarBorder, 1);
 		TextDrawColor			(s_HealthBarBorder, 255);
 		TextDrawSetShadow		(s_HealthBarBorder, 0);
@@ -3883,14 +3899,14 @@ static ScriptInit()
 		TextDrawSetProportional	(s_HealthBarBorder, 0);
 	}
 
-	s_HealthBarBackground = TextDrawCreate(547.518310, 68.083274, "LD_SPAC:white");
+	s_HealthBarBackground = TextDrawCreate(548.2, 68.6, "LD_SPAC:white");
 
 	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar background textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBackground] = true;
 
-		TextDrawTextSize		(s_HealthBarBackground, 60.000000, 6.000000);
+		TextDrawTextSize		(s_HealthBarBackground, 57.6, 5.0);
 		TextDrawAlignment		(s_HealthBarBackground, 1);
 		TextDrawColor			(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
 		TextDrawSetShadow		(s_HealthBarBackground, 0);
@@ -4066,11 +4082,9 @@ static WC_IsPlayerPaused(playerid)
 	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
 }
 
-static Float:WC_Bar_Calculate(Float:width, Float:max, Float:value) {
-
-  new Float:result;
-  result = (((0 + width) / max) * value);
-  return result;
+static Float:WC_Bar_Calculate(Float:width, Float:max, Float:value)
+{
+	return ((width / max) * value);
 }
 
 static UpdateHealthBar(playerid, bool:force = false)
@@ -4119,41 +4133,41 @@ static UpdateHealthBar(playerid, bool:force = false)
 			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 
 				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
-					playerid, 
-					547.518310, 
-					68.083274, 
+					playerid,
+					548.2,
+					68.6,
 					"LD_SPAC:white"
 				);
-				PlayerTextDrawTextSize(playerid, 
+				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
-					60.000000,
+					57.6,
 					100.0,
 					float(health)),
-					6.0
+					5.0
 				);
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 					printf("(wc) WARN: Unable to create player healthbar foreground");
 				} else {
 					s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = true;
-					
+
 					PlayerTextDrawAlignment(playerid, 		s_HealthBarForeground[playerid], 1);
-					PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], 0xB51821FF);
+					PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
 					PlayerTextDrawSetShadow(playerid, 		s_HealthBarForeground[playerid], 0);
 					PlayerTextDrawBackgroundColor(playerid, s_HealthBarForeground[playerid], 255);
 					PlayerTextDrawFont(playerid, 			s_HealthBarForeground[playerid], 4);
 					PlayerTextDrawSetProportional(playerid, s_HealthBarForeground[playerid], 0);
-					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);			
+					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
 				}
-			} else {
-				PlayerTextDrawTextSize(playerid, 
+			} else if (s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]]) {
+				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
-					60.000000,
+					57.6,
 					100.0,
 					float(health)),
-					6.0
+					5.0
 				);
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
@@ -4239,8 +4253,7 @@ static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2)
 
 static UpdateSyncData(playerid)
 {
-	// Currently re-sending onfoot data is only supported
-	if (!IsPlayerConnected(playerid) || GetPlayerState(playerid) != PLAYER_STATE_ONFOOT) {
+	if (!IsPlayerConnected(playerid)) {
 		return;
 	}
 
@@ -4250,7 +4263,7 @@ static UpdateSyncData(playerid)
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
-			SendLastSyncPacket(playerid, i);
+			SendLastSyncPacket(playerid, i, E_LAST_SYNC);
 		}
 	}
 }
@@ -5223,7 +5236,7 @@ static DamageFeedUpdateText(playerid)
 
 	if (s_DamageFeedGiven[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Doesn't have feed textdraw when needed");
-	} else {
+	} else if (s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]]) {
 		if (buf[0]) {
 			PlayerTextDrawSetString(playerid, s_DamageFeedGiven[playerid], buf);
 			PlayerTextDrawShow(playerid, s_DamageFeedGiven[playerid]);
@@ -5273,7 +5286,7 @@ static DamageFeedUpdateText(playerid)
 
 	if (s_DamageFeedTaken[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Doesn't have feed textdraw when needed");
-	} else {
+	} else if (s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]]) {
 		if (buf[0]) {
 			PlayerTextDrawSetString(playerid, s_DamageFeedTaken[playerid], buf);
 			PlayerTextDrawShow(playerid, s_DamageFeedTaken[playerid]);
