@@ -50,8 +50,12 @@
 	#define WC_CUSTOM_VENDING_MACHINES true
 #endif
 
+#if !defined WC_HEALTH_BAR_FG_COLOR
+	#define WC_HEALTH_BAR_FG_COLOR 0xB4191DFF //red
+#endif
+
 #if !defined WC_HEALTH_BAR_BG_COLOR
-	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C10FF //dark red
+	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C0EFF //dark red
 #endif
 
 #if WC_USE_STREAMER && !defined Streamer_IncludeFileVersion
@@ -3867,14 +3871,14 @@ static ScriptInit()
 		s_ClassSpawnInfo[i][e_Skin] = -1;
 	}
 
-	s_HealthBarBorder = TextDrawCreate(546.112854, 66.333282, "LD_SPAC:white");
+	s_HealthBarBorder = TextDrawCreate(546.2, 66.4, "LD_SPAC:white");
 
 	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar border textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBorder] = true;
 
-		TextDrawTextSize		(s_HealthBarBorder, 63.000000, 9.000000);
+		TextDrawTextSize		(s_HealthBarBorder, 61.5, 8.8);
 		TextDrawAlignment		(s_HealthBarBorder, 1);
 		TextDrawColor			(s_HealthBarBorder, 255);
 		TextDrawSetShadow		(s_HealthBarBorder, 0);
@@ -3883,14 +3887,14 @@ static ScriptInit()
 		TextDrawSetProportional	(s_HealthBarBorder, 0);
 	}
 
-	s_HealthBarBackground = TextDrawCreate(547.518310, 68.083274, "LD_SPAC:white");
+	s_HealthBarBackground = TextDrawCreate(548.2, 68.6, "LD_SPAC:white");
 
 	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar background textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBackground] = true;
 
-		TextDrawTextSize		(s_HealthBarBackground, 60.000000, 6.000000);
+		TextDrawTextSize		(s_HealthBarBackground, 57.6, 5.0);
 		TextDrawAlignment		(s_HealthBarBackground, 1);
 		TextDrawColor			(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
 		TextDrawSetShadow		(s_HealthBarBackground, 0);
@@ -4066,11 +4070,9 @@ static WC_IsPlayerPaused(playerid)
 	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
 }
 
-static Float:WC_Bar_Calculate(Float:width, Float:max, Float:value) {
-
-  new Float:result;
-  result = (((0 + width) / max) * value);
-  return result;
+static Float:WC_Bar_Calculate(Float:width, Float:max, Float:value)
+{
+	return ((width / max) * value);
 }
 
 static UpdateHealthBar(playerid, bool:force = false)
@@ -4119,41 +4121,41 @@ static UpdateHealthBar(playerid, bool:force = false)
 			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 
 				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
-					playerid, 
-					547.518310, 
-					68.083274, 
+					playerid,
+					548.2,
+					68.6,
 					"LD_SPAC:white"
 				);
-				PlayerTextDrawTextSize(playerid, 
+				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
-					60.000000,
+					57.6,
 					100.0,
 					float(health)),
-					6.0
+					5.0
 				);
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 					printf("(wc) WARN: Unable to create player healthbar foreground");
 				} else {
 					s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = true;
-					
+
 					PlayerTextDrawAlignment(playerid, 		s_HealthBarForeground[playerid], 1);
-					PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], 0xB51821FF);
+					PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
 					PlayerTextDrawSetShadow(playerid, 		s_HealthBarForeground[playerid], 0);
 					PlayerTextDrawBackgroundColor(playerid, s_HealthBarForeground[playerid], 255);
 					PlayerTextDrawFont(playerid, 			s_HealthBarForeground[playerid], 4);
 					PlayerTextDrawSetProportional(playerid, s_HealthBarForeground[playerid], 0);
-					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);			
+					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
 				}
 			} else {
-				PlayerTextDrawTextSize(playerid, 
+				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
-					60.000000,
+					57.6,
 					100.0,
 					float(health)),
-					6.0
+					5.0
 				);
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
