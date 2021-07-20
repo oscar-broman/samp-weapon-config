@@ -4241,8 +4241,7 @@ static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2)
 
 static UpdateSyncData(playerid)
 {
-	// Currently re-sending onfoot data is only supported
-	if (!IsPlayerConnected(playerid) || GetPlayerState(playerid) != PLAYER_STATE_ONFOOT) {
+	if (!IsPlayerConnected(playerid)) {
 		return;
 	}
 
@@ -4252,7 +4251,7 @@ static UpdateSyncData(playerid)
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
-			SendLastSyncPacket(playerid, i);
+			SendLastSyncPacket(playerid, i, E_LAST_SYNC);
 		}
 	}
 }
