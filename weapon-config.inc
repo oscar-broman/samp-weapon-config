@@ -2237,6 +2237,21 @@ public OnPlayerConnect(playerid)
 	s_DamageFeedPlayer[playerid] = -1;
 	s_EnableHealthBar[playerid] = true; //enable by default
 
+	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
+		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
+		s_DamageFeedGiven[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_DamageFeedTaken[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]] = false;
+		s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
 	for (new i = 0; i < sizeof(s_PreviousHits[]); i++) {
 		s_PreviousHits[playerid][i][e_Tick] = 0;
 	}
@@ -2294,19 +2309,16 @@ public OnPlayerDisconnect(playerid, reason)
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
-		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
 		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
 	if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
-		s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
 		s_DamageFeedGiven[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
 	if (s_DamageFeedTaken[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawDestroy(playerid, s_DamageFeedTaken[playerid]);
-		s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]] = false;
 		s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
@@ -4148,7 +4160,7 @@ static UpdateHealthBar(playerid, bool:force = false)
 					PlayerTextDrawSetProportional(playerid, s_HealthBarForeground[playerid], 0);
 					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
 				}
-			} else {
+			} else if (s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]]) {
 				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
@@ -5224,7 +5236,7 @@ static DamageFeedUpdateText(playerid)
 
 	if (s_DamageFeedGiven[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Doesn't have feed textdraw when needed");
-	} else {
+	} else if (s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]]) {
 		if (buf[0]) {
 			PlayerTextDrawSetString(playerid, s_DamageFeedGiven[playerid], buf);
 			PlayerTextDrawShow(playerid, s_DamageFeedGiven[playerid]);
@@ -5274,7 +5286,7 @@ static DamageFeedUpdateText(playerid)
 
 	if (s_DamageFeedTaken[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Doesn't have feed textdraw when needed");
-	} else {
+	} else if (s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]]) {
 		if (buf[0]) {
 			PlayerTextDrawSetString(playerid, s_DamageFeedTaken[playerid], buf);
 			PlayerTextDrawShow(playerid, s_DamageFeedTaken[playerid]);
