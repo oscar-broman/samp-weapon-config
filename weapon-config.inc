@@ -2479,7 +2479,6 @@ public OnPlayerSpawn(playerid)
 	if (s_DeathSkip[playerid] == 2) {
 		DebugMessage(playerid, "Death skipped");
 		SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
-		GivePlayerWeapon(playerid, 0, 1);
 		SetPlayerArmedWeapon(playerid, 0);
 		ClearAnimations(playerid);
 
@@ -2891,6 +2890,11 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 
 	s_LastVehicleEnterTime[playerid] = gettime();
 	s_LastVehicleTick[playerid] = GetTickCount();
+
+	if (s_IsDying[playerid]) {
+		TogglePlayerControllable(playerid, false);
+		ApplyAnimation(playerid, "PED", "KO_skid_back", 4.1, 0, 0, 0, 1, 0, 1);
+	}
 
 	return WC_OnPlayerEnterVehicle(playerid, vehicleid, ispassenger);
 }
