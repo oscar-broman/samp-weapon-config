@@ -6140,7 +6140,7 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 #if defined _ALS_IsPlayerInRaceCheckpoint
 	#undef IsPlayerInRaceCheckpoint
 #else
-	#define _ALS_IsPlayerInCheckpoint
+	#define _ALS_IsPlayerInRaceCheckpoint
 #endif
 #define IsPlayerInRaceCheckpoint WC_IsPlayerInRaceCheckpoint
 
