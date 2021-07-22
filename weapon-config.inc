@@ -1862,6 +1862,15 @@ stock WC_IsPlayerInCheckpoint(playerid)
 	return IsPlayerInCheckpoint(playerid);
 }
 
+stock WC_IsPlayerInRaceCheckpoint(playerid)
+{
+	if (!WC_IsPlayerSpawned(playerid)) {
+		return 0;
+	}
+
+	return IsPlayerInRaceCheckpoint(playerid);
+}
+
 stock WC_SetPlayerSpecialAction(playerid, actionid)
 {
 	if (!WC_IsPlayerSpawned(playerid)) {
@@ -3864,6 +3873,25 @@ public OnPlayerLeaveCheckpoint(playerid)
 	return WC_OnPlayerLeaveCheckpoint(playerid);
 }
 
+public OnPlayerEnterRaceCheckpoint(playerid)
+{
+	if (!WC_IsPlayerSpawned(playerid)) {
+		return 1;
+	}
+
+	return WC_OnPlayerEnterRaceCheckpoint(playerid);
+}
+
+public OnPlayerLeaveRaceCheckpoint(playerid)
+{
+	// If they're dying, it will be called in PlayerDeath (when the death anim begins)
+	if (s_IsDying[playerid]) {
+		return 1;
+	}
+
+	return WC_OnPlayerLeaveRaceCheckpoint(playerid);
+}
+
 /*
  * Internal functions
  */
@@ -4983,6 +5011,10 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 	if (IsPlayerInCheckpoint(playerid)) {
 		WC_OnPlayerLeaveCheckpoint(playerid);
 	}
+
+	if (IsPlayerInRaceCheckpoint(playerid)) {
+		WC_OnPlayerLeaveRaceCheckpoint(playerid);
+	}
 }
 
 public OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time)
@@ -5796,6 +5828,24 @@ CHAIN_FORWARD:WC_OnPlayerEnterCheckpoint(playerid) = 1;
 CHAIN_FORWARD:WC_OnPlayerLeaveCheckpoint(playerid) = 1;
 
 
+#if defined _ALS_OnPlayerEnterRaceCP
+	#undef OnPlayerEnterRaceCheckpoint
+#else
+	#define _ALS_OnPlayerEnterRaceCP
+#endif
+#define OnPlayerEnterRaceCheckpoint(%0) CHAIN_PUBLIC:WC_OnPlayerEnterRaceCheckpoint(%0)
+CHAIN_FORWARD:WC_OnPlayerEnterRaceCheckpoint(playerid) = 1;
+
+
+#if defined _ALS_OnPlayerLeaveRaceCP
+	#undef OnPlayerLeaveRaceCheckpoint
+#else
+	#define _ALS_OnPlayerLeaveRaceCP
+#endif
+#define OnPlayerLeaveRaceCheckpoint(%0) CHAIN_PUBLIC:WC_OnPlayerLeaveRaceCheckpoint(%0)
+CHAIN_FORWARD:WC_OnPlayerLeaveRaceCheckpoint(playerid) = 1;
+
+
 #if defined _ALS_OnInvalidWeaponDamage
 	#undef OnInvalidWeaponDamage
 #else
@@ -6054,6 +6104,7 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 #endif
 #define DestroyVehicle WC_DestroyVehicle
 
+
 #if defined _ALS_CreateVehicle
 	#undef CreateVehicle
 #else
@@ -6077,12 +6128,21 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 #endif
 #define AddStaticVehicleEx WC_AddStaticVehicleEx
 
+
 #if defined _ALS_IsPlayerInCheckpoint
 	#undef IsPlayerInCheckpoint
 #else
 	#define _ALS_IsPlayerInCheckpoint
 #endif
 #define IsPlayerInCheckpoint WC_IsPlayerInCheckpoint
+
+
+#if defined _ALS_IsPlayerInRaceCheckpoint
+	#undef IsPlayerInRaceCheckpoint
+#else
+	#define _ALS_IsPlayerInCheckpoint
+#endif
+#define IsPlayerInRaceCheckpoint WC_IsPlayerInRaceCheckpoint
 
 
 #if defined _ALS_SetPlayerSpecialAction
