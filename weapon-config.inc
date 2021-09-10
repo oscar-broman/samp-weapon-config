@@ -755,7 +755,7 @@ stock const g_WeaponName[57][WC_MAX_WEAPON_NAME] = {
 	{"Vibrator"         }, {"Vibrator"      }, {"Flowers"             },
 	{"Cane"             }, {"Grenade"       }, {"Tear gas"            },
 	{"Molotov"          }, {"Vehicle gun"   }, {"Vehicle gun"         },
-	{""                 }, {"Colt 45"       }, {"Silenced pistol"     },
+	{"Vehicle gun"      }, {"Colt 45"       }, {"Silenced pistol"     },
 	{"Deagle"           }, {"Shotgun"       }, {"Sawn-off shotgun"    },
 	{"Combat shotgun"   }, {"Mac-10"        }, {"MP5"                 },
 	{"AK-47"            }, {"M4"            }, {"Tec-9"               },
@@ -3805,14 +3805,14 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
-				if (health >= 249.0) { //vehicles start on fire at 249 or under so theres no need to check once the vehicle is at or below 250
+				if (health >= 250.0) { //vehicles start on fire below 250 hp
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
 					} else {
 						health -= s_WeaponDamage[weaponid] * 3.0;
 					}
 
-					if (health <= 249.0) {
+					if (health < 250.0) {
 						if (s_VehicleRespawnTimer[hitid] == -1) {
 							health = 249.0;
 							s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid, playerid);
