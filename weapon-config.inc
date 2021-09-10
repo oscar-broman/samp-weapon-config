@@ -301,6 +301,7 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #define WEAPON_UNARMED 0
 #define WEAPON_VEHICLE_M4 19
 #define WEAPON_VEHICLE_MINIGUN 20
+#define WEAPON_VEHICLE_ROCKETLAUNCHER 21
 #define WEAPON_PISTOLWHIP 48
 #define WEAPON_HELIBLADES 50
 #define WEAPON_EXPLOSION 51
@@ -369,7 +370,7 @@ static const s_ValidDamageGiven[] = {
 	0, // 18 - Molotov
 	0, // 19 - Vehicle M4 (custom)
 	0, // 20 - Vehicle minigun (custom)
-	0, // 21
+	0, // 21 - Vehicle rocket (custom)
 	1, // 22 - Colt 45
 	1, // 23 - Silenced
 	1, // 24 - Deagle
@@ -421,7 +422,7 @@ static const s_ValidDamageTaken[] = {
 	0, // 18 - Molotov
 	0, // 19 - Vehicle M4 (custom)
 	0, // 20 - Vehicle minigun (custom)
-	0, // 21
+	0, // 21 - Vehicle rocket (custom)
 	1, // 22 - Colt 45
 	1, // 23 - Silenced
 	1, // 24 - Deagle
@@ -482,7 +483,7 @@ static Float:s_WeaponDamage[] = {
 	1.0, // 18 - Molotov
 	9.9, // 19 - Vehicle M4 (custom)
 	46.2, // 20 - Vehicle minigun (custom)
-	0.0, // 21
+	82.5, // 21 - Vehicle rocket (custom)
 	8.25, // 22 - Colt 45
 	13.2, // 23 - Silenced
 	46.2, // 24 - Deagle
@@ -544,7 +545,7 @@ static s_DamageType[] = {
 	0, // 18 - Molotov
 	1, // 19 - Vehicle M4 (custom)
 	1, // 20 - Vehicle minigun (custom)
-	0, // 21
+	0, // 21 - Vehicle rocket (custom)
 	1, // 22 - Colt 45
 	1, // 23 - Silenced
 	1, // 24 - Deagle
@@ -605,7 +606,7 @@ static Float:s_WeaponRange[] = {
 	40.0, // 18 - Molotov
 	90.0, // 19 - Vehicle M4 (custom)
 	75.0, // 20 - Vehicle minigun (custom)
-	0.0, // 21
+	0.0, // 21 - Vehicle rocket (custom)
 	35.0, // 22 - Colt 45
 	35.0, // 23 - Silenced
 	35.0, // 24 - Deagle
@@ -656,7 +657,7 @@ static s_MaxWeaponShootRate[] = {
 	0, // 18 - Molotov
 	90, // 19 - Vehicle M4 (custom)
 	20, // 20 - Vehicle minigun (custom)
-	0, // 21
+	0, // 21 - Vehicle rocket (custom)
 	160, // 22 - Colt 45
 	120, // 23 - Silenced
 	120, // 24 - Deagle
@@ -709,7 +710,7 @@ static s_DamageArmour[][2] = {
 	{0, 0}, // 18 - Molotov
 	{1, 1}, // 19 - Vehicle M4 (custom)
 	{1, 1}, // 20 - Vehicle minigun (custom)
-	{0, 0}, // 21
+	{0, 0}, // 21 - Vehicle rocket (custom)
 	{1, 1}, // 22 - Colt 45
 	{1, 1}, // 23 - Silenced
 	{1, 1}, // 24 - Deagle
@@ -1560,20 +1561,23 @@ stock WC_SendDeathMessage(killer, killee, weapon)
 {
 	switch (weapon) {
 
-		case WEAPON_CARPARK: {
-			weapon = WEAPON_VEHICLE;
-		}
-		case WEAPON_PISTOLWHIP: {
-			weapon = WEAPON_UNARMED;
-		}
-		case WEAPON_UNKNOWN: {
-			weapon = WEAPON_DROWN;
-		}
 		case WEAPON_VEHICLE_M4: {
 			weapon = WEAPON_M4;
 		}
 		case WEAPON_VEHICLE_MINIGUN: {
 			weapon = WEAPON_MINIGUN;
+		}
+		case WEAPON_VEHICLE_ROCKETLAUNCHER: {
+			weapon = WEAPON_ROCKETLAUNCHER;
+		}
+		case WEAPON_PISTOLWHIP: {
+			weapon = WEAPON_UNARMED;
+		}
+		case WEAPON_CARPARK: {
+			weapon = WEAPON_VEHICLE;
+		}
+		case WEAPON_UNKNOWN: {
+			weapon = WEAPON_DROWN;
 		}
 	}
 
@@ -3492,7 +3496,6 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 		// https://github.com/oscar-broman/samp-weapon-config/issues/104
 		if(weaponid == WEAPON_VEHICLE
-		|| weaponid == WEAPON_CARPARK
 		|| weaponid == WEAPON_HELIBLADES) {
 			if(GetPlayerState(issuerid) != PLAYER_STATE_DRIVER) {
 				return 0;
@@ -4560,8 +4563,14 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 		amount /= 82.5;
 
 		// Figure out what caused the explosion
-		if (issuerid != INVALID_PLAYER_ID && s_LastExplosive[issuerid]) {
-			weaponid = s_LastExplosive[issuerid];
+		if (issuerid != INVALID_PLAYER_ID) {
+			if (GetPlayerState(issuerid) == PLAYER_STATE_DRIVER) {
+				weaponid = WEAPON_VEHICLE_ROCKETLAUNCHER;
+			} else if (s_LastExplosive[issuerid]) {
+				weaponid = s_LastExplosive[issuerid];
+			}
+		} else if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER) {
+			weaponid = WEAPON_VEHICLE_ROCKETLAUNCHER;
 		}
 	}
 
