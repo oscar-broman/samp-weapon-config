@@ -368,7 +368,7 @@ static const s_ValidDamageGiven[] = {
 	0, // 17 - Teargas
 	0, // 18 - Molotov
 	0, // 19 - Vehicle M4 (custom)
-	0, // 20 - Vehicle minigun
+	0, // 20 - Vehicle minigun (custom)
 	0, // 21
 	1, // 22 - Colt 45
 	1, // 23 - Silenced
@@ -575,7 +575,7 @@ static s_DamageType[] = {
 	1, // 49 - Vehicle
 	1, // 50 - Helicopter blades
 	0, // 51 - Explosion
-	0, // 52 - Car park
+	0, // 52 - Car park (custom)
 	0, // 53 - Drowning
 	0  // 54 - Splat
 };
@@ -654,7 +654,7 @@ static s_MaxWeaponShootRate[] = {
 	0, // 16 - Grenade
 	0, // 17 - Teargas
 	0, // 18 - Molotov
-	20, // 19 - Vehicle M4 (custom)
+	90, // 19 - Vehicle M4 (custom)
 	20, // 20 - Vehicle minigun (custom)
 	0, // 21
 	160, // 22 - Colt 45
@@ -709,7 +709,7 @@ static s_DamageArmour[][2] = {
 	{0, 0}, // 18 - Molotov
 	{1, 1}, // 19 - Vehicle M4 (custom)
 	{1, 1}, // 20 - Vehicle minigun (custom)
-	{1, 0}, // 21
+	{0, 0}, // 21
 	{1, 1}, // 22 - Colt 45
 	{1, 1}, // 23 - Silenced
 	{1, 1}, // 24 - Deagle
@@ -740,7 +740,7 @@ static s_DamageArmour[][2] = {
 	{0, 0}, // 49 - Vehicle
 	{0, 1}, // 50 - Helicopter blades
 	{0, 0}, // 51 - Explosion
-	{0, 0}, // 52 - Car park
+	{0, 0}, // 52 - Car park (custom)
 	{0, 0}, // 53 - Drowning
 	{0, 0}  // 54 - Splat
 };
@@ -1097,7 +1097,7 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 
 stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 {
-	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_WeaponDamage)) {
 		return 0;
 	}
 
@@ -1140,7 +1140,7 @@ stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 
 stock Float:GetWeaponDamage(weaponid)
 {
-	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_WeaponDamage)) {
 		return 0.0;
 	}
 
@@ -1155,7 +1155,7 @@ stock SetCustomArmourRules(bool:armour_rules, bool:torso_rules = false)
 
 stock SetWeaponArmourRule(weaponid, bool:affects_armour, bool:torso_only = false)
 {
-	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_WeaponDamage)) {
 		return 0;
 	}
 
@@ -1374,7 +1374,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponi
 		return 0;
 	}
 
-	if (weaponid < 0 || weaponid > 55) {
+	if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
 		weaponid = WEAPON_UNKNOWN;
 	}
 
@@ -1584,7 +1584,7 @@ stock WC_SendDeathMessage(killer, killee, weapon)
 
 stock SetWeaponName(weaponid, const name[])
 {
-	if (weaponid < 0 || weaponid >= sizeof(g_WeaponName)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(g_WeaponName)) {
 		return 0;
 	}
 
@@ -1595,7 +1595,7 @@ stock SetWeaponName(weaponid, const name[])
 
 stock WC_GetWeaponName(weaponid, weapon[], len = sizeof(weapon))
 {
-	if (weaponid < 0 || weaponid >= sizeof(g_WeaponName)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(g_WeaponName)) {
 		format(weapon, len, "Weapon %d", weaponid);
 	} else {
 		strunpack(weapon, g_WeaponName[weaponid], len);
@@ -2205,7 +2205,7 @@ public OnPlayerConnect(playerid)
 	s_PlayerHealth[playerid] = 100.0;
 	s_PlayerMaxArmour[playerid] = 100.0;
 	s_PlayerArmour[playerid] = 0.0;
-	s_LastExplosive[playerid] = 0;
+	s_LastExplosive[playerid] = WEAPON_UNARMED;
 	s_LastShotIdx[playerid] = 0;
 	s_LastShot[playerid][e_Tick] = 0;
 	s_LastHitIdx[playerid] = 0;
@@ -2607,8 +2607,8 @@ public OnPlayerDeath(playerid, killerid, reason)
 	}
 
 	// WEAPON_UNKNOWN
-	if (reason < 0 || reason > 55) {
-		reason = 55;
+	if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
+		reason = WEAPON_UNKNOWN;
 	}
 
 	new vehicleid = GetPlayerVehicleID(playerid);
@@ -2631,7 +2631,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 	}
 
 	if (OnPlayerDamage(playerid, amount, killerid, reason, bodypart)) {
-		if (reason < 0 || reason > WEAPON_UNKNOWN) {
+		if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
 			reason = WEAPON_UNKNOWN;
 		}
 
@@ -3118,7 +3118,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 	}
 
 	// Ignore unreliable and invalid damage
-	if (weaponid < 0 || weaponid >= sizeof(s_ValidDamageGiven) || !s_ValidDamageGiven[weaponid]) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_ValidDamageGiven) || !s_ValidDamageGiven[weaponid]) {
 		// Fire is synced as taken damage (because it's not reliable as given), so no need to show a rejected hit.
 		// Vehicle damage is also synced as taken, so no need to show that either.
 		if (weaponid != WEAPON_FLAMETHROWER && weaponid != WEAPON_VEHICLE) {
@@ -3367,7 +3367,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 	}
 
 	// Ignore unreliable and invalid damage
-	if (weaponid < 0 || weaponid >= sizeof(s_ValidDamageTaken) || !s_ValidDamageTaken[weaponid]) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_ValidDamageTaken) || !s_ValidDamageTaken[weaponid]) {
 		return 0;
 	}
 
@@ -3572,7 +3572,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		damagedid = hitid;
 	}
 
-	if (hittype < 0 || hittype > 4) {
+	if (hittype < BULLET_HIT_TYPE_NONE || hittype > BULLET_HIT_TYPE_PLAYER_OBJECT) {
 		AddRejectedHit(playerid, damagedid, HIT_INVALID_HITTYPE, weaponid, hittype);
 
 		return 0;
@@ -4795,7 +4795,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 	if (!OnPlayerDamage(playerid, amount, issuerid, weaponid, bodypart)) {
 		UpdateHealthBar(playerid);
 
-		if (weaponid < 0 || weaponid > WEAPON_UNKNOWN) {
+		if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
 			weaponid = WEAPON_UNKNOWN;
 		}
 
@@ -4816,7 +4816,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		return;
 	}
 
-	if (weaponid < 0 || weaponid > WEAPON_UNKNOWN) {
+	if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
 		weaponid = WEAPON_UNKNOWN;
 	}
 
@@ -4883,7 +4883,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 					new Float:vx, Float:vy, Float:vz;
 					GetVehicleVelocity(vehicleid, vx, vy, vz);
 
-					if (vx*vx + vy*vy + vz*vz >= 0.4) {
+					if (vx * vx + vy * vy + vz * vz >= 0.4) {
 						animname = "BIKE_fallR";
 						PlayerDeath(playerid, animlib, animname, 0);
 					} else {
