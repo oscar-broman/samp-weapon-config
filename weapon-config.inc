@@ -999,17 +999,17 @@ stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 
 	multiple_weapons = false;
 
-	for (new i = shots - 2; i >= 0; i--) {
-		new prev_idx = (idx - i - 1) % sizeof(s_LastShotTicks[]);
+	for (new i = shots - 2, prev, prev_weap, prev_idx, this_idx; i >= 0; i--) {
+		prev_idx = (idx - i - 1) % sizeof(s_LastShotTicks[]);
 
 		// JIT plugin fix
 		if (prev_idx < 0) {
 			prev_idx += sizeof(s_LastShotTicks[]);
 		}
 
-		new prev = s_LastShotTicks[playerid][prev_idx];
-		new prev_weap = s_LastShotWeapons[playerid][prev_idx];
-		new this_idx = (idx - i) % sizeof(s_LastShotTicks[]);
+		prev = s_LastShotTicks[playerid][prev_idx];
+		prev_weap = s_LastShotWeapons[playerid][prev_idx];
+		this_idx = (idx - i) % sizeof(s_LastShotTicks[]);
 
 		// JIT plugin fix
 		if (this_idx < 0) {
@@ -1036,17 +1036,17 @@ stock AverageHitRate(playerid, hits, &multiple_weapons = 0)
 
 	multiple_weapons = false;
 
-	for (new i = hits - 2; i >= 0; i--) {
-		new prev_idx = (idx - i - 1) % sizeof(s_LastHitTicks[]);
+	for (new i = hits - 2, prev, prev_weap, prev_idx, this_idx; i >= 0; i--) {
+		prev_idx = (idx - i - 1) % sizeof(s_LastHitTicks[]);
 
 		// JIT plugin fix
 		if (prev_idx < 0) {
 			prev_idx += sizeof(s_LastHitTicks[]);
 		}
 
-		new prev = s_LastHitTicks[playerid][prev_idx];
-		new prev_weap = s_LastHitWeapons[playerid][prev_idx];
-		new this_idx = (idx - i) % sizeof(s_LastHitTicks[]);
+		prev = s_LastHitTicks[playerid][prev_idx];
+		prev_weap = s_LastHitWeapons[playerid][prev_idx];
+		this_idx = (idx - i) % sizeof(s_LastHitTicks[]);
 
 		// JIT plugin fix
 		if (this_idx < 0) {
@@ -2354,12 +2354,14 @@ public OnPlayerDisconnect(playerid, reason)
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
 	}
 
+	new j = 0;
+
 	#if defined _inc_y_iterate
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
-		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
+		for (j = 0; j < sizeof(s_PreviousHits[]); j++) {
 			if (s_PreviousHits[i][j][e_Issuer] == playerid) {
 				s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
 			}
@@ -2764,17 +2766,19 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				s_CbugFroze[playerid] = tick;
 
+				new j = 0, Float:health, Float:armour;
+
 				#if defined _inc_y_iterate
 				foreach (new i : Player) {
 				#else
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
 				#endif
-					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
+					for (j = 0; j < sizeof(s_PreviousHits[]); j++) {
 						if (s_PreviousHits[i][j][e_Issuer] == playerid && tick - s_PreviousHits[i][j][e_Tick] <= 1200) {
 							s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
 
-							new Float:health = WC_GetPlayerHealth(i);
-							new Float:armour = WC_GetPlayerArmour(i);
+							health = WC_GetPlayerHealth(i);
+							armour = WC_GetPlayerArmour(i);
 
 							if (s_IsDying[i]) {
 								if (s_DelayedDeathTimer[i] == -1) {
@@ -2823,7 +2827,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				GetPlayerPos(playerid, z, z, z);
 
-				for (new i = 0; i < sizeof(sc_VendingMachines); i++) {
+				for (new i = 0, Float:health_given; i < sizeof(sc_VendingMachines); i++) {
 					if (floatabs(z - sc_VendingMachines[i][e_PosZ]) > 1.5) {
 						continue;
 					}
@@ -2834,7 +2838,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 							break;
 						}
 
-						new Float:health_given = 35.0;
+						health_given = 35.0;
 
 						if (OnPlayerUseVendingMachine(playerid, health_given)) {
 							s_VendingUseTimer[playerid] = SetTimerEx("WC_VendingMachineUsed", 2500, false, "if", playerid, health_given);
@@ -3735,6 +3739,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehiclePassengerDamage) {
 			new has_driver = false;
 			new has_passenger = false;
+			new seat;
 
 			#if defined _inc_y_iterate
 			foreach (new otherid : Player) {
@@ -3749,7 +3754,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 					continue;
 				}
 
-				new seat = GetPlayerVehicleSeat(otherid);
+				seat = GetPlayerVehicleSeat(otherid);
 
 				if (seat == 0) {
 					has_driver = true;
@@ -3971,7 +3976,7 @@ static ScriptInit()
 		}
 	#endif
 
-	new tick = GetTickCount();
+	new worldid, tick = GetTickCount();
 
 	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
@@ -3983,7 +3988,7 @@ static ScriptInit()
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 		DamageFeedUpdate(playerid);
 
-		new worldid = GetPlayerVirtualWorld(playerid);
+		worldid = GetPlayerVirtualWorld(playerid);
 
 		if (worldid == WC_DEATH_WORLD) {
 			worldid = 0;
@@ -4039,6 +4044,8 @@ static ScriptExit()
 		DestroyVendingMachines();
 	#endif
 
+	new Float:health;
+
 	#if defined _inc_y_iterate
 	foreach (new playerid : Player) {
 	#else
@@ -4055,7 +4062,7 @@ static ScriptExit()
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 
 		if (PLAYER_STATE_ONFOOT <= GetPlayerState(playerid) <= PLAYER_STATE_PASSENGER) {
-			new Float:health = s_PlayerHealth[playerid];
+			health = s_PlayerHealth[playerid];
 
 			if (health == 0.0) {
 				health = s_PlayerMaxHealth[playerid];
@@ -5193,7 +5200,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 	if (tick == 0) tick = 1;
 	new lowest_tick = tick + 1;
 
-	for (new i = 0; i < sizeof(s_DamageFeedHitsGiven[]) - 1; i++) {
+	for (new i = 0, j = 0; i < sizeof(s_DamageFeedHitsGiven[]) - 1; i++) {
 		if (!s_DamageFeedHitsGiven[playerid][i][e_Tick]) {
 			break;
 		}
@@ -5201,7 +5208,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		if (tick - s_DamageFeedHitsGiven[playerid][i][e_Tick] >= s_DamageFeedHideDelay) {
 			modified = true;
 
-			for (new j = i; j < sizeof(s_DamageFeedHitsGiven[]) - 1; j++) {
+			for (j = i; j < sizeof(s_DamageFeedHitsGiven[]) - 1; j++) {
 				s_DamageFeedHitsGiven[playerid][j][e_Tick] = 0;
 			}
 
@@ -5213,7 +5220,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		}
 	}
 
-	for (new i = 0; i < sizeof(s_DamageFeedHitsTaken[]) - 1; i++) {
+	for (new i = 0, j = 0; i < sizeof(s_DamageFeedHitsTaken[]) - 1; i++) {
 		if (!s_DamageFeedHitsTaken[playerid][i][e_Tick]) {
 			break;
 		}
@@ -5221,7 +5228,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		if (tick - s_DamageFeedHitsTaken[playerid][i][e_Tick] >= s_DamageFeedHideDelay) {
 			modified = true;
 
-			for (new j = i; j < sizeof(s_DamageFeedHitsTaken[]) - 1; j++) {
+			for (j = i; j < sizeof(s_DamageFeedHitsTaken[]) - 1; j++) {
 				s_DamageFeedHitsTaken[playerid][j][e_Tick] = 0;
 			}
 
@@ -5259,12 +5266,12 @@ static DamageFeedUpdateText(playerid)
 {
 	new buf[64 * WC_FEED_HEIGHT] = "";
 
-	for (new i = 0; i < sizeof(s_DamageFeedHitsGiven[]) - 1; i++) {
+	for (new i = 0, weapon[32]; i < sizeof(s_DamageFeedHitsGiven[]) - 1; i++) {
 		if (!s_DamageFeedHitsGiven[playerid][i][e_Tick]) {
 			break;
 		}
 
-		new weapon[32];
+		weapon[0] = EOS;
 
 		if (s_DamageFeedHitsGiven[playerid][i][e_Weapon] == -1) {
 			weapon = "Multiple";
@@ -5308,12 +5315,12 @@ static DamageFeedUpdateText(playerid)
 
 	buf = "";
 
-	for (new i = 0; i < sizeof(s_DamageFeedHitsTaken[]) - 1; i++) {
+	for (new i = 0, weapon[32]; i < sizeof(s_DamageFeedHitsTaken[]) - 1; i++) {
 		if (!s_DamageFeedHitsTaken[playerid][i][e_Tick]) {
 			break;
 		}
 
-		new weapon[32];
+		weapon[0] = EOS;
 
 		if (s_DamageFeedHitsTaken[playerid][i][e_Weapon] == -1) {
 			weapon = "Multiple";
