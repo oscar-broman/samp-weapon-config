@@ -5271,8 +5271,6 @@ static DamageFeedUpdateText(playerid)
 			break;
 		}
 
-		weapon[0] = EOS;
-
 		if (s_DamageFeedHitsGiven[playerid][i][e_Weapon] == -1) {
 			weapon = "Multiple";
 		} else {
@@ -5319,8 +5317,6 @@ static DamageFeedUpdateText(playerid)
 		if (!s_DamageFeedHitsTaken[playerid][i][e_Tick]) {
 			break;
 		}
-
-		weapon[0] = EOS;
 
 		if (s_DamageFeedHitsTaken[playerid][i][e_Weapon] == -1) {
 			weapon = "Multiple";
