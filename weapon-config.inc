@@ -1824,7 +1824,7 @@ stock WC_DestroyVehicle(vehicleid)
 	return 0;
 }
 
-#if _FOREACH_VEHICLES
+#if defined _inc_y_iterate && !defined FOREACH_NO_VEHICLES
 	stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, bool:addsiren = false)
 #else 
 	stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
@@ -1850,7 +1850,7 @@ stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color
 	return id;
 }
 
-#if _FOREACH_VEHICLES
+#if defined _inc_y_iterate && !defined FOREACH_NO_VEHICLES
 	stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, bool:addsiren = false)
 #else 
 	stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
