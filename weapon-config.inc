@@ -2612,7 +2612,6 @@ public OnPlayerDeath(playerid, killerid, reason)
 		return 1;
 	}
 
-	// WEAPON_UNKNOWN
 	if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
 		reason = WEAPON_UNKNOWN;
 	}
