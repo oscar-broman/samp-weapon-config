@@ -1268,7 +1268,7 @@ stock SetDamageFeed(bool:toggle)
 
 stock SetWeaponShootRate(weaponid, max_rate)
 {
-	if (0 <= weaponid < sizeof(s_MaxWeaponShootRate)) {
+	if (WEAPON_UNARMED <= weaponid < sizeof(s_MaxWeaponShootRate)) {
 		s_MaxWeaponShootRate[weaponid] = max_rate;
 
 		return 1;
@@ -1279,7 +1279,7 @@ stock SetWeaponShootRate(weaponid, max_rate)
 
 stock GetWeaponShootRate(weaponid)
 {
-	if (0 <= weaponid < sizeof(s_MaxWeaponShootRate)) {
+	if (WEAPON_UNARMED <= weaponid < sizeof(s_MaxWeaponShootRate)) {
 		return s_MaxWeaponShootRate[weaponid];
 	}
 
@@ -2612,7 +2612,6 @@ public OnPlayerDeath(playerid, killerid, reason)
 		return 1;
 	}
 
-	// WEAPON_UNKNOWN
 	if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
 		reason = WEAPON_UNKNOWN;
 	}
@@ -4664,7 +4663,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 		GetPlayerPos(issuerid, x, y, z);
 		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
-		if (0 <= weaponid < sizeof(s_WeaponRange) && dist > s_WeaponRange[weaponid] + 2.0) {
+		if (WEAPON_UNARMED <= weaponid < sizeof(s_WeaponRange) && dist > s_WeaponRange[weaponid] + 2.0) {
 			AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:dist, _:s_WeaponRange[weaponid]);
 			return WC_INVALID_DISTANCE;
 		}
@@ -5271,8 +5270,6 @@ static DamageFeedUpdateText(playerid)
 			break;
 		}
 
-		weapon[0] = EOS;
-
 		if (s_DamageFeedHitsGiven[playerid][i][e_Weapon] == -1) {
 			weapon = "Multiple";
 		} else {
@@ -5319,8 +5316,6 @@ static DamageFeedUpdateText(playerid)
 		if (!s_DamageFeedHitsTaken[playerid][i][e_Tick]) {
 			break;
 		}
-
-		weapon[0] = EOS;
 
 		if (s_DamageFeedHitsTaken[playerid][i][e_Weapon] == -1) {
 			weapon = "Multiple";
