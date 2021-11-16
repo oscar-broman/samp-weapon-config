@@ -71,6 +71,7 @@
 	#endif
 #endif
 
+// y_iterate and standalone foreach support
 #if !defined _Y_ITERATE_LOCAL_VERSION && !defined _FOREACH_LOCAL_VERSION
 	#tryinclude <YSI_Data\y_iterate>
 
