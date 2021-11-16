@@ -3383,7 +3383,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 	}
 
 	// Carjack damage
-	if (weaponid == 54 && _:amount == _:0.0) {
+	if (weaponid == WEAPON_COLLISION && _:amount == _:0.0) {
 		return 0;
 	}
 
