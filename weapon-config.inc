@@ -71,8 +71,12 @@
 	#endif
 #endif
 
-#if !defined _inc_y_iterate
+#if !defined _Y_ITERATE_LOCAL_VERSION && !defined _FOREACH_LOCAL_VERSION
 	#tryinclude <YSI_Data\y_iterate>
+
+	#if !defined _Y_ITERATE_LOCAL_VERSION
+		#tryinclude <foreach>
+	#endif
 #endif
 
 // Pre-hooks for hooking callbacks
@@ -1176,7 +1180,7 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
-		#if defined _inc_y_iterate
+		#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 		foreach (new i : Player) {
 		#else
 		for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -1257,7 +1261,7 @@ stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -2356,7 +2360,7 @@ public OnPlayerDisconnect(playerid, reason)
 
 	new j = 0;
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -2767,7 +2771,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				new j = 0, Float:health, Float:armour;
 
-				#if defined _inc_y_iterate
+				#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 				foreach (new i : Player) {
 				#else
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -2938,7 +2942,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx * vx + vy * vy + vz * vz <= 0.05) {
-				#if defined _inc_y_iterate
+				#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 				foreach (new i : Player) {
 				#else
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -3740,7 +3744,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			new has_passenger = false;
 			new seat;
 
-			#if defined _inc_y_iterate
+			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new otherid : Player) {
 			#else
 			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
@@ -3784,7 +3788,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
-			#if defined _inc_y_iterate
+			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new otherid : Player) {
 			#else
 			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
@@ -3977,7 +3981,7 @@ static ScriptInit()
 
 	new worldid, tick = GetTickCount();
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new playerid : Player) {
 	#else
 	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
@@ -4045,7 +4049,7 @@ static ScriptExit()
 
 	new Float:health;
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new playerid : Player) {
 	#else
 	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
@@ -4314,7 +4318,7 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -4433,7 +4437,7 @@ public WC_SpawnForStreamedIn(playerid)
 
 	SpawnPlayerForWorld(playerid);
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -5361,7 +5365,7 @@ static DamageFeedUpdateText(playerid)
 
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -5376,7 +5380,7 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -5627,7 +5631,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageTakenSound) {
 			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
-			#if defined _inc_y_iterate
+			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new i : Player) {
 			#else
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -5641,7 +5645,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
-			#if defined _inc_y_iterate
+			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new i : Player) {
 			#else
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
