@@ -2733,7 +2733,7 @@ static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2);
 forward WC_CbugPunishment(playerid, weapon);
 public WC_CbugPunishment(playerid, weapon) {
 	FreezeSyncPacket(playerid, .toggle = false);
-	ClearAnimations(playerid, 1);
+	if(!IsPlayerDying(playerid)) ClearAnimations(playerid, 1);
 	SetPlayerArmedWeapon(playerid, weapon);
 }
 
