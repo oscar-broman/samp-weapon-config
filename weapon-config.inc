@@ -3508,14 +3508,11 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			}
 		}
 
-		// Such reasons can be called long after issuer death, but it shouldn't be a hole
-		if(weaponid == WEAPON_FLAMETHROWER
-		|| weaponid == WEAPON_EXPLOSION) {
-			// Both players should see eachother, if playerid claims to keep issuerid valid
-			if ((!IsPlayerStreamedIn(playerid, issuerid) && !WC_IsPlayerPaused(issuerid)) || !IsPlayerStreamedIn(issuerid, playerid)) {
-				// Probably fake or belated damage, so let's just reset issuerid
-				issuerid = INVALID_PLAYER_ID;
-			}
+		// Will be applied on fire, explosion, vehicle and heliblades (carpark) damage
+		// Both players should see eachother, if playerid claims to keep issuerid valid
+		if ((!IsPlayerStreamedIn(playerid, issuerid) && !WC_IsPlayerPaused(issuerid)) || !IsPlayerStreamedIn(issuerid, playerid)) {
+			// Probably fake or belated damage, so let's just reset issuerid
+			issuerid = INVALID_PLAYER_ID;
 		}
 	}
 
