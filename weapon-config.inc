@@ -3403,10 +3403,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			DebugMessage(playerid, "climb bug prevented");
 			return 0;
 		}
-	}
+	} else if (weaponid == WEAPON_KNIFE) {
+		// Being knifed client-side
 
-	// Being knifed client-side
-	if (weaponid == WEAPON_KNIFE) {
 		// With the plugin, this part is never actually used (it can't happen)
 		if (_:amount == _:0.0) {
 			if (s_KnifeTimeout[playerid] != -1) {
@@ -4553,18 +4552,15 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 	// Punching with a parachute
 	if (weaponid == WEAPON_PARACHUTE) {
 		weaponid = WEAPON_UNARMED;
-	}
+	} else if (weaponid == WEAPON_COLLISION) {
+		// Collision damage should never be above 165
 
-	// Collision damage should never be above 165
-	if (weaponid == WEAPON_COLLISION) {
 		if (amount > 165.0) {
 			amount = 1.0;
 		} else {
 			amount /= 165.0;
 		}
-	}
-
-	if (weaponid == WEAPON_EXPLOSION) {
+	} else if (weaponid == WEAPON_EXPLOSION) {
 		// Explosions do at most 82.5 damage. This will later be multipled by the damage value
 		amount /= 82.5;
 
@@ -4714,10 +4710,9 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 				return WC_INVALID_DAMAGE;
 			}
 		}
-	}
+	} else if (weaponid == WEAPON_DEAGLE) {
+		// Check deagle damage
 
-	// Check deagle damage
-	if (weaponid == WEAPON_DEAGLE) {
 		switch (amount) {
 			case 46.200000762939453125,
 			     23.1000003814697265625: {}
