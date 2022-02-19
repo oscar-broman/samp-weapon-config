@@ -913,7 +913,11 @@ static s_LastStop[MAX_PLAYERS];
 static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
 #if WC_CUSTOM_VENDING_MACHINES
 	static bool:s_CustomVendingMachines = true;
-	static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {-1, ...};
+	#if WC_USE_STREAMER
+		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {INVALID_STREAMER_ID, ...};
+	#else
+		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {-1, ...};
+	#endif
 	static s_VendingUseTimer[MAX_PLAYERS] = {-1, ...};
 #endif
 static s_BeingResynced[MAX_PLAYERS];
@@ -4417,15 +4421,17 @@ static WasPlayerInVehicle(playerid, time) {
 	static DestroyVendingMachines()
 	{
 		for (new i = 0; i < sizeof(s_VendingMachineObject); i++) {
-			if (s_VendingMachineObject[i] != -1) {
-				#if WC_USE_STREAMER
+			#if WC_USE_STREAMER
+				if (s_VendingMachineObject[i] != INVALID_STREAMER_ID) {
 					DestroyDynamicObject(s_VendingMachineObject[i]);
-				#else
+					s_VendingMachineObject[i] = INVALID_STREAMER_ID;
+				}
+			#else
+				if (s_VendingMachineObject[i] != -1) {
 					DestroyObject(s_VendingMachineObject[i]);
-				#endif
-
-				s_VendingMachineObject[i] = -1;
-			}
+					s_VendingMachineObject[i] = -1;
+				}
+			#endif
 		}
 	}
 #endif
