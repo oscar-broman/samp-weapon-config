@@ -2735,7 +2735,7 @@ public WC_CbugPunishment(playerid, weapon) {
 	FreezeSyncPacket(playerid, .toggle = false);
 	SetPlayerArmedWeapon(playerid, weapon);
 	
-	if(!IsPlayerDying(playerid)) {
+	if (!IsPlayerDying(playerid)) {
 		ClearAnimations(playerid, 1);
 	}
 }
@@ -3175,6 +3175,21 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 				SetPlayerArmedWeapon(playerid, 0);
 
 				return 0;
+			} else {
+				new Float:x, Float:y, Float:z;
+				GetPlayerPos(playerid, x, y, z);
+
+				if (GetPlayerDistanceFromPoint(damagedid, x, y, z) > s_WeaponRange[weaponid] + 2.0) {
+					if (s_KnifeTimeout[damagedid] != -1) {
+						KillTimer(s_KnifeTimeout[damagedid]);
+					}
+
+					s_KnifeTimeout[damagedid] = SetTimerEx("WC_SpawnForStreamedIn", 150, false, "i", damagedid);
+					ClearAnimations(playerid, 1);
+					SetPlayerArmedWeapon(playerid, 0);
+
+					return 0;
+				}
 			}
 
 			if (!OnPlayerDamage(damagedid, amount, playerid, weaponid, bodypart)) {
@@ -3418,6 +3433,15 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 				ResyncPlayer(playerid);
 
 				return 0;
+			} else {
+				new Float:x, Float:y, Float:z;
+				GetPlayerPos(issuerid, x, y, z);
+
+				if (GetPlayerDistanceFromPoint(playerid, x, y, z) > s_WeaponRange[weaponid] + 2.0) {
+					ResyncPlayer(playerid);
+
+					return 0;
+				}
 			}
 
 			if (!OnPlayerDamage(playerid, amount, issuerid, weaponid, bodypart)) {
@@ -3494,15 +3518,15 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 		}
 
 		// https://github.com/oscar-broman/samp-weapon-config/issues/104
-		if(weaponid == WEAPON_COLLISION
+		if (weaponid == WEAPON_COLLISION
 		|| weaponid == WEAPON_DROWN) {
 			return 0;
 		}
 
 		// https://github.com/oscar-broman/samp-weapon-config/issues/104
-		if(weaponid == WEAPON_VEHICLE
+		if (weaponid == WEAPON_VEHICLE
 		|| weaponid == WEAPON_HELIBLADES) {
-			if(GetPlayerState(issuerid) != PLAYER_STATE_DRIVER) {
+			if (GetPlayerState(issuerid) != PLAYER_STATE_DRIVER) {
 				return 0;
 			}
 		}
@@ -3530,9 +3554,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 	}
 
 	if (IsBulletWeapon(weaponid)) {
-		new Float:x, Float:y, Float:z;
+		new Float:x, Float:y, Float:z, Float:dist;
 		GetPlayerPos(issuerid, x, y, z);
-		new Float:dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
+		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
 		if (dist > s_WeaponRange[weaponid] + 2.0) {
 			AddRejectedHit(issuerid, playerid, HIT_OUT_OF_RANGE, weaponid, _:dist, _:s_WeaponRange[weaponid]);
@@ -4765,7 +4789,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 		case DAMAGE_TYPE_RANGE,
 		     DAMAGE_TYPE_RANGE_MULTIPLIER: {
 			new Float:length = 0.0;
-			if(s_LagCompMode) {
+			if (s_LagCompMode) {
 				length = s_LastShot[issuerid][e_Length];
 			} else {
 				new Float:X, Float:Y, Float:Z;
