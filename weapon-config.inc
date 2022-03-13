@@ -45,6 +45,19 @@
 	#define WC_MAX_WEAPON_NAME 21
 #endif
 
+// For modes that always have negative cash
+#if !defined WC_CUSTOM_VENDING_MACHINES
+	#define WC_CUSTOM_VENDING_MACHINES true
+#endif
+
+#if !defined WC_HEALTH_BAR_FG_COLOR
+	#define WC_HEALTH_BAR_FG_COLOR 0xB4191DFF //red
+#endif
+
+#if !defined WC_HEALTH_BAR_BG_COLOR
+	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C0EFF //dark red
+#endif
+
 #if WC_USE_STREAMER && !defined Streamer_IncludeFileVersion
 	#error streamer.inc is required when WC_USE_STREAMER=true
 #endif
@@ -58,8 +71,13 @@
 	#endif
 #endif
 
-#if !defined _inc_y_iterate
+// y_iterate and standalone foreach support
+#if !defined _Y_ITERATE_LOCAL_VERSION && !defined _FOREACH_LOCAL_VERSION
 	#tryinclude <YSI_Data\y_iterate>
+
+	#if !defined _Y_ITERATE_LOCAL_VERSION
+		#tryinclude <foreach>
+	#endif
 #endif
 
 // Pre-hooks for hooking callbacks
@@ -189,6 +207,22 @@ stock const g_HitRejectReasons[][] = {
 	"Hit a disconnected player ID: %d"
 };
 
+// Used for SetCustomVendingMachines
+#if WC_CUSTOM_VENDING_MACHINES
+	enum E_VENDING_MACHINE {
+		      e_Model,
+		      e_Interior,
+		Float:e_PosX,
+		Float:e_PosY,
+		Float:e_PosZ,
+		Float:e_RotX,
+		Float:e_RotY,
+		Float:e_RotZ,
+		Float:e_FrontX,
+		Float:e_FrontY
+	}
+#endif
+
 // Used to resync players that got team-knifed in lagshot mode
 enum E_RESYNC_DATA {
 	Float:e_Health,
@@ -262,11 +296,17 @@ forward OnPlayerDeathFinished(playerid, bool:cancelable);
 // When a shot or damage given is rejected
 forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 
+#if WC_CUSTOM_VENDING_MACHINES
+	// When a player is about to use a vending machine
+	forward OnPlayerUseVendingMachine(playerid, &Float:health_given);
+#endif
+
 // If you have your own definitions, remove them and use these instead
 #define BODY_PART_UNKNOWN 0
 #define WEAPON_UNARMED 0
 #define WEAPON_VEHICLE_M4 19
 #define WEAPON_VEHICLE_MINIGUN 20
+#define WEAPON_VEHICLE_ROCKETLAUNCHER 21
 #define WEAPON_PISTOLWHIP 48
 #define WEAPON_HELIBLADES 50
 #define WEAPON_EXPLOSION 51
@@ -334,8 +374,8 @@ static const s_ValidDamageGiven[] = {
 	0, // 17 - Teargas
 	0, // 18 - Molotov
 	0, // 19 - Vehicle M4 (custom)
-	0, // 20 - Vehicle minigun
-	0, // 21
+	0, // 20 - Vehicle minigun (custom)
+	0, // 21 - Vehicle rocket (custom)
 	1, // 22 - Colt 45
 	1, // 23 - Silenced
 	1, // 24 - Deagle
@@ -387,7 +427,7 @@ static const s_ValidDamageTaken[] = {
 	0, // 18 - Molotov
 	0, // 19 - Vehicle M4 (custom)
 	0, // 20 - Vehicle minigun (custom)
-	0, // 21
+	0, // 21 - Vehicle rocket (custom)
 	1, // 22 - Colt 45
 	1, // 23 - Silenced
 	1, // 24 - Deagle
@@ -415,7 +455,7 @@ static const s_ValidDamageTaken[] = {
 	1, // 46 - Parachute
 	0, // 47 - Fake pistol
 	0, // 48 - Pistol whip (custom)
-	0, // 49 - Vehicle
+	2, // 49 - Vehicle
 	2, // 50 - Helicopter blades
 	2, // 51 - Explosion
 	0, // 52 - Car park (custom)
@@ -448,7 +488,7 @@ static Float:s_WeaponDamage[] = {
 	1.0, // 18 - Molotov
 	9.9, // 19 - Vehicle M4 (custom)
 	46.2, // 20 - Vehicle minigun (custom)
-	0.0, // 21
+	82.5, // 21 - Vehicle rocket (custom)
 	8.25, // 22 - Colt 45
 	13.2, // 23 - Silenced
 	34.0, // 24 - Deagle
@@ -510,7 +550,7 @@ static s_DamageType[] = {
 	0, // 18 - Molotov
 	1, // 19 - Vehicle M4 (custom)
 	1, // 20 - Vehicle minigun (custom)
-	0, // 21
+	0, // 21 - Vehicle rocket (custom)
 	1, // 22 - Colt 45
 	1, // 23 - Silenced
 	1, // 24 - Deagle
@@ -541,7 +581,7 @@ static s_DamageType[] = {
 	1, // 49 - Vehicle
 	1, // 50 - Helicopter blades
 	0, // 51 - Explosion
-	0, // 52 - Car park
+	0, // 52 - Car park (custom)
 	0, // 53 - Drowning
 	0  // 54 - Splat
 };
@@ -571,7 +611,7 @@ static Float:s_WeaponRange[] = {
 	40.0, // 18 - Molotov
 	90.0, // 19 - Vehicle M4 (custom)
 	75.0, // 20 - Vehicle minigun (custom)
-	0.0, // 21
+	0.0, // 21 - Vehicle rocket (custom)
 	35.0, // 22 - Colt 45
 	35.0, // 23 - Silenced
 	35.0, // 24 - Deagle
@@ -620,9 +660,9 @@ static s_MaxWeaponShootRate[] = {
 	0, // 16 - Grenade
 	0, // 17 - Teargas
 	0, // 18 - Molotov
-	20, // 19 - Vehicle M4 (custom)
+	90, // 19 - Vehicle M4 (custom)
 	20, // 20 - Vehicle minigun (custom)
-	0, // 21
+	0, // 21 - Vehicle rocket (custom)
 	160, // 22 - Colt 45
 	120, // 23 - Silenced
 	120, // 24 - Deagle
@@ -675,7 +715,7 @@ static s_DamageArmour[][2] = {
 	{0, 0}, // 18 - Molotov
 	{1, 1}, // 19 - Vehicle M4 (custom)
 	{1, 1}, // 20 - Vehicle minigun (custom)
-	{1, 0}, // 21
+	{0, 0}, // 21 - Vehicle rocket (custom)
 	{1, 1}, // 22 - Colt 45
 	{1, 1}, // 23 - Silenced
 	{1, 1}, // 24 - Deagle
@@ -706,7 +746,7 @@ static s_DamageArmour[][2] = {
 	{0, 0}, // 49 - Vehicle
 	{0, 1}, // 50 - Helicopter blades
 	{0, 0}, // 51 - Explosion
-	{0, 0}, // 52 - Car park
+	{0, 0}, // 52 - Car park (custom)
 	{0, 0}, // 53 - Drowning
 	{0, 0}  // 54 - Splat
 };
@@ -720,7 +760,7 @@ stock const g_WeaponName[57][WC_MAX_WEAPON_NAME] = {
 	{"Vibrator"         }, {"Vibrator"      }, {"Flowers"             },
 	{"Cane"             }, {"Grenade"       }, {"Tear gas"            },
 	{"Molotov"          }, {"Vehicle gun"   }, {"Vehicle gun"         },
-	{""                 }, {"Colt 45"       }, {"Silenced pistol"     },
+	{"Vehicle gun"      }, {"Colt 45"       }, {"Silenced pistol"     },
 	{"Deagle"           }, {"Shotgun"       }, {"Sawn-off shotgun"    },
 	{"Combat shotgun"   }, {"Mac-10"        }, {"MP5"                 },
 	{"AK-47"            }, {"M4"            }, {"Tec-9"               },
@@ -733,6 +773,87 @@ stock const g_WeaponName[57][WC_MAX_WEAPON_NAME] = {
 	{"Explosion"        }, {"Car parking"   }, {"Drowning"            },
 	{"Collision"        }, {"Splat"         }, {"Unknown"             }
 };
+
+// Yes - this is every single one of them
+#if WC_CUSTOM_VENDING_MACHINES
+	static const Float:sc_VendingMachines[][E_VENDING_MACHINE] = {
+		{955, 0, -862.82, 1536.60, 21.98, 0.00, 0.00, 180.00, -862.84, 1537.60},
+		{956, 0, 2271.72, -76.46, 25.96, 0.00, 0.00, 0.00, 2271.72, -77.46},
+		{955, 0, 1277.83, 372.51, 18.95, 0.00, 0.00, 64.00, 1278.73, 372.07},
+		{956, 0, 662.42, -552.16, 15.71, 0.00, 0.00, 180.00, 662.41, -551.16},
+		{955, 0, 201.01, -107.61, 0.89, 0.00, 0.00, 270.00, 200.01, -107.63},
+		{955, 0, -253.74, 2597.95, 62.24, 0.00, 0.00, 90.00, -252.74, 2597.95},
+		{956, 0, -253.74, 2599.75, 62.24, 0.00, 0.00, 90.00, -252.74, 2599.75},
+		{956, 0, -76.03, 1227.99, 19.12, 0.00, 0.00, 90.00, -75.03, 1227.99},
+		{955, 0, -14.70, 1175.35, 18.95, 0.00, 0.00, 180.00, -14.72, 1176.35},
+		{1977, 7, 316.87, -140.35, 998.58, 0.00, 0.00, 270.00, 315.87, -140.36},
+		{1775, 17, 373.82, -178.14, 1000.73, 0.00, 0.00, 0.00, 373.82, -179.14},
+		{1776, 17, 379.03, -178.88, 1000.73, 0.00, 0.00, 270.00, 378.03, -178.90},
+		{1775, 17, 495.96, -24.32, 1000.73, 0.00, 0.00, 180.00, 495.95, -23.32},
+		{1776, 17, 500.56, -1.36, 1000.73, 0.00, 0.00, 0.00, 500.56, -2.36},
+		{1775, 17, 501.82, -1.42, 1000.73, 0.00, 0.00, 0.00, 501.82, -2.42},
+		{956, 0, -1455.11, 2591.66, 55.23, 0.00, 0.00, 180.00, -1455.13, 2592.66},
+		{955, 0, 2352.17, -1357.15, 23.77, 0.00, 0.00, 90.00, 2353.17, -1357.15},
+		{955, 0, 2325.97, -1645.13, 14.21, 0.00, 0.00, 0.00, 2325.97, -1646.13},
+		{956, 0, 2139.51, -1161.48, 23.35, 0.00, 0.00, 87.00, 2140.51, -1161.53},
+		{956, 0, 2153.23, -1016.14, 62.23, 0.00, 0.00, 127.00, 2154.03, -1015.54},
+		{955, 0, 1928.73, -1772.44, 12.94, 0.00, 0.00, 90.00, 1929.73, -1772.44},
+		{1776, 1, 2222.36, 1602.64, 1000.06, 0.00, 0.00, 90.00, 2223.36, 1602.64},
+		{1775, 1, 2222.20, 1606.77, 1000.05, 0.00, 0.00, 90.00, 2223.20, 1606.77},
+		{1775, 1, 2155.90, 1606.77, 1000.05, 0.00, 0.00, 90.00, 2156.90, 1606.77},
+		{1775, 1, 2209.90, 1607.19, 1000.05, 0.00, 0.00, 270.00, 2208.90, 1607.17},
+		{1776, 1, 2155.84, 1607.87, 1000.06, 0.00, 0.00, 90.00, 2156.84, 1607.87},
+		{1776, 1, 2202.45, 1617.00, 1000.06, 0.00, 0.00, 180.00, 2202.43, 1618.00},
+		{1776, 1, 2209.24, 1621.21, 1000.06, 0.00, 0.00, 0.00, 2209.24, 1620.21},
+		{1776, 3, 330.67, 178.50, 1020.07, 0.00, 0.00, 0.00, 330.67, 177.50},
+		{1776, 3, 331.92, 178.50, 1020.07, 0.00, 0.00, 0.00, 331.92, 177.50},
+		{1776, 3, 350.90, 206.08, 1008.47, 0.00, 0.00, 90.00, 351.90, 206.08},
+		{1776, 3, 361.56, 158.61, 1008.47, 0.00, 0.00, 180.00, 361.54, 159.61},
+		{1776, 3, 371.59, 178.45, 1020.07, 0.00, 0.00, 0.00, 371.59, 177.45},
+		{1776, 3, 374.89, 188.97, 1008.47, 0.00, 0.00, 0.00, 374.89, 187.97},
+		{1775, 2, 2576.70, -1284.43, 1061.09, 0.00, 0.00, 270.00, 2575.70, -1284.44},
+		{1775, 15, 2225.20, -1153.42, 1025.90, 0.00, 0.00, 270.00, 2224.20, -1153.43},
+		{955, 0, 1154.72, -1460.89, 15.15, 0.00, 0.00, 270.00, 1153.72, -1460.90},
+		{956, 0, 2480.85, -1959.27, 12.96, 0.00, 0.00, 180.00, 2480.84, -1958.27},
+		{955, 0, 2060.11, -1897.64, 12.92, 0.00, 0.00, 0.00, 2060.11, -1898.64},
+		{955, 0, 1729.78, -1943.04, 12.94, 0.00, 0.00, 0.00, 1729.78, -1944.04},
+		{956, 0, 1634.10, -2237.53, 12.89, 0.00, 0.00, 0.00, 1634.10, -2238.53},
+		{955, 0, 1789.21, -1369.26, 15.16, 0.00, 0.00, 270.00, 1788.21, -1369.28},
+		{956, 0, -2229.18, 286.41, 34.70, 0.00, 0.00, 180.00, -2229.20, 287.41},
+		{955, 256, -1980.78, 142.66, 27.07, 0.00, 0.00, 270.00, -1981.78, 142.64},
+		{955, 256, -2118.96, -423.64, 34.72, 0.00, 0.00, 255.00, -2119.93, -423.40},
+		{955, 256, -2118.61, -422.41, 34.72, 0.00, 0.00, 255.00, -2119.58, -422.17},
+		{955, 256, -2097.27, -398.33, 34.72, 0.00, 0.00, 180.00, -2097.29, -397.33},
+		{955, 256, -2092.08, -490.05, 34.72, 0.00, 0.00, 0.00, -2092.08, -491.05},
+		{955, 256, -2063.27, -490.05, 34.72, 0.00, 0.00, 0.00, -2063.27, -491.05},
+		{955, 256, -2005.64, -490.05, 34.72, 0.00, 0.00, 0.00, -2005.64, -491.05},
+		{955, 256, -2034.46, -490.05, 34.72, 0.00, 0.00, 0.00, -2034.46, -491.05},
+		{955, 256, -2068.56, -398.33, 34.72, 0.00, 0.00, 180.00, -2068.58, -397.33},
+		{955, 256, -2039.85, -398.33, 34.72, 0.00, 0.00, 180.00, -2039.86, -397.33},
+		{955, 256, -2011.14, -398.33, 34.72, 0.00, 0.00, 180.00, -2011.15, -397.33},
+		{955, 2048, -1350.11, 492.28, 10.58, 0.00, 0.00, 90.00, -1349.11, 492.28},
+		{956, 2048, -1350.11, 493.85, 10.58, 0.00, 0.00, 90.00, -1349.11, 493.85},
+		{955, 0, 2319.99, 2532.85, 10.21, 0.00, 0.00, 0.00, 2319.99, 2531.85},
+		{956, 0, 2845.72, 1295.04, 10.78, 0.00, 0.00, 0.00, 2845.72, 1294.04},
+		{955, 0, 2503.14, 1243.69, 10.21, 0.00, 0.00, 180.00, 2503.12, 1244.69},
+		{956, 0, 2647.69, 1129.66, 10.21, 0.00, 0.00, 0.00, 2647.69, 1128.66},
+		{1209, 0, -2420.21, 984.57, 44.29, 0.00, 0.00, 90.00, -2419.21, 984.57},
+		{1302, 0, -2420.17, 985.94, 44.29, 0.00, 0.00, 90.00, -2419.17, 985.94},
+		{955, 0, 2085.77, 2071.35, 10.45, 0.00, 0.00, 90.00, 2086.77, 2071.35},
+		{956, 0, 1398.84, 2222.60, 10.42, 0.00, 0.00, 180.00, 1398.82, 2223.60},
+		{956, 0, 1659.46, 1722.85, 10.21, 0.00, 0.00, 0.00, 1659.46, 1721.85},
+		{955, 0, 1520.14, 1055.26, 10.00, 0.00, 0.00, 270.00, 1519.14, 1055.24},
+		{1775, 6, -19.03, -57.83, 1003.63, 0.00, 0.00, 180.00, -19.05, -56.83},
+		{1775, 18, -16.11, -91.64, 1003.63, 0.00, 0.00, 180.00, -16.13, -90.64},
+		{1775, 16, -15.10, -140.22, 1003.63, 0.00, 0.00, 180.00, -15.11, -139.22},
+		{1775, 17, -32.44, -186.69, 1003.63, 0.00, 0.00, 180.00, -32.46, -185.69},
+		{1775, 16, -35.72, -140.22, 1003.63, 0.00, 0.00, 180.00, -35.74, -139.22},
+		{1776, 6, -36.14, -57.87, 1003.63, 0.00, 0.00, 180.00, -36.16, -56.87},
+		{1776, 18, -17.54, -91.71, 1003.63, 0.00, 0.00, 180.00, -17.56, -90.71},
+		{1776, 16, -16.53, -140.29, 1003.63, 0.00, 0.00, 180.00, -16.54, -139.29},
+		{1776, 17, -33.87, -186.76, 1003.63, 0.00, 0.00, 180.00, -33.89, -185.76}
+	};
+#endif
 
 // Sorry about the mess..
 static s_LagCompMode;
@@ -767,11 +888,13 @@ static bool:s_CbugAllowed[MAX_PLAYERS] = true;
 static s_CbugFroze[MAX_PLAYERS];
 static s_DamageFeed = true;
 static s_DamageFeedPlayer[MAX_PLAYERS] = {-1, ...};
+static s_DamageFeedHideDelay = 3000;
+static s_DamageFeedMaxUpdateRate = 250;
 static s_VehiclePassengerDamage = false;
 static s_VehicleUnoccupiedDamage = false;
 static Float:s_FallDeathVelocity = -0.6;
-static s_DamageTakenSound[MAX_PLAYERS];
-static s_DamageGivenSound[MAX_PLAYERS];
+static s_DamageTakenSound = 1190;
+static s_DamageGivenSound = 17802;
 static s_RejectedHits[MAX_PLAYERS][WC_MAX_REJECTED_HITS][E_REJECTED_HIT];
 static s_RejectedHitsIdx[MAX_PLAYERS];
 static s_World[MAX_PLAYERS];
@@ -779,6 +902,8 @@ static s_LastAnim[MAX_PLAYERS] = {-1, ...};
 static Float:s_LastZVelo[MAX_PLAYERS] = {0.0, ...};
 static Float:s_LastZ[MAX_PLAYERS] = {0.0, ...};
 static s_LastUpdate[MAX_PLAYERS] = {-1, ...};
+static PlayerText:s_DamageFeedTaken[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
+static PlayerText:s_DamageFeedGiven[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static s_DamageFeedHitsGiven[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
 static s_DamageFeedHitsTaken[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
 static s_DamageFeedTimer[MAX_PLAYERS] = {-1, ...};
@@ -786,6 +911,15 @@ static s_DamageFeedLastUpdate[MAX_PLAYERS];
 static s_Spectating[MAX_PLAYERS] = {INVALID_PLAYER_ID, ...};
 static s_LastStop[MAX_PLAYERS];
 static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
+#if WC_CUSTOM_VENDING_MACHINES
+	static bool:s_CustomVendingMachines = true;
+	#if WC_USE_STREAMER
+		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {INVALID_STREAMER_ID, ...};
+	#else
+		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {-1, ...};
+	#endif
+	static s_VendingUseTimer[MAX_PLAYERS] = {-1, ...};
+#endif
 static s_BeingResynced[MAX_PLAYERS];
 static s_KnifeTimeout[MAX_PLAYERS] = {-1, ...};
 static s_SyncData[MAX_PLAYERS][E_RESYNC_DATA];
@@ -874,17 +1008,17 @@ stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 
 	multiple_weapons = false;
 
-	for (new i = shots - 2; i >= 0; i--) {
-		new prev_idx = (idx - i - 1) % sizeof(s_LastShotTicks[]);
+	for (new i = shots - 2, prev, prev_weap, prev_idx, this_idx; i >= 0; i--) {
+		prev_idx = (idx - i - 1) % sizeof(s_LastShotTicks[]);
 
 		// JIT plugin fix
 		if (prev_idx < 0) {
 			prev_idx += sizeof(s_LastShotTicks[]);
 		}
 
-		new prev = s_LastShotTicks[playerid][prev_idx];
-		new prev_weap = s_LastShotWeapons[playerid][prev_idx];
-		new this_idx = (idx - i) % sizeof(s_LastShotTicks[]);
+		prev = s_LastShotTicks[playerid][prev_idx];
+		prev_weap = s_LastShotWeapons[playerid][prev_idx];
+		this_idx = (idx - i) % sizeof(s_LastShotTicks[]);
 
 		// JIT plugin fix
 		if (this_idx < 0) {
@@ -911,17 +1045,17 @@ stock AverageHitRate(playerid, hits, &multiple_weapons = 0)
 
 	multiple_weapons = false;
 
-	for (new i = hits - 2; i >= 0; i--) {
-		new prev_idx = (idx - i - 1) % sizeof(s_LastHitTicks[]);
+	for (new i = hits - 2, prev, prev_weap, prev_idx, this_idx; i >= 0; i--) {
+		prev_idx = (idx - i - 1) % sizeof(s_LastHitTicks[]);
 
 		// JIT plugin fix
 		if (prev_idx < 0) {
 			prev_idx += sizeof(s_LastHitTicks[]);
 		}
 
-		new prev = s_LastHitTicks[playerid][prev_idx];
-		new prev_weap = s_LastHitWeapons[playerid][prev_idx];
-		new this_idx = (idx - i) % sizeof(s_LastHitTicks[]);
+		prev = s_LastHitTicks[playerid][prev_idx];
+		prev_weap = s_LastHitWeapons[playerid][prev_idx];
+		this_idx = (idx - i) % sizeof(s_LastHitTicks[]);
 
 		// JIT plugin fix
 		if (this_idx < 0) {
@@ -956,6 +1090,7 @@ stock ReturnWeaponName(weaponid)
 
 	return name;
 }
+
 stock EnableHealthBarForPlayer(playerid, bool:enable)
 {
 	if (IsPlayerConnected(playerid))
@@ -969,9 +1104,10 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	}
 	return false;
 }
+
 stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 {
-	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_WeaponDamage)) {
 		return 0;
 	}
 
@@ -1012,6 +1148,15 @@ stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 	return 0;
 }
 
+stock Float:GetWeaponDamage(weaponid)
+{
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_WeaponDamage)) {
+		return 0.0;
+	}
+
+	return s_WeaponDamage[weaponid];
+}
+
 stock SetCustomArmourRules(bool:armour_rules, bool:torso_rules = false)
 {
 	s_DamageArmourToggle[0] = armour_rules;
@@ -1020,7 +1165,7 @@ stock SetCustomArmourRules(bool:armour_rules, bool:torso_rules = false)
 
 stock SetWeaponArmourRule(weaponid, bool:affects_armour, bool:torso_only = false)
 {
-	if (weaponid < 0 || weaponid >= sizeof(s_WeaponDamage)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_WeaponDamage)) {
 		return 0;
 	}
 
@@ -1030,17 +1175,17 @@ stock SetWeaponArmourRule(weaponid, bool:affects_armour, bool:torso_only = false
 	return 1;
 }
 
-stock SetDamageSounds(playerid, taken, given)
+stock SetDamageSounds(taken, given)
 {
-	s_DamageTakenSound[playerid] = taken;
-	s_DamageGivenSound[playerid] = given;
+	s_DamageTakenSound = taken;
+	s_DamageGivenSound = given;
 }
 
 stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
-		#if defined _inc_y_iterate
+		#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 		foreach (new i : Player) {
 		#else
 		for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -1072,6 +1217,19 @@ stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:dea
 		s_FallDeathVelocity = -floatabs(death_velocity);
 	}
 }
+
+#if WC_CUSTOM_VENDING_MACHINES
+	stock SetCustomVendingMachines(bool:toggle)
+	{
+		s_CustomVendingMachines = toggle;
+
+		if (toggle) {
+			CreateVendingMachines();
+		} else {
+			DestroyVendingMachines();
+		}
+	}
+#endif
 
 stock SetVehiclePassengerDamage(bool:toggle)
 {
@@ -1108,7 +1266,7 @@ stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -1119,7 +1277,7 @@ stock SetDamageFeed(bool:toggle)
 
 stock SetWeaponShootRate(weaponid, max_rate)
 {
-	if (0 <= weaponid < sizeof(s_MaxWeaponShootRate)) {
+	if (WEAPON_UNARMED <= weaponid < sizeof(s_MaxWeaponShootRate)) {
 		s_MaxWeaponShootRate[weaponid] = max_rate;
 
 		return 1;
@@ -1130,7 +1288,7 @@ stock SetWeaponShootRate(weaponid, max_rate)
 
 stock GetWeaponShootRate(weaponid)
 {
-	if (0 <= weaponid < sizeof(s_MaxWeaponShootRate)) {
+	if (WEAPON_UNARMED <= weaponid < sizeof(s_MaxWeaponShootRate)) {
 		return s_MaxWeaponShootRate[weaponid];
 	}
 
@@ -1226,7 +1384,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponi
 		return 0;
 	}
 
-	if (weaponid < 0 || weaponid > 55) {
+	if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
 		weaponid = WEAPON_UNKNOWN;
 	}
 
@@ -1412,20 +1570,23 @@ stock WC_SendDeathMessage(killer, killee, weapon)
 {
 	switch (weapon) {
 
-		case WEAPON_CARPARK: {
-			weapon = WEAPON_VEHICLE;
-		}
-		case WEAPON_PISTOLWHIP: {
-			weapon = WEAPON_UNARMED;
-		}
-		case WEAPON_UNKNOWN: {
-			weapon = WEAPON_DROWN;
-		}
 		case WEAPON_VEHICLE_M4: {
 			weapon = WEAPON_M4;
 		}
 		case WEAPON_VEHICLE_MINIGUN: {
 			weapon = WEAPON_MINIGUN;
+		}
+		case WEAPON_VEHICLE_ROCKETLAUNCHER: {
+			weapon = WEAPON_ROCKETLAUNCHER;
+		}
+		case WEAPON_PISTOLWHIP: {
+			weapon = WEAPON_UNARMED;
+		}
+		case WEAPON_CARPARK: {
+			weapon = WEAPON_VEHICLE;
+		}
+		case WEAPON_UNKNOWN: {
+			weapon = WEAPON_DROWN;
 		}
 	}
 
@@ -1436,7 +1597,7 @@ stock WC_SendDeathMessage(killer, killee, weapon)
 
 stock SetWeaponName(weaponid, const name[])
 {
-	if (weaponid < 0 || weaponid >= sizeof(g_WeaponName)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(g_WeaponName)) {
 		return 0;
 	}
 
@@ -1447,7 +1608,7 @@ stock SetWeaponName(weaponid, const name[])
 
 stock WC_GetWeaponName(weaponid, weapon[], len = sizeof(weapon))
 {
-	if (weaponid < 0 || weaponid >= sizeof(g_WeaponName)) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(g_WeaponName)) {
 		format(weapon, len, "Weapon %d", weaponid);
 	} else {
 		strunpack(weapon, g_WeaponName[weaponid], len);
@@ -1553,6 +1714,13 @@ stock WC_TogglePlayerSpectating(playerid, toggle)
 				KillTimer(s_DeathTimer[playerid]);
 				s_DeathTimer[playerid] = -1;
 			}
+
+			#if WC_CUSTOM_VENDING_MACHINES
+				if (s_VendingUseTimer[playerid] != -1) {
+					KillTimer(s_VendingUseTimer[playerid]);
+					s_VendingUseTimer[playerid] = -1;
+				}
+			#endif
 
 			s_IsDying[playerid] = false;
 		}
@@ -1676,7 +1844,6 @@ stock WC_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, 
 	return id;
 }
 
-
 stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2)
 {
 	new id = AddStaticVehicle(modelid, x, y, z, angle, color1, color2);
@@ -1687,7 +1854,6 @@ stock WC_AddStaticVehicle(modelid, Float:x, Float:y, Float:z, Float:angle, color
 
 	return id;
 }
-
 
 stock WC_AddStaticVehicleEx(modelid, Float:x, Float:y, Float:z, Float:angle, color1, color2, respawn_delay, addsiren = 0)
 {
@@ -1707,6 +1873,15 @@ stock WC_IsPlayerInCheckpoint(playerid)
 	}
 
 	return IsPlayerInCheckpoint(playerid);
+}
+
+stock WC_IsPlayerInRaceCheckpoint(playerid)
+{
+	if (!WC_IsPlayerSpawned(playerid)) {
+		return 0;
+	}
+
+	return IsPlayerInRaceCheckpoint(playerid);
 }
 
 stock WC_SetPlayerSpecialAction(playerid, actionid)
@@ -2043,7 +2218,7 @@ public OnPlayerConnect(playerid)
 	s_PlayerHealth[playerid] = 100.0;
 	s_PlayerMaxArmour[playerid] = 100.0;
 	s_PlayerArmour[playerid] = 0.0;
-	s_LastExplosive[playerid] = 0;
+	s_LastExplosive[playerid] = WEAPON_UNARMED;
 	s_LastShotIdx[playerid] = 0;
 	s_LastShot[playerid][e_Tick] = 0;
 	s_LastHitIdx[playerid] = 0;
@@ -2084,6 +2259,21 @@ public OnPlayerConnect(playerid)
 	s_DamageFeedPlayer[playerid] = -1;
 	s_EnableHealthBar[playerid] = true; //enable by default
 
+	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
+		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
+		s_DamageFeedGiven[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_DamageFeedTaken[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]] = false;
+		s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
 	for (new i = 0; i < sizeof(s_PreviousHits[]); i++) {
 		s_PreviousHits[playerid][i][e_Tick] = 0;
 	}
@@ -2100,6 +2290,13 @@ public OnPlayerConnect(playerid)
 	SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 	FreezeSyncPacket(playerid, .toggle = false);
 	SetFakeFacingAngle(playerid, _);
+	DamageFeedUpdate(playerid);
+
+	#if WC_CUSTOM_VENDING_MACHINES
+		if (!s_AlreadyConnected[playerid]) {
+			RemoveDefaultVendingMachines(playerid);
+		}
+	#endif
 
 	s_AlreadyConnected[playerid] = false;
 
@@ -2109,6 +2306,13 @@ public OnPlayerConnect(playerid)
 public OnPlayerDisconnect(playerid, reason)
 {
 	WC_OnPlayerDisconnect(playerid, reason);
+
+	#if WC_CUSTOM_VENDING_MACHINES
+		if (s_VendingUseTimer[playerid] != -1) {
+			KillTimer(s_VendingUseTimer[playerid]);
+			s_VendingUseTimer[playerid] = -1;
+		}
+	#endif
 
 	if (s_DelayedDeathTimer[playerid] != -1) {
 		KillTimer(s_DelayedDeathTimer[playerid]);
@@ -2127,8 +2331,17 @@ public OnPlayerDisconnect(playerid, reason)
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
-		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
 		s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
+		s_DamageFeedGiven[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_DamageFeedTaken[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		PlayerTextDrawDestroy(playerid, s_DamageFeedTaken[playerid]);
+		s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
 	if (s_DamageFeedTimer[playerid] != -1) {
@@ -2150,12 +2363,14 @@ public OnPlayerDisconnect(playerid, reason)
 		s_InternalPlayerTextDraw[playerid][PlayerText:i] = false;
 	}
 
-	#if defined _inc_y_iterate
+	new j = 0;
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
-		for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
+		for (j = 0; j < sizeof(s_PreviousHits[]); j++) {
 			if (s_PreviousHits[i][j][e_Issuer] == playerid) {
 				s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
 			}
@@ -2268,6 +2483,7 @@ public OnPlayerSpawn(playerid)
 	UpdateHealthBar(playerid, true);
 	FreezeSyncPacket(playerid, .toggle = false);
 	SetFakeFacingAngle(playerid, _);
+	DamageFeedUpdate(playerid);
 
 	if (GetPlayerTeam(playerid) != s_PlayerTeam[playerid]) {
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
@@ -2278,7 +2494,6 @@ public OnPlayerSpawn(playerid)
 	if (s_DeathSkip[playerid] == 2) {
 		DebugMessage(playerid, "Death skipped");
 		SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
-		GivePlayerWeapon(playerid, 0, 1);
 		SetPlayerArmedWeapon(playerid, 0);
 		ClearAnimations(playerid);
 
@@ -2293,6 +2508,13 @@ public OnPlayerSpawn(playerid)
 
 	if (s_FirstSpawn[playerid]) {
 		s_FirstSpawn[playerid] = false;
+
+		#if WC_CUSTOM_VENDING_MACHINES
+			if (s_CustomVendingMachines) {
+				animlib = "VENDING", animname = "null";
+				ApplyAnimation(playerid, animlib, animname, 0.0, 0, 0, 0, 0, 0, 0);
+			}
+		#endif
 	}
 
 	return WC_OnPlayerSpawn(playerid);
@@ -2370,6 +2592,13 @@ public OnPlayerDeath(playerid, killerid, reason)
 	s_TrueDeath[playerid] = true;
 	s_InClassSelection[playerid] = false;
 
+	#if WC_CUSTOM_VENDING_MACHINES
+		if (s_VendingUseTimer[playerid] != -1) {
+			KillTimer(s_VendingUseTimer[playerid]);
+			s_VendingUseTimer[playerid] = -1;
+		}
+	#endif
+
 	if (s_BeingResynced[playerid] || s_ForceClassSelection[playerid]) {
 		return 1;
 	}
@@ -2383,6 +2612,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 
 	if (s_DeathTimer[playerid] != -1) {
 		KillTimer(s_DeathTimer[playerid]);
+		s_DeathTimer[playerid] = -1;
 	}
 
 	if (s_IsDying[playerid]) {
@@ -2391,9 +2621,8 @@ public OnPlayerDeath(playerid, killerid, reason)
 		return 1;
 	}
 
-	// WEAPON_UNKNOWN
-	if (reason < 0 || reason > 55) {
-		reason = 55;
+	if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
+		reason = WEAPON_UNKNOWN;
 	}
 
 	new vehicleid = GetPlayerVehicleID(playerid);
@@ -2416,7 +2645,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 	}
 
 	if (OnPlayerDamage(playerid, amount, killerid, reason, bodypart)) {
-		if (reason < 0 || reason > WEAPON_UNKNOWN) {
+		if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
 			reason = WEAPON_UNKNOWN;
 		}
 
@@ -2508,8 +2737,11 @@ static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2);
 forward WC_CbugPunishment(playerid, weapon);
 public WC_CbugPunishment(playerid, weapon) {
 	FreezeSyncPacket(playerid, .toggle = false);
-	ClearAnimations(playerid, 1);
 	SetPlayerArmedWeapon(playerid, weapon);
+	
+	if (!IsPlayerDying(playerid)) {
+		ClearAnimations(playerid, 1);
+	}
 }
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
@@ -2545,17 +2777,19 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 				s_CbugFroze[playerid] = tick;
 
-				#if defined _inc_y_iterate
+				new j = 0, Float:health, Float:armour;
+
+				#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 				foreach (new i : Player) {
 				#else
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
 				#endif
-					for (new j = 0; j < sizeof(s_PreviousHits[]); j++) {
+					for (j = 0; j < sizeof(s_PreviousHits[]); j++) {
 						if (s_PreviousHits[i][j][e_Issuer] == playerid && tick - s_PreviousHits[i][j][e_Tick] <= 1200) {
 							s_PreviousHits[i][j][e_Issuer] = INVALID_PLAYER_ID;
 
-							new Float:health = WC_GetPlayerHealth(i);
-							new Float:armour = WC_GetPlayerArmour(i);
+							health = WC_GetPlayerHealth(i);
+							armour = WC_GetPlayerArmour(i);
 
 							if (s_IsDying[i]) {
 								if (s_DelayedDeathTimer[i] == -1) {
@@ -2587,8 +2821,55 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 		}
 	}
 
-	if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) 
-	{
+	if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
+		#if WC_CUSTOM_VENDING_MACHINES
+			if (s_CustomVendingMachines
+			 && newkeys == KEY_SECONDARY_ATTACK
+			 && !oldkeys
+			 && s_VendingUseTimer[playerid] == -1
+			 && GetPlayerAnimationIndex(playerid) != 1660) {
+				new bool:failed = false;
+
+				if (GetPlayerMoney(playerid) <= 0 || s_PlayerHealth[playerid] >= s_PlayerMaxHealth[playerid]) {
+					failed = true;
+				}
+
+				new Float:z;
+
+				GetPlayerPos(playerid, z, z, z);
+
+				for (new i = 0, Float:health_given; i < sizeof(sc_VendingMachines); i++) {
+					if (floatabs(z - sc_VendingMachines[i][e_PosZ]) > 1.5) {
+						continue;
+					}
+
+					if (IsPlayerInRangeOfPoint(playerid, 0.5, sc_VendingMachines[i][e_FrontX], sc_VendingMachines[i][e_FrontY], z)) {
+						if (failed) {
+							PlayerPlaySound(playerid, 1055, 0.0, 0.0, 0.0);
+							break;
+						}
+
+						health_given = 35.0;
+
+						if (OnPlayerUseVendingMachine(playerid, health_given)) {
+							s_VendingUseTimer[playerid] = SetTimerEx("WC_VendingMachineUsed", 2500, false, "if", playerid, health_given);
+
+							animlib = "VENDING", animname = "VEND_USE";
+							SetPlayerFacingAngle(playerid, sc_VendingMachines[i][e_RotZ]);
+							SetPlayerPos(playerid, sc_VendingMachines[i][e_FrontX], sc_VendingMachines[i][e_FrontY], z);
+							ApplyAnimation(playerid, animlib, animname, 4.1, 0, 0, 1, 0, 0, 1);
+
+							PlayerPlaySound(playerid, 42600, 0.0, 0.0, 0.0);
+						} else {
+							PlayerPlaySound(playerid, 1055, 0.0, 0.0, 0.0);
+						}
+
+						break;
+					}
+				}
+			}
+		#endif
+
 		if (newkeys & KEY_FIRE) {
 			new weap = GetPlayerWeapon(playerid);
 
@@ -2619,8 +2900,20 @@ public OnPlayerStreamIn(playerid, forplayerid)
 
 public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 {
+	#if WC_CUSTOM_VENDING_MACHINES
+		if (s_VendingUseTimer[playerid] != -1) {
+			KillTimer(s_VendingUseTimer[playerid]);
+			s_VendingUseTimer[playerid] = -1;
+		}
+	#endif
+
 	s_LastVehicleEnterTime[playerid] = gettime();
 	s_LastVehicleTick[playerid] = GetTickCount();
+
+	if (s_IsDying[playerid]) {
+		TogglePlayerControllable(playerid, false);
+		ApplyAnimation(playerid, "PED", "KO_skid_back", 4.1, 0, 0, 0, 1, 0, 1);
+	}
 
 	return WC_OnPlayerEnterVehicle(playerid, vehicleid, ispassenger);
 }
@@ -2638,6 +2931,13 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		s_Spectating[playerid] = INVALID_PLAYER_ID;
 	}
 
+	#if WC_CUSTOM_VENDING_MACHINES
+		if (s_VendingUseTimer[playerid] != -1) {
+			KillTimer(s_VendingUseTimer[playerid]);
+			s_VendingUseTimer[playerid] = -1;
+		}
+	#endif
+
 	if (s_IsDying[playerid] && (newstate == PLAYER_STATE_DRIVER || newstate == PLAYER_STATE_PASSENGER)) {
 		TogglePlayerControllable(playerid, false);
 	}
@@ -2650,7 +2950,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx * vx + vy * vy + vz * vz <= 0.05) {
-				#if defined _inc_y_iterate
+				#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 				foreach (new i : Player) {
 				#else
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -2837,7 +3137,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 	}
 
 	// Ignore unreliable and invalid damage
-	if (weaponid < 0 || weaponid >= sizeof(s_ValidDamageGiven) || !s_ValidDamageGiven[weaponid]) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_ValidDamageGiven) || !s_ValidDamageGiven[weaponid]) {
 		// Fire is synced as taken damage (because it's not reliable as given), so no need to show a rejected hit.
 		// Vehicle damage is also synced as taken, so no need to show that either.
 		if (weaponid != WEAPON_FLAMETHROWER && weaponid != WEAPON_VEHICLE) {
@@ -2879,6 +3179,21 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 				SetPlayerArmedWeapon(playerid, 0);
 
 				return 0;
+			} else {
+				new Float:x, Float:y, Float:z;
+				GetPlayerPos(playerid, x, y, z);
+
+				if (GetPlayerDistanceFromPoint(damagedid, x, y, z) > s_WeaponRange[weaponid] + 2.0) {
+					if (s_KnifeTimeout[damagedid] != -1) {
+						KillTimer(s_KnifeTimeout[damagedid]);
+					}
+
+					s_KnifeTimeout[damagedid] = SetTimerEx("WC_SpawnForStreamedIn", 150, false, "i", damagedid);
+					ClearAnimations(playerid, 1);
+					SetPlayerArmedWeapon(playerid, 0);
+
+					return 0;
+				}
 			}
 
 			if (!OnPlayerDamage(damagedid, amount, playerid, weaponid, bodypart)) {
@@ -3018,7 +3333,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 			}
 		} else if (s_LastShot[playerid][e_Hits] > 0) {
 			// Sniper doesn't always send OnPlayerWeaponShot
-			if (s_LastShot[playerid][e_Hits] > 3 && weaponid != WEAPON_SNIPER) {
+			if (s_LastShot[playerid][e_Hits] >= 3 && weaponid != WEAPON_SNIPER) {
 				valid = false;
 				AddRejectedHit(playerid, damagedid, HIT_MULTIPLE_PLAYERS, weaponid, s_LastShot[playerid][e_Hits] + 1);
 			} else {
@@ -3081,12 +3396,12 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 	}
 
 	// Ignore unreliable and invalid damage
-	if (weaponid < 0 || weaponid >= sizeof(s_ValidDamageTaken) || !s_ValidDamageTaken[weaponid]) {
+	if (weaponid < WEAPON_UNARMED || weaponid >= sizeof(s_ValidDamageTaken) || !s_ValidDamageTaken[weaponid]) {
 		return 0;
 	}
 
 	// Carjack damage
-	if (weaponid == 54 && _:amount == _:0.0) {
+	if (weaponid == WEAPON_COLLISION && _:amount == _:0.0) {
 		return 0;
 	}
 
@@ -3107,10 +3422,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			DebugMessage(playerid, "climb bug prevented");
 			return 0;
 		}
-	}
+	} else if (weaponid == WEAPON_KNIFE) {
+		// Being knifed client-side
 
-	// Being knifed client-side
-	if (weaponid == WEAPON_KNIFE) {
 		// With the plugin, this part is never actually used (it can't happen)
 		if (_:amount == _:0.0) {
 			if (s_KnifeTimeout[playerid] != -1) {
@@ -3123,6 +3437,15 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 				ResyncPlayer(playerid);
 
 				return 0;
+			} else {
+				new Float:x, Float:y, Float:z;
+				GetPlayerPos(issuerid, x, y, z);
+
+				if (GetPlayerDistanceFromPoint(playerid, x, y, z) > s_WeaponRange[weaponid] + 2.0) {
+					ResyncPlayer(playerid);
+
+					return 0;
+				}
 			}
 
 			if (!OnPlayerDamage(playerid, amount, issuerid, weaponid, bodypart)) {
@@ -3199,18 +3522,24 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 		}
 
 		// https://github.com/oscar-broman/samp-weapon-config/issues/104
-		if(weaponid == WEAPON_COLLISION
+		if (weaponid == WEAPON_COLLISION
 		|| weaponid == WEAPON_DROWN) {
 			return 0;
 		}
 
 		// https://github.com/oscar-broman/samp-weapon-config/issues/104
-		if(weaponid == WEAPON_VEHICLE
-		|| weaponid == WEAPON_CARPARK
+		if (weaponid == WEAPON_VEHICLE
 		|| weaponid == WEAPON_HELIBLADES) {
-			if(GetPlayerState(issuerid) != PLAYER_STATE_DRIVER) {
+			if (GetPlayerState(issuerid) != PLAYER_STATE_DRIVER) {
 				return 0;
 			}
+		}
+
+		// Will be applied on fire, explosion, vehicle and heliblades (carpark) damage
+		// Both players should see eachother, if playerid claims to keep issuerid valid
+		if ((!IsPlayerStreamedIn(playerid, issuerid) && !WC_IsPlayerPaused(issuerid)) || !IsPlayerStreamedIn(issuerid, playerid)) {
+			// Probably fake or belated damage, so let's just reset issuerid
+			issuerid = INVALID_PLAYER_ID;
 		}
 	}
 
@@ -3229,9 +3558,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 	}
 
 	if (IsBulletWeapon(weaponid)) {
-		new Float:x, Float:y, Float:z;
+		new Float:x, Float:y, Float:z, Float:dist;
 		GetPlayerPos(issuerid, x, y, z);
-		new Float:dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
+		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
 		if (dist > s_WeaponRange[weaponid] + 2.0) {
 			AddRejectedHit(issuerid, playerid, HIT_OUT_OF_RANGE, weaponid, _:dist, _:s_WeaponRange[weaponid]);
@@ -3246,6 +3575,13 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ)
 {
+	#if WC_CUSTOM_VENDING_MACHINES
+		if (s_VendingUseTimer[playerid] != -1) {
+			KillTimer(s_VendingUseTimer[playerid]);
+			s_VendingUseTimer[playerid] = -1;
+		}
+	#endif
+
 	s_LastShot[playerid][e_Valid] = false;
 
 	new tick = GetTickCount();
@@ -3269,7 +3605,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		damagedid = hitid;
 	}
 
-	if (hittype < 0 || hittype > 4) {
+	if (hittype < BULLET_HIT_TYPE_NONE || hittype > BULLET_HIT_TYPE_PLAYER_OBJECT) {
 		AddRejectedHit(playerid, damagedid, HIT_INVALID_HITTYPE, weaponid, hittype);
 
 		return 0;
@@ -3429,8 +3765,9 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehiclePassengerDamage) {
 			new has_driver = false;
 			new has_passenger = false;
+			new seat;
 
-			#if defined _inc_y_iterate
+			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new otherid : Player) {
 			#else
 			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
@@ -3443,7 +3780,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 					continue;
 				}
 
-				new seat = GetPlayerVehicleSeat(otherid);
+				seat = GetPlayerVehicleSeat(otherid);
 
 				if (seat == 0) {
 					has_driver = true;
@@ -3474,7 +3811,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
-			#if defined _inc_y_iterate
+			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new otherid : Player) {
 			#else
 			for (new otherid = GetPlayerPoolSize(); otherid != -1; otherid--) {
@@ -3494,14 +3831,14 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
-				if (health >= 249.0) { //vehicles start on fire at 249 or under so theres no need to check once the vehicle is at or below 250
+				if (health >= 250.0) { //vehicles start on fire below 250 hp
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
 					} else {
 						health -= s_WeaponDamage[weaponid] * 3.0;
 					}
 
-					if (health <= 249.0) {
+					if (health < 250.0) {
 						if (s_VehicleRespawnTimer[hitid] == -1) {
 							health = 249.0;
 							s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid, playerid);
@@ -3589,6 +3926,25 @@ public OnPlayerLeaveCheckpoint(playerid)
 	return WC_OnPlayerLeaveCheckpoint(playerid);
 }
 
+public OnPlayerEnterRaceCheckpoint(playerid)
+{
+	if (!WC_IsPlayerSpawned(playerid)) {
+		return 1;
+	}
+
+	return WC_OnPlayerEnterRaceCheckpoint(playerid);
+}
+
+public OnPlayerLeaveRaceCheckpoint(playerid)
+{
+	// If they're dying, it will be called in PlayerDeath (when the death anim begins)
+	if (s_IsDying[playerid]) {
+		return 1;
+	}
+
+	return WC_OnPlayerLeaveRaceCheckpoint(playerid);
+}
+
 /*
  * Internal functions
  */
@@ -3600,6 +3956,7 @@ static ScriptInit()
 	if (s_LagCompMode) {
 		SetKnifeSync(false);
 	} else {
+		s_DamageTakenSound = 0;
 		SetKnifeSync(true);
 	}
 
@@ -3607,14 +3964,14 @@ static ScriptInit()
 		s_ClassSpawnInfo[i][e_Skin] = -1;
 	}
 
-	s_HealthBarBorder = TextDrawCreate(546.112854, 66.333282, "LD_SPAC:white");
+	s_HealthBarBorder = TextDrawCreate(546.2, 66.4, "LD_SPAC:white");
 
 	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar border textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBorder] = true;
 
-		TextDrawTextSize		(s_HealthBarBorder, 63.000000, 9.000000);
+		TextDrawTextSize		(s_HealthBarBorder, 61.5, 8.8);
 		TextDrawAlignment		(s_HealthBarBorder, 1);
 		TextDrawColor			(s_HealthBarBorder, 255);
 		TextDrawSetShadow		(s_HealthBarBorder, 0);
@@ -3623,25 +3980,31 @@ static ScriptInit()
 		TextDrawSetProportional	(s_HealthBarBorder, 0);
 	}
 
-	s_HealthBarBackground = TextDrawCreate(547.518310, 68.083274, "LD_SPAC:white");
+	s_HealthBarBackground = TextDrawCreate(548.2, 68.6, "LD_SPAC:white");
 
 	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar background textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBackground] = true;
 
-		TextDrawTextSize		(s_HealthBarBackground, 60.000000, 6.000000);
+		TextDrawTextSize		(s_HealthBarBackground, 57.6, 5.0);
 		TextDrawAlignment		(s_HealthBarBackground, 1);
-		TextDrawColor			(s_HealthBarBackground, 0x5A0C10FF); //dark red
+		TextDrawColor			(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
 		TextDrawSetShadow		(s_HealthBarBackground, 0);
 		TextDrawBackgroundColor	(s_HealthBarBackground, 255);
 		TextDrawFont			(s_HealthBarBackground, 4);
 		TextDrawSetProportional	(s_HealthBarBackground, 0);
 	}
 
-	new tick = GetTickCount();
+	#if WC_CUSTOM_VENDING_MACHINES
+		if (s_CustomVendingMachines) {
+			CreateVendingMachines();
+		}
+	#endif
 
-	#if defined _inc_y_iterate
+	new worldid, tick = GetTickCount();
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new playerid : Player) {
 	#else
 	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
@@ -3649,8 +4012,9 @@ static ScriptInit()
 		s_PlayerTeam[playerid] = GetPlayerTeam(playerid);
 
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
+		DamageFeedUpdate(playerid);
 
-		new worldid = GetPlayerVirtualWorld(playerid);
+		worldid = GetPlayerVirtualWorld(playerid);
 
 		if (worldid == WC_DEATH_WORLD) {
 			worldid = 0;
@@ -3667,6 +4031,10 @@ static ScriptInit()
 		s_InClassSelection[playerid] = true;
 		s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
 		s_AlreadyConnected[playerid] = true;
+
+		#if WC_CUSTOM_VENDING_MACHINES
+			RemoveDefaultVendingMachines(playerid);
+		#endif
 
 		if (PLAYER_STATE_ONFOOT <= GetPlayerState(playerid) <= PLAYER_STATE_PASSENGER) {
 			GetPlayerHealth(playerid, s_PlayerHealth[playerid]);
@@ -3698,17 +4066,29 @@ static ScriptExit()
 {
 	SetKnifeSync(true);
 
-	#if defined _inc_y_iterate
+	#if WC_CUSTOM_VENDING_MACHINES
+		DestroyVendingMachines();
+	#endif
+
+	new Float:health;
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new playerid : Player) {
 	#else
 	for (new playerid = GetPlayerPoolSize(); playerid != -1; playerid--) {
 	#endif
+		#if WC_CUSTOM_VENDING_MACHINES
+			if (s_VendingUseTimer[playerid] != -1) {
+				KillTimer(s_VendingUseTimer[playerid]);
+				s_VendingUseTimer[playerid] = -1;
+			}
+		#endif
 
 		// Put things back the way they were
 		SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
 
 		if (PLAYER_STATE_ONFOOT <= GetPlayerState(playerid) <= PLAYER_STATE_PASSENGER) {
-			new Float:health = s_PlayerHealth[playerid];
+			health = s_PlayerHealth[playerid];
 
 			if (health == 0.0) {
 				health = s_PlayerMaxHealth[playerid];
@@ -3728,6 +4108,18 @@ static ScriptExit()
 			PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
 			s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
 			s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+		}
+
+		if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
+			s_DamageFeedGiven[playerid] = PlayerText:INVALID_TEXT_DRAW;
+		}
+
+		if (s_DamageFeedTaken[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_DamageFeedTaken[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]] = false;
+			s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
 		}
 	}
 
@@ -3768,16 +4160,14 @@ static HasSameTeam(playerid, otherid)
 	return (s_PlayerTeam[playerid] == s_PlayerTeam[otherid]);
 }
 
-static WC_IsPlayerPaused(playerid)
+stock WC_IsPlayerPaused(playerid)
 {
 	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
 }
 
-static Float:WC_Bar_Calculate(Float:width, Float:max, Float:value) {
-
-  new Float:result;
-  result = (((0 + width) / max) * value);
-  return result;
+static Float:WC_Bar_Calculate(Float:width, Float:max, Float:value)
+{
+	return ((width / max) * value);
 }
 
 static UpdateHealthBar(playerid, bool:force = false)
@@ -3826,41 +4216,41 @@ static UpdateHealthBar(playerid, bool:force = false)
 			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 
 				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
-					playerid, 
-					547.518310, 
-					68.083274, 
+					playerid,
+					548.2,
+					68.6,
 					"LD_SPAC:white"
 				);
-				PlayerTextDrawTextSize(playerid, 
+				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
-					60.000000,
+					57.6,
 					100.0,
 					float(health)),
-					6.0
+					5.0
 				);
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 					printf("(wc) WARN: Unable to create player healthbar foreground");
 				} else {
 					s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = true;
-					
+
 					PlayerTextDrawAlignment(playerid, 		s_HealthBarForeground[playerid], 1);
-					PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], 0xB51821FF);
+					PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
 					PlayerTextDrawSetShadow(playerid, 		s_HealthBarForeground[playerid], 0);
 					PlayerTextDrawBackgroundColor(playerid, s_HealthBarForeground[playerid], 255);
 					PlayerTextDrawFont(playerid, 			s_HealthBarForeground[playerid], 4);
 					PlayerTextDrawSetProportional(playerid, s_HealthBarForeground[playerid], 0);
-					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);			
+					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
 				}
-			} else {
-				PlayerTextDrawTextSize(playerid, 
+			} else if (s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]]) {
+				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
-					60.000000,
+					57.6,
 					100.0,
 					float(health)),
-					6.0
+					5.0
 				);
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
@@ -3951,7 +4341,7 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -3973,6 +4363,78 @@ static WasPlayerInVehicle(playerid, time) {
 
 	return 0;
 }
+
+#if WC_CUSTOM_VENDING_MACHINES
+	static RemoveDefaultVendingMachines(playerid)
+	{
+		RemoveBuildingForPlayer(playerid, 955, 0.0, 0.0, 0.0, 20000.0); // CJ_EXT_SPRUNK
+		RemoveBuildingForPlayer(playerid, 956, 0.0, 0.0, 0.0, 20000.0); // CJ_EXT_CANDY
+		RemoveBuildingForPlayer(playerid, 1209, 0.0, 0.0, 0.0, 20000.0); // vendmach
+		RemoveBuildingForPlayer(playerid, 1302, 0.0, 0.0, 0.0, 20000.0); // vendmachfd
+		RemoveBuildingForPlayer(playerid, 1775, 0.0, 0.0, 0.0, 20000.0); // CJ_SPRUNK1
+		RemoveBuildingForPlayer(playerid, 1776, 0.0, 0.0, 0.0, 20000.0); // CJ_CANDYVENDOR
+		RemoveBuildingForPlayer(playerid, 1977, 0.0, 0.0, 0.0, 20000.0); // vendin3
+
+		// Make sure they're all gone..
+		for (new i = 0; i < sizeof(sc_VendingMachines); i++) {
+			RemoveBuildingForPlayer(
+				playerid,
+				sc_VendingMachines[i][e_Model],
+				sc_VendingMachines[i][e_PosX],
+				sc_VendingMachines[i][e_PosY],
+				sc_VendingMachines[i][e_PosZ],
+				1.0
+			);
+		}
+	}
+
+	static CreateVendingMachines()
+	{
+		DestroyVendingMachines();
+
+		for (new i = 0; i < sizeof(sc_VendingMachines); i++) {
+			#if WC_USE_STREAMER
+				s_VendingMachineObject[i] = CreateDynamicObject(
+					sc_VendingMachines[i][e_Model],
+					sc_VendingMachines[i][e_PosX],
+					sc_VendingMachines[i][e_PosY],
+					sc_VendingMachines[i][e_PosZ],
+					sc_VendingMachines[i][e_RotX],
+					sc_VendingMachines[i][e_RotY],
+					sc_VendingMachines[i][e_RotZ],
+					.interiorid = sc_VendingMachines[i][e_Interior]
+				);
+			#else
+				s_VendingMachineObject[i] = CreateObject(
+					sc_VendingMachines[i][e_Model],
+					sc_VendingMachines[i][e_PosX],
+					sc_VendingMachines[i][e_PosY],
+					sc_VendingMachines[i][e_PosZ],
+					sc_VendingMachines[i][e_RotX],
+					sc_VendingMachines[i][e_RotY],
+					sc_VendingMachines[i][e_RotZ]
+				);
+			#endif
+		}
+	}
+
+	static DestroyVendingMachines()
+	{
+		for (new i = 0; i < sizeof(s_VendingMachineObject); i++) {
+			#if WC_USE_STREAMER
+				if (s_VendingMachineObject[i] != INVALID_STREAMER_ID) {
+					DestroyDynamicObject(s_VendingMachineObject[i]);
+					s_VendingMachineObject[i] = INVALID_STREAMER_ID;
+				}
+			#else
+				if (s_VendingMachineObject[i] != -1) {
+					DestroyObject(s_VendingMachineObject[i]);
+					s_VendingMachineObject[i] = -1;
+				}
+			#endif
+		}
+	}
+#endif
 
 forward WC_DeathSkipEnd(playerid);
 public WC_DeathSkipEnd(playerid)
@@ -4000,7 +4462,7 @@ public WC_SpawnForStreamedIn(playerid)
 
 	SpawnPlayerForWorld(playerid);
 
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -4120,24 +4582,27 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 	// Punching with a parachute
 	if (weaponid == WEAPON_PARACHUTE) {
 		weaponid = WEAPON_UNARMED;
-	}
+	} else if (weaponid == WEAPON_COLLISION) {
+		// Collision damage should never be above 165
 
-	// Collision damage should never be above 165
-	if (weaponid == WEAPON_COLLISION) {
 		if (amount > 165.0) {
 			amount = 1.0;
 		} else {
 			amount /= 165.0;
 		}
-	}
-
-	if (weaponid == WEAPON_EXPLOSION) {
+	} else if (weaponid == WEAPON_EXPLOSION) {
 		// Explosions do at most 82.5 damage. This will later be multipled by the damage value
 		amount /= 82.5;
 
 		// Figure out what caused the explosion
-		if (issuerid != INVALID_PLAYER_ID && s_LastExplosive[issuerid]) {
-			weaponid = s_LastExplosive[issuerid];
+		if (issuerid != INVALID_PLAYER_ID) {
+			if (GetPlayerState(issuerid) == PLAYER_STATE_DRIVER) {
+				weaponid = WEAPON_VEHICLE_ROCKETLAUNCHER;
+			} else if (s_LastExplosive[issuerid]) {
+				weaponid = s_LastExplosive[issuerid];
+			}
+		} else if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER) {
+			weaponid = WEAPON_VEHICLE_ROCKETLAUNCHER;
 		}
 	}
 
@@ -4224,7 +4689,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 		GetPlayerPos(issuerid, x, y, z);
 		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
-		if (0 <= weaponid < sizeof(s_WeaponRange) && dist > s_WeaponRange[weaponid] + 2.0) {
+		if (WEAPON_UNARMED <= weaponid < sizeof(s_WeaponRange) && dist > s_WeaponRange[weaponid] + 2.0) {
 			AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, weaponid, _:dist, _:s_WeaponRange[weaponid]);
 			return WC_INVALID_DISTANCE;
 		}
@@ -4275,10 +4740,9 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 				return WC_INVALID_DAMAGE;
 			}
 		}
-	}
+	} else if (weaponid == WEAPON_DEAGLE) {
+		// Check deagle damage
 
-	// Check deagle damage
-	if (weaponid == WEAPON_DEAGLE) {
 		switch (amount) {
 			case 46.200000762939453125,
 			     23.1000003814697265625: {}
@@ -4331,7 +4795,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &weaponid, &bodypart, 
 		case DAMAGE_TYPE_RANGE,
 		     DAMAGE_TYPE_RANGE_MULTIPLIER: {
 			new Float:length = 0.0;
-			if(s_LagCompMode) {
+			if (s_LagCompMode) {
 				length = s_LastShot[issuerid][e_Length];
 			} else {
 				new Float:X, Float:Y, Float:Z;
@@ -4371,7 +4835,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 	if (!OnPlayerDamage(playerid, amount, issuerid, weaponid, bodypart)) {
 		UpdateHealthBar(playerid);
 
-		if (weaponid < 0 || weaponid > WEAPON_UNKNOWN) {
+		if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
 			weaponid = WEAPON_UNKNOWN;
 		}
 
@@ -4392,7 +4856,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 		return;
 	}
 
-	if (weaponid < 0 || weaponid > WEAPON_UNKNOWN) {
+	if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
 		weaponid = WEAPON_UNKNOWN;
 	}
 
@@ -4459,7 +4923,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weapo
 					new Float:vx, Float:vy, Float:vz;
 					GetVehicleVelocity(vehicleid, vx, vy, vz);
 
-					if (vx*vx + vy*vy + vz*vz >= 0.4) {
+					if (vx * vx + vy * vy + vz * vz >= 0.4) {
 						animname = "BIKE_fallR";
 						PlayerDeath(playerid, animlib, animname, 0);
 					} else {
@@ -4607,6 +5071,10 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 	if (IsPlayerInCheckpoint(playerid)) {
 		WC_OnPlayerLeaveCheckpoint(playerid);
 	}
+
+	if (IsPlayerInRaceCheckpoint(playerid)) {
+		WC_OnPlayerLeaveRaceCheckpoint(playerid);
+	}
 }
 
 public OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time)
@@ -4660,9 +5128,265 @@ public OnPlayerDeathFinished(playerid, bool:cancelable)
 	return 1;
 }
 
+#if WC_CUSTOM_VENDING_MACHINES
+	public OnPlayerUseVendingMachine(playerid, &Float:health_given) {
+		return WC_OnPlayerUseVendingMachine(playerid, health_given);
+	}
+
+	forward WC_VendingMachineUsed(playerid, Float:health_given);
+	public WC_VendingMachineUsed(playerid, Float:health_given)
+	{
+		s_VendingUseTimer[playerid] = -1;
+
+		if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT && !s_IsDying[playerid]) {
+			new Float:health = s_PlayerHealth[playerid];
+
+			health += health_given;
+
+			if (health > s_PlayerMaxHealth[playerid]) {
+				health = s_PlayerMaxHealth[playerid];
+			}
+
+			WC_SetPlayerHealth(playerid, health);
+		}
+	}
+#endif
+
+forward WC_DamageFeedUpdate(playerid);
+public WC_DamageFeedUpdate(playerid)
+{
+	s_DamageFeedTimer[playerid] = -1;
+
+	if (IsPlayerConnected(playerid) && IsDamageFeedActive(playerid)) {
+		DamageFeedUpdate(playerid, true);
+	}
+}
+
+static DamageFeedUpdate(playerid, bool:modified = false)
+{
+	if (!IsDamageFeedActive(playerid)) {
+		if (s_DamageFeedGiven[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_DamageFeedGiven[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]] = false;
+			s_DamageFeedGiven[playerid] = PlayerText:INVALID_TEXT_DRAW;
+		}
+
+		if (s_DamageFeedTaken[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_DamageFeedTaken[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]] = false;
+			s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
+		}
+
+		return;
+	}
+
+	if (s_DamageFeedGiven[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+		new PlayerText:td = CreatePlayerTextDraw(playerid, 200.0, 365.0, "_");
+
+		if (td == PlayerText:INVALID_TEXT_DRAW) {
+			printf("(wc) WARN: Unable to create damage feed textdraw");
+		} else {
+			s_InternalPlayerTextDraw[playerid][td] = true;
+
+			PlayerTextDrawLetterSize(playerid, td, 0.2, 0.9);
+			PlayerTextDrawColor(playerid, td, 0x30FF50FF);
+			PlayerTextDrawFont(playerid, td, 1);
+			PlayerTextDrawSetShadow(playerid, td, 0);
+			PlayerTextDrawAlignment(playerid, td, 2);
+			PlayerTextDrawSetOutline(playerid, td, 1);
+			PlayerTextDrawBackgroundColor(playerid, td, 0x0000001A);
+
+			s_DamageFeedGiven[playerid] = td;
+		}
+	}
+
+	if (s_DamageFeedTaken[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+		new PlayerText:td = CreatePlayerTextDraw(playerid, 440.0, 365.0, "_");
+
+		if (td == PlayerText:INVALID_TEXT_DRAW) {
+			printf("(wc) WARN: Unable to create damage feed textdraw");
+		} else {
+			s_InternalPlayerTextDraw[playerid][td] = true;
+
+			PlayerTextDrawLetterSize(playerid, td, 0.2, 0.9);
+			PlayerTextDrawColor(playerid, td, 0x33CCFFFF);
+			PlayerTextDrawFont(playerid, td, 1);
+			PlayerTextDrawSetShadow(playerid, td, 0);
+			PlayerTextDrawAlignment(playerid, td, 2);
+			PlayerTextDrawSetOutline(playerid, td, 1);
+			PlayerTextDrawBackgroundColor(playerid, td, 0x0000001A);
+
+			s_DamageFeedTaken[playerid] = td;
+		}
+	}
+
+	new tick = GetTickCount();
+	if (tick == 0) tick = 1;
+	new lowest_tick = tick + 1;
+
+	for (new i = 0, j = 0; i < sizeof(s_DamageFeedHitsGiven[]) - 1; i++) {
+		if (!s_DamageFeedHitsGiven[playerid][i][e_Tick]) {
+			break;
+		}
+
+		if (tick - s_DamageFeedHitsGiven[playerid][i][e_Tick] >= s_DamageFeedHideDelay) {
+			modified = true;
+
+			for (j = i; j < sizeof(s_DamageFeedHitsGiven[]) - 1; j++) {
+				s_DamageFeedHitsGiven[playerid][j][e_Tick] = 0;
+			}
+
+			break;
+		}
+
+		if (s_DamageFeedHitsGiven[playerid][i][e_Tick] < lowest_tick) {
+			lowest_tick = s_DamageFeedHitsGiven[playerid][i][e_Tick];
+		}
+	}
+
+	for (new i = 0, j = 0; i < sizeof(s_DamageFeedHitsTaken[]) - 1; i++) {
+		if (!s_DamageFeedHitsTaken[playerid][i][e_Tick]) {
+			break;
+		}
+
+		if (tick - s_DamageFeedHitsTaken[playerid][i][e_Tick] >= s_DamageFeedHideDelay) {
+			modified = true;
+
+			for (j = i; j < sizeof(s_DamageFeedHitsTaken[]) - 1; j++) {
+				s_DamageFeedHitsTaken[playerid][j][e_Tick] = 0;
+			}
+
+			break;
+		}
+
+		if (s_DamageFeedHitsTaken[playerid][i][e_Tick] < lowest_tick) {
+			lowest_tick = s_DamageFeedHitsTaken[playerid][i][e_Tick];
+		}
+	}
+
+	if (s_DamageFeedTimer[playerid] != -1) {
+		KillTimer(s_DamageFeedTimer[playerid]);
+	}
+
+	if (tick - s_DamageFeedLastUpdate[playerid] < s_DamageFeedMaxUpdateRate && modified) {
+		s_DamageFeedTimer[playerid] = SetTimerEx("WC_DamageFeedUpdate", s_DamageFeedMaxUpdateRate - (tick - s_DamageFeedLastUpdate[playerid]), false, "i", playerid);
+	} else {
+		if (lowest_tick == tick + 1) {
+			s_DamageFeedTimer[playerid] = -1;
+			modified = true;
+		} else {
+			s_DamageFeedTimer[playerid] = SetTimerEx("WC_DamageFeedUpdate", s_DamageFeedHideDelay - (tick - lowest_tick) + 10, false, "i", playerid);
+		}
+
+		if (modified) {
+			DamageFeedUpdateText(playerid);
+
+			s_DamageFeedLastUpdate[playerid] = tick;
+		}
+	}
+}
+
+static DamageFeedUpdateText(playerid)
+{
+	new buf[64 * WC_FEED_HEIGHT] = "";
+
+	for (new i = 0, weapon[32]; i < sizeof(s_DamageFeedHitsGiven[]) - 1; i++) {
+		if (!s_DamageFeedHitsGiven[playerid][i][e_Tick]) {
+			break;
+		}
+
+		if (s_DamageFeedHitsGiven[playerid][i][e_Weapon] == -1) {
+			weapon = "Multiple";
+		} else {
+			WC_GetWeaponName(s_DamageFeedHitsGiven[playerid][i][e_Weapon], weapon);
+		}
+
+		if (s_DamageFeedHitsGiven[playerid][i][e_Issuer] == INVALID_PLAYER_ID) {
+			format(
+				buf,
+				sizeof(buf),
+				"%s%s +%.2f~n~",
+				buf,
+				weapon,
+				s_DamageFeedHitsGiven[playerid][i][e_Amount] + 0.009
+			);
+		} else {
+			format(
+				buf,
+				sizeof(buf),
+				"%s%s - %s +%.2f (%.2f)~n~",
+				buf,
+				s_DamageFeedHitsGiven[playerid][i][e_Name],
+				weapon,
+				s_DamageFeedHitsGiven[playerid][i][e_Amount] + 0.009,
+				s_PlayerHealth[s_DamageFeedHitsGiven[playerid][i][e_Issuer]]
+			);
+		}
+	}
+
+	if (s_DamageFeedGiven[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+		printf("(wc) WARN: Doesn't have feed textdraw when needed");
+	} else if (s_InternalPlayerTextDraw[playerid][s_DamageFeedGiven[playerid]]) {
+		if (buf[0]) {
+			PlayerTextDrawSetString(playerid, s_DamageFeedGiven[playerid], buf);
+			PlayerTextDrawShow(playerid, s_DamageFeedGiven[playerid]);
+		} else {
+			PlayerTextDrawHide(playerid, s_DamageFeedGiven[playerid]);
+		}
+	}
+
+	buf = "";
+
+	for (new i = 0, weapon[32]; i < sizeof(s_DamageFeedHitsTaken[]) - 1; i++) {
+		if (!s_DamageFeedHitsTaken[playerid][i][e_Tick]) {
+			break;
+		}
+
+		if (s_DamageFeedHitsTaken[playerid][i][e_Weapon] == -1) {
+			weapon = "Multiple";
+		} else {
+			WC_GetWeaponName(s_DamageFeedHitsTaken[playerid][i][e_Weapon], weapon);
+		}
+
+		if (s_DamageFeedHitsTaken[playerid][i][e_Issuer] == INVALID_PLAYER_ID) {
+			format(
+				buf,
+				sizeof(buf),
+				"%s%s -%.2f (%.2f)~n~",
+				buf,
+				weapon,
+				s_DamageFeedHitsTaken[playerid][i][e_Amount] + 0.009,
+				s_PlayerHealth[playerid]
+			);
+		} else {
+			format(
+				buf,
+				sizeof(buf),
+				"%s%s - %s -%.2f (%.2f)~n~",
+				buf,
+				s_DamageFeedHitsTaken[playerid][i][e_Name],
+				weapon,
+				s_DamageFeedHitsTaken[playerid][i][e_Amount] + 0.009,
+				s_PlayerHealth[s_DamageFeedHitsGiven[playerid][i][e_Issuer]]
+			);
+		}
+	}
+
+	if (s_DamageFeedTaken[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+		printf("(wc) WARN: Doesn't have feed textdraw when needed");
+	} else if (s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]]) {
+		if (buf[0]) {
+			PlayerTextDrawSetString(playerid, s_DamageFeedTaken[playerid], buf);
+			PlayerTextDrawShow(playerid, s_DamageFeedTaken[playerid]);
+		} else {
+			PlayerTextDrawHide(playerid, s_DamageFeedTaken[playerid]);
+		}
+	}
+}
+
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 {
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -4677,7 +5401,7 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, weapon)
 
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, weapon)
 {
-	#if defined _inc_y_iterate
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
@@ -4702,6 +5426,11 @@ static DamageFeedAddHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], playerid, issuer
 
 	for (new i = 0; i < sizeof(arr) - 1; i++) {
 		if (!arr[i][e_Tick]) {
+			break;
+		}
+
+		if (tick - arr[i][e_Tick] >= s_DamageFeedHideDelay) {
+			DamageFeedRemoveHit(arr, i);
 			break;
 		}
 
@@ -4733,6 +5462,17 @@ static DamageFeedAddHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], playerid, issuer
 	arr[idx][e_Weapon] = weapon;
 
 	GetPlayerName(issuerid, arr[idx][e_Name], MAX_PLAYER_NAME);
+
+	DamageFeedUpdate(playerid, true);
+}
+
+static DamageFeedRemoveHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], idx)
+{
+	for (new i = 0; i < WC_FEED_HEIGHT; i++) {
+		if (i >= idx) {
+			arr[i][e_Tick] = 0;
+		}
+	}
 }
 
 static SaveSyncData(playerid)
@@ -4909,30 +5649,30 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 	if (!IsHighRateWeapon(weapon)) {
 		DebugMessageAll("OnPlayerDamageDone(%d did %f to %d with %d on bodypart %d)", issuerid, amount, playerid, weapon, bodypart);
 
-		if (s_DamageTakenSound[playerid]) {
-			PlayerPlaySound(playerid, s_DamageTakenSound[playerid], 0.0, 0.0, 0.0);
+		if (s_DamageTakenSound) {
+			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
-			#if defined _inc_y_iterate
+			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new i : Player) {
 			#else
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
 				if (s_Spectating[i] == playerid && i != playerid) {
-					PlayerPlaySound(i, s_DamageTakenSound[i], 0.0, 0.0, 0.0);
+					PlayerPlaySound(i, s_DamageTakenSound, 0.0, 0.0, 0.0);
 				}
 			}
 		}
 
-		if (issuerid != INVALID_PLAYER_ID && s_DamageGivenSound[issuerid]) {
-			PlayerPlaySound(issuerid, s_DamageGivenSound[issuerid], 0.0, 0.0, 0.0);
+		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
+			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
-			#if defined _inc_y_iterate
+			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new i : Player) {
 			#else
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
 				if (s_Spectating[i] == issuerid && i != issuerid) {
-					PlayerPlaySound(i, s_DamageGivenSound[i], 0.0, 0.0, 0.0);
+					PlayerPlaySound(i, s_DamageGivenSound, 0.0, 0.0, 0.0);
 				}
 			}
 		}
@@ -5144,6 +5884,24 @@ CHAIN_FORWARD:WC_OnPlayerEnterCheckpoint(playerid) = 1;
 CHAIN_FORWARD:WC_OnPlayerLeaveCheckpoint(playerid) = 1;
 
 
+#if defined _ALS_OnPlayerEnterRaceCP
+	#undef OnPlayerEnterRaceCheckpoint
+#else
+	#define _ALS_OnPlayerEnterRaceCP
+#endif
+#define OnPlayerEnterRaceCheckpoint(%0) CHAIN_PUBLIC:WC_OnPlayerEnterRaceCheckpoint(%0)
+CHAIN_FORWARD:WC_OnPlayerEnterRaceCheckpoint(playerid) = 1;
+
+
+#if defined _ALS_OnPlayerLeaveRaceCP
+	#undef OnPlayerLeaveRaceCheckpoint
+#else
+	#define _ALS_OnPlayerLeaveRaceCP
+#endif
+#define OnPlayerLeaveRaceCheckpoint(%0) CHAIN_PUBLIC:WC_OnPlayerLeaveRaceCheckpoint(%0)
+CHAIN_FORWARD:WC_OnPlayerLeaveRaceCheckpoint(playerid) = 1;
+
+
 #if defined _ALS_OnInvalidWeaponDamage
 	#undef OnInvalidWeaponDamage
 #else
@@ -5187,6 +5945,17 @@ CHAIN_FORWARD:WC_OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim
 #endif
 #define OnRejectedHit(%0) CHAIN_PUBLIC:WC_OnRejectedHit(%0)
 CHAIN_FORWARD:WC_OnRejectedHit(playerid, hit[E_REJECTED_HIT]) = 1;
+
+
+#if WC_CUSTOM_VENDING_MACHINES
+	#if defined _ALS_OnPlayerUseVendingMachine
+		#undef OnPlayerUseVendingMachine
+	#else
+		#define _ALS_OnPlayerUseVendingMachine
+	#endif
+	#define OnPlayerUseVendingMachine(%0) CHAIN_PUBLIC:WC_OnPlayerUseVendingMachine(%0)
+	CHAIN_FORWARD:WC_OnPlayerUseVendingMachine(playerid, &Float:health_given) = 1;
+#endif
 
 
 #if defined _ALS_OnPlayerDeathFinished
@@ -5391,6 +6160,7 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 #endif
 #define DestroyVehicle WC_DestroyVehicle
 
+
 #if defined _ALS_CreateVehicle
 	#undef CreateVehicle
 #else
@@ -5414,12 +6184,21 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 #endif
 #define AddStaticVehicleEx WC_AddStaticVehicleEx
 
+
 #if defined _ALS_IsPlayerInCheckpoint
 	#undef IsPlayerInCheckpoint
 #else
 	#define _ALS_IsPlayerInCheckpoint
 #endif
 #define IsPlayerInCheckpoint WC_IsPlayerInCheckpoint
+
+
+#if defined _ALS_IsPlayerInRaceCheckpoint
+	#undef IsPlayerInRaceCheckpoint
+#else
+	#define _ALS_IsPlayerInRaceCheckpoint
+#endif
+#define IsPlayerInRaceCheckpoint WC_IsPlayerInRaceCheckpoint
 
 
 #if defined _ALS_SetPlayerSpecialAction
