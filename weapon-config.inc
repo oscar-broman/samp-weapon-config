@@ -62,12 +62,12 @@
 	#error streamer.inc is required when WC_USE_STREAMER=true
 #endif
 
-// https://github.com/oscar-broman/SKY/blob/master/SKY.inc
-#if !defined _INC_SKY
-	#tryinclude <SKY>
+// https://github.com/katursis/Pawn.RakNet/blob/0.3.7/src/Pawn.RakNet.inc
+#if !defined PAWNRAKNET_INC_
+	#tryinclude <Pawn.RakNet>
 
-	#if !defined _INC_SKY
-		#error The SKY plugin is required, get it here: github.com/oscar-broman/sky
+	#if !defined PAWNRAKNET_INC_
+		#error The Pawn.RakNet plugin is required, get it here: github.com/katursis/Pawn.RakNet
 	#endif
 #endif
 
@@ -111,6 +111,10 @@ static stock _WC_IncludeStates() <_ALS : _ALS_go> {}
 #else
 	#define WC_CONST const
 #endif
+
+#define WC_PLAYER_SYNC 207
+#define WC_VEHICLE_SYNC 200
+#define WC_PASSENGER_SYNC 211
 
 // Given in OnInvalidWeaponDamage
 enum {
@@ -954,6 +958,15 @@ static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
 static bool:s_VehicleAlive[MAX_VEHICLES] = {false, ...};
 static bool:s_EnableHealthBar[MAX_PLAYERS];
 static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
+static const s_RPC_ClearPlayerAnimation = 87;
+static const s_RPC_RequestSpawn = 129;
+static s_DisableSyncBugs = true;
+static s_KnifeSync = true;
+static s_FakeHealth[MAX_PLAYERS char];
+static s_FakeArmour[MAX_PLAYERS char];
+static Float:s_FakeQuat[MAX_PLAYERS][4] = {{Float:0x7FFFFFFF, ...}, ...};
+static bool:s_SyncOnFootDataFrozen[MAX_PLAYERS];
+static s_LastSyncData[MAX_PLAYERS][PR_OnFootSync];
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1441,6 +1454,11 @@ stock ResyncPlayer(playerid)
 	s_BeingResynced[playerid] = true;
 
 	SpawnPlayerInPlace(playerid);
+}
+
+stock SetDisableSyncBugs(toggle)
+{
+	s_DisableSyncBugs = !!toggle;
 }
 
 /*
@@ -2258,6 +2276,10 @@ public OnPlayerConnect(playerid)
 	s_DelayedDeathTimer[playerid] = -1;
 	s_DamageFeedPlayer[playerid] = -1;
 	s_EnableHealthBar[playerid] = true; //enable by default
+	s_FakeHealth{playerid} = 255;
+	s_FakeArmour{playerid} = 255;
+	s_FakeQuat[playerid] = Float:{Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF};
+	s_SyncOnFootDataFrozen[playerid] = false;
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
@@ -2288,7 +2310,7 @@ public OnPlayerConnect(playerid)
 	}
 
 	SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
-	FreezeSyncPacket(playerid, .toggle = false);
+	FreezeSyncPacket(playerid, false);
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
 
@@ -2481,7 +2503,7 @@ public OnPlayerSpawn(playerid)
 
 	UpdatePlayerVirtualWorld(playerid);
 	UpdateHealthBar(playerid, true);
-	FreezeSyncPacket(playerid, .toggle = false);
+	FreezeSyncPacket(playerid, false);
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
 
@@ -2553,7 +2575,7 @@ public OnPlayerRequestClass(playerid, classid)
 		s_IsDying[playerid] = false;
 	}
 
-	FreezeSyncPacket(playerid, .toggle = false);
+	FreezeSyncPacket(playerid, false);
 	UpdatePlayerVirtualWorld(playerid);
 
 	if (s_TrueDeath[playerid]) {
@@ -2736,7 +2758,7 @@ static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2);
 
 forward WC_CbugPunishment(playerid, weapon);
 public WC_CbugPunishment(playerid, weapon) {
-	FreezeSyncPacket(playerid, .toggle = false);
+	FreezeSyncPacket(playerid, false);
 	SetPlayerArmedWeapon(playerid, weapon);
 	
 	if (!IsPlayerDying(playerid)) {
@@ -2771,7 +2793,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				animlib = "PED", animname = "IDLE_stance";
 				ClearAnimations(playerid, 1);
 				ApplyAnimation(playerid, animlib, animname, 4.1, 1, 0, 0, 0, 0, 1);
-				FreezeSyncPacket(playerid, .toggle = true);
+				FreezeSyncPacket(playerid, true);
 				SetPlayerArmedWeapon(playerid, w);
 				SetTimerEx("WC_CbugPunishment", 600, false, "ii", playerid, GetPlayerWeapon(playerid));
 
@@ -2800,7 +2822,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 								s_DelayedDeathTimer[i] = -1;
 								ClearAnimations(i, 1);
 								SetFakeFacingAngle(i, _);
-								FreezeSyncPacket(i, .toggle = false);
+								FreezeSyncPacket(i, false);
 
 								s_IsDying[i] = false;
 
@@ -2892,7 +2914,7 @@ public OnPlayerStreamIn(playerid, forplayerid)
 {
 	// Send ped floor_hit_f
 	if (s_IsDying[playerid]) {
-		SendLastSyncPacket(playerid, forplayerid, .animation = 0x2e040000 + 1150);
+		SendLastSyncPacket(playerid, forplayerid, 0x2e040000 + 1150);
 	}
 
 	return WC_OnPlayerStreamIn(playerid, forplayerid);
@@ -3945,6 +3967,127 @@ public OnPlayerLeaveRaceCheckpoint(playerid)
 	return WC_OnPlayerLeaveRaceCheckpoint(playerid);
 }
 
+public OnIncomingPacket(playerid, packetid, BitStream:bs)
+{
+	switch (packetid) {
+		case WC_PLAYER_SYNC: {
+			new d[PR_OnFootSync];
+
+			BS_IgnoreBits(bs, 8);
+			BS_ReadOnFootSync(bs, d);
+
+			if (s_DisableSyncBugs) {
+				// Prevent "ghost shooting" bugs
+				if (IsBulletWeapon(d[PR_weaponId])) {
+					if (1222 <= d[PR_animationId] <= 1236 // PED_RUN_*
+					|| d[PR_animationId] == 1249 // PED_SWAT_RUN
+					|| 1275 <= d[PR_animationId] <= 1287 // PED_WOMAN_(RUN/WALK)_*
+					|| d[PR_animationId] == 459 // FAT_FATRUN_ARMED
+					|| 908 <= d[PR_animationId] <= 909 // MUSCULAR_MUSCLERUN*
+					|| d[PR_animationId] == 1274 // PED_WEAPON_CROUCH
+					|| d[PR_animationId] == 1266 // PED_WALK_PLAYER
+					|| 1241 <= d[PR_animationId] <= 1242 // PED_SHOT_PARTIAL(_B)
+					|| 17 <= d[PR_animationId] <= 27 // Baseball bat
+					|| 745 <= d[PR_animationId] <= 760 // Knife
+					|| 1545 <= d[PR_animationId] <= 1554 // Sword
+					|| 471 <= d[PR_animationId] <= 507 || 1135 <= d[PR_animationId] <= 1151) { // Fight
+						// Only remove action key if holding aim
+						if (d[PR_keys] & KEY_HANDBRAKE) {
+							d[PR_keys] &= ~KEY_ACTION;
+						}
+
+						// Remove fire key
+						d[PR_keys] &= ~KEY_FIRE;
+
+						// Remove aim key
+						d[PR_keys] &= ~KEY_HANDBRAKE;
+					}
+				}
+				else if (d[PR_weaponId] == WEAPON_SPRAYCAN || d[PR_weaponId] == WEAPON_FIREEXTINGUISHER || d[PR_weaponId] == WEAPON_FLAMETHROWER) {
+					if (!(1160 <= d[PR_animationId] <= 1167)) {
+						// Only remove action key if holding aim
+						if (d[PR_keys] & KEY_HANDBRAKE) {
+							d[PR_keys] &= ~KEY_ACTION;
+						}
+
+						// Remove fire key
+						d[PR_keys] &= ~KEY_FIRE;
+
+						// Remove aim key
+						d[PR_keys] &= ~KEY_HANDBRAKE;
+					}
+				}
+				else if (d[PR_weaponId] == WEAPON_GRENADE) {
+					if (!(644 <= d[PR_animationId] <= 646)) {
+						d[PR_keys] &= ~KEY_ACTION;
+					}
+				}
+			}
+
+			if (s_SyncOnFootDataFrozen[playerid]) {
+				d = s_LastSyncData[playerid];
+			} else {
+				s_LastSyncData[playerid] = d;
+			}
+
+			if (s_FakeHealth{playerid} != 255) {
+				d[PR_health] = s_FakeHealth{playerid};
+			}
+
+			if (s_FakeArmour{playerid} != 255) {
+				d[PR_armour] = s_FakeArmour{playerid};
+			}
+
+			if (s_FakeQuat[playerid][0] == s_FakeQuat[playerid][0]) {
+				d[PR_quaternion] = s_FakeQuat[playerid];
+			}
+
+			if (d[PR_weaponId] == WEAPON_KNIFE && !s_KnifeSync) {
+				d[PR_keys] &= ~KEY_HANDBRAKE;
+			}
+
+			BS_SetWriteOffset(bs, 8);
+			BS_WriteOnFootSync(bs, d); // rewrite
+		}
+		case WC_VEHICLE_SYNC: {
+			new d[PR_InCarSync];
+
+			BS_IgnoreBits(bs, 8);
+			BS_ReadInCarSync(bs, d);
+
+			if (s_FakeHealth{playerid} != 255) {
+				d[PR_playerHealth] = s_FakeHealth{playerid};
+			}
+
+			if (s_FakeArmour{playerid} != 255) {
+				d[PR_armour] = s_FakeArmour{playerid};
+			}
+
+			BS_SetWriteOffset(bs, 8);
+			BS_WriteInCarSync(bs, d); // rewrite
+		}
+		case WC_PASSENGER_SYNC: {
+			new d[PR_PassengerSync];
+
+			BS_IgnoreBits(bs, 8);
+			BS_ReadPassengerSync(bs, d);
+
+			if (s_FakeHealth{playerid} != 255) {
+				d[PR_playerHealth] = s_FakeHealth{playerid};
+			}
+
+			if (s_FakeArmour{playerid} != 255) {
+				d[PR_playerArmour] = s_FakeArmour{playerid};
+			}
+
+			BS_SetWriteOffset(bs, 8);
+			BS_WritePassengerSync(bs, d); // rewrite
+		}
+	}
+
+	return WC_OnIncomingPacket(playerid, packetid, bs);
+}
+
 /*
  * Internal functions
  */
@@ -4100,7 +4243,7 @@ static ScriptExit()
 
 		SetFakeHealth(playerid, 255);
 		SetFakeArmour(playerid, 255);
-		FreezeSyncPacket(playerid, .toggle = false);
+		FreezeSyncPacket(playerid, false);
 		SetFakeFacingAngle(playerid, _);
 		SetHealthBarVisible(playerid, false);
 
@@ -4460,7 +4603,11 @@ public WC_SpawnForStreamedIn(playerid)
 		return;
 	}
 
-	SpawnPlayerForWorld(playerid);
+	new BitStream:bs = BS_New();
+
+	BS_WriteValue(bs, PR_UINT32, playerid);
+	PR_SendRPC(bs, -1, s_RPC_RequestSpawn);
+	BS_Delete(bs);
 
 	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
@@ -5048,7 +5195,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 	OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
 
 	UpdateHealthBar(playerid);
-	FreezeSyncPacket(playerid, .toggle = freeze_sync);
+	FreezeSyncPacket(playerid, freeze_sync);
 
 	if (respawn_time == -1) {
 		respawn_time = s_RespawnTime;
@@ -5581,6 +5728,134 @@ static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 
 	}
 }
 
+static FreezeSyncPacket(playerid, bool:toggle)
+{
+	if (!IsPlayerConnected(playerid)) {
+		return 0;
+	}
+
+	s_LastSyncData[playerid][PR_keys] = 0;
+	s_LastSyncData[playerid][PR_udKey] = 0;
+	s_LastSyncData[playerid][PR_lrKey] = 0;
+	s_LastSyncData[playerid][PR_specialAction] = 0;
+	s_LastSyncData[playerid][PR_velocity] = Float:{0.0, 0.0, 0.0};
+
+	s_SyncOnFootDataFrozen[playerid] = toggle;
+
+	return 1;
+}
+
+static SetFakeHealth(playerid, health)
+{
+	if (!IsPlayerConnected(playerid)) {
+		return 0;
+	}
+
+	s_FakeHealth{playerid} = health;
+
+	return 1;
+}
+
+static SetFakeArmour(playerid, armour)
+{
+	if (!IsPlayerConnected(playerid)) {
+		return 0;
+	}
+
+	s_FakeArmour{playerid} = armour;
+
+	return 1;
+}
+
+static GetRotationQuaternion(Float:x, Float:y, Float:z, &Float:qw, &Float:qx, &Float:qy, &Float:qz) // by IllidanS4
+{
+	new Float:cx = floatcos(-0.5*x, degrees);
+	new Float:sx = floatsin(-0.5*x, degrees);
+	new Float:cy = floatcos(-0.5*y, degrees);
+	new Float:sy = floatsin(-0.5*y, degrees);
+	new Float:cz = floatcos(-0.5*z, degrees);
+	new Float:sz = floatsin(-0.5*z, degrees);
+	qw = cx * cy * cz + sx * sy * sz;
+	qx = cx * sy * sz + sx * cy * cz;
+	qy = cx * sy * cz - sx * cy * sz;
+	qz = cx * cy * sz - sx * sy * cz;
+}
+
+static SetFakeFacingAngle(playerid, Float:angle = Float:0x7FFFFFFF)
+{
+	if (!IsPlayerConnected(playerid)) {
+		return 0;
+	}
+
+	if (angle != angle) {
+		s_FakeQuat[playerid] = Float:{Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF};
+	} else {
+		GetRotationQuaternion(0.0, 0.0, angle, s_FakeQuat[playerid][0], s_FakeQuat[playerid][1], s_FakeQuat[playerid][2], s_FakeQuat[playerid][3]);
+	}
+
+	return 1;
+}
+
+static SetKnifeSync(toggle)
+{
+	s_KnifeSync = !!toggle;
+}
+
+static SendLastSyncPacket(playerid, toplayerid, animation = 0)
+{
+	if (!IsPlayerConnected(playerid) || !IsPlayerConnected(toplayerid)) {
+		return 0;
+	}
+
+	new BitStream:bs = BS_New();
+
+	BS_WriteValue(bs, PR_UINT8, WC_PLAYER_SYNC, PR_UINT16, playerid);
+
+	if (s_FakeQuat[playerid][0] == s_FakeQuat[playerid][0]) {
+		s_LastSyncData[playerid][PR_quaternion] = s_FakeQuat[playerid];
+	}
+
+	if (s_FakeHealth{playerid} != 255) {
+		s_LastSyncData[playerid][PR_health] = s_FakeHealth{playerid};
+	}
+
+	if (s_FakeArmour{playerid} != 255) {
+		s_LastSyncData[playerid][PR_armour] = s_FakeArmour{playerid};
+	}
+
+	// Make them appear standing still if paused
+	if (WC_IsPlayerPaused(playerid)) {
+		s_LastSyncData[playerid][PR_velocity] = Float:{0.0, 0.0, 0.0};
+	}
+
+	// Animations are only sent when they are changed
+	if (!animation) {
+		s_LastSyncData[playerid][PR_animationId] = 0;
+		s_LastSyncData[playerid][PR_animationFlags] = 0;
+	}
+
+	BS_WriteOnFootSync(bs, s_LastSyncData[playerid], true); 
+	PR_SendPacket(bs, toplayerid, _, PR_RELIABLE_SEQUENCED);
+	BS_Delete(bs);
+
+	return 1;
+}
+
+static ClearAnimationsForPlayer(playerid, forplayerid)
+{
+	if (!IsPlayerConnected(playerid) || !IsPlayerConnected(forplayerid)) {
+		return 0;
+	}
+
+	new BitStream:bs = BS_New();
+
+	BS_WriteValue(bs, PR_UINT16, playerid);
+	PR_SendRPC(bs, forplayerid, s_RPC_ClearPlayerAnimation);
+	BS_Delete(bs);
+
+	return 1;
+}
+
 forward WC_SecondKnifeAnim(playerid);
 public WC_SecondKnifeAnim(playerid)
 {
@@ -5600,7 +5875,7 @@ public WC_PlayerDeathRespawn(playerid)
 	if (!OnPlayerDeathFinished(playerid, true)) {
 		UpdateHealthBar(playerid);
 		SetFakeFacingAngle(playerid, _);
-		FreezeSyncPacket(playerid, .toggle = false);
+		FreezeSyncPacket(playerid, false);
 
 		return;
 	}
@@ -5900,6 +6175,15 @@ CHAIN_FORWARD:WC_OnPlayerEnterRaceCheckpoint(playerid) = 1;
 #endif
 #define OnPlayerLeaveRaceCheckpoint(%0) CHAIN_PUBLIC:WC_OnPlayerLeaveRaceCheckpoint(%0)
 CHAIN_FORWARD:WC_OnPlayerLeaveRaceCheckpoint(playerid) = 1;
+
+
+#if defined _ALS_OnIncomingPacket
+	#undef OnIncomingPacket
+#else
+	#define _ALS_OnIncomingPacket
+#endif
+#define OnIncomingPacket(%0) CHAIN_PUBLIC:WC_OnIncomingPacket(%0)
+CHAIN_FORWARD:WC_OnIncomingPacket(playerid, packetid, BitStream:bs) = 1;
 
 
 #if defined _ALS_OnInvalidWeaponDamage

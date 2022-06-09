@@ -24,7 +24,7 @@ It's pretty much plug-and-play if you don't have any filterscripts that interfer
 
 ## Requirements
 
-This include file requires the [SKY](https://github.com/oscar-broman/SKY/) plugin.
+This include file requires the [Pawn.RakNet](https://github.com/katursis/Pawn.RakNet/) plugin.
 
 # Features
 
