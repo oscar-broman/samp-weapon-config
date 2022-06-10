@@ -72,7 +72,7 @@ All players are given infinite health and set to the same team. Damage is counte
 
 The players healthbars are modified by editing SA-MP packets, so they are very responsive.
 
-The death animations are applied as "forcesync" and even the facing angle is force synced (with SKY). This allows perfect animations even for laggy/paused players.
+The death animations are applied as "forcesync" and even the facing angle is force synced (with Pawn.RakNet). This allows perfect animations even for laggy/paused players.
 
 The *real* `OnPlayerDeath` is never called from the SA-MP server (only in some rare cases). A player never actually dies in their game - they just see a death animation applied and get respawned.
 
