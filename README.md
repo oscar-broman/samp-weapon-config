@@ -42,6 +42,7 @@ This include file requires the [Pawn.RakNet](https://github.com/katursis/Pawn.Ra
     - `WEAPON_PISTOLWHIP` - When you punch someone with a gun
     - `WEAPON_VEHICLE_M4` - Vehicles with M4 guns (e.g. Rustler)
     - `WEAPON_VEHICLE_MINIGUN` - Vehicles with miniguns (e.g. Hunter)
+    - `WEAPON_VEHICLE_ROCKETLAUNCHER` - Vehicles with projectiles (e.g. Rhino)
     - `WEAPON_HELIBLADES` - Helikill
     - `WEAPON_CARPARK` - When you park your car on someone
 - **Extensive sanity checking on shots:**
