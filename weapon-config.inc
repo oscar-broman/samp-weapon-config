@@ -3982,117 +3982,119 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 {
 	switch (packetid) {
 		case WC_PLAYER_SYNC: {
-			new d[PR_OnFootSync];
+			new onFootData[PR_OnFootSync];
 
 			BS_IgnoreBits(bs, 8);
-			BS_ReadOnFootSync(bs, d);
+			BS_ReadOnFootSync(bs, onFootData);
 
 			if (s_DisableSyncBugs) {
 				// Prevent "ghost shooting" bugs
-				if (IsBulletWeapon(d[PR_weaponId])) {
-					if (1222 <= d[PR_animationId] <= 1236 // PED_RUN_*
-					|| d[PR_animationId] == 1249 // PED_SWAT_RUN
-					|| 1275 <= d[PR_animationId] <= 1287 // PED_WOMAN_(RUN/WALK)_*
-					|| d[PR_animationId] == 459 // FAT_FATRUN_ARMED
-					|| 908 <= d[PR_animationId] <= 909 // MUSCULAR_MUSCLERUN*
-					|| d[PR_animationId] == 1274 // PED_WEAPON_CROUCH
-					|| d[PR_animationId] == 1266 // PED_WALK_PLAYER
-					|| 1241 <= d[PR_animationId] <= 1242 // PED_SHOT_PARTIAL(_B)
-					|| 17 <= d[PR_animationId] <= 27 // Baseball bat
-					|| 745 <= d[PR_animationId] <= 760 // Knife
-					|| 1545 <= d[PR_animationId] <= 1554 // Sword
-					|| 471 <= d[PR_animationId] <= 507 || 1135 <= d[PR_animationId] <= 1151) { // Fight
+				if (IsBulletWeapon(onFootData[PR_weaponId])) {
+					if (1222 <= onFootData[PR_animationId] <= 1236 // PED_RUN_*
+					|| onFootData[PR_animationId] == 1249 // PED_SWAT_RUN
+					|| 1275 <= onFootData[PR_animationId] <= 1287 // PED_WOMAN_(RUN/WALK)_*
+					|| onFootData[PR_animationId] == 459 // FAT_FATRUN_ARMED
+					|| 908 <= onFootData[PR_animationId] <= 909 // MUSCULAR_MUSCLERUN*
+					|| onFootData[PR_animationId] == 1274 // PED_WEAPON_CROUCH
+					|| onFootData[PR_animationId] == 1266 // PED_WALK_PLAYER
+					|| 1241 <= onFootData[PR_animationId] <= 1242 // PED_SHOT_PARTIAL(_B)
+					|| 17 <= onFootData[PR_animationId] <= 27 // Baseball bat
+					|| 745 <= onFootData[PR_animationId] <= 760 // Knife
+					|| 1545 <= onFootData[PR_animationId] <= 1554 // Sword
+					|| 471 <= onFootData[PR_animationId] <= 507 || 1135 <= onFootData[PR_animationId] <= 1151) { // Fight
 						// Only remove action key if holding aim
-						if (d[PR_keys] & KEY_HANDBRAKE) {
-							d[PR_keys] &= ~KEY_ACTION;
+						if (onFootData[PR_keys] & KEY_HANDBRAKE) {
+							onFootData[PR_keys] &= ~KEY_ACTION;
 						}
 
 						// Remove fire key
-						d[PR_keys] &= ~KEY_FIRE;
+						onFootData[PR_keys] &= ~KEY_FIRE;
 
 						// Remove aim key
-						d[PR_keys] &= ~KEY_HANDBRAKE;
+						onFootData[PR_keys] &= ~KEY_HANDBRAKE;
 					}
 				}
-				else if (d[PR_weaponId] == WEAPON_SPRAYCAN || d[PR_weaponId] == WEAPON_FIREEXTINGUISHER || d[PR_weaponId] == WEAPON_FLAMETHROWER) {
-					if (!(1160 <= d[PR_animationId] <= 1167)) {
+				else if (onFootData[PR_weaponId] == WEAPON_SPRAYCAN
+				|| onFootData[PR_weaponId] == WEAPON_FIREEXTINGUISHER
+				|| onFootData[PR_weaponId] == WEAPON_FLAMETHROWER) {
+					if (!(1160 <= onFootData[PR_animationId] <= 1167)) {
 						// Only remove action key if holding aim
-						if (d[PR_keys] & KEY_HANDBRAKE) {
-							d[PR_keys] &= ~KEY_ACTION;
+						if (onFootData[PR_keys] & KEY_HANDBRAKE) {
+							onFootData[PR_keys] &= ~KEY_ACTION;
 						}
 
 						// Remove fire key
-						d[PR_keys] &= ~KEY_FIRE;
+						onFootData[PR_keys] &= ~KEY_FIRE;
 
 						// Remove aim key
-						d[PR_keys] &= ~KEY_HANDBRAKE;
+						onFootData[PR_keys] &= ~KEY_HANDBRAKE;
 					}
 				}
-				else if (d[PR_weaponId] == WEAPON_GRENADE) {
-					if (!(644 <= d[PR_animationId] <= 646)) {
-						d[PR_keys] &= ~KEY_ACTION;
+				else if (onFootData[PR_weaponId] == WEAPON_GRENADE) {
+					if (!(644 <= onFootData[PR_animationId] <= 646)) {
+						onFootData[PR_keys] &= ~KEY_ACTION;
 					}
 				}
 			}
 
 			if (s_SyncDataFrozen[playerid]) {
-				d = s_LastSyncData[playerid];
+				onFootData = s_LastSyncData[playerid];
 			} else {
-				s_LastSyncData[playerid] = d;
+				s_LastSyncData[playerid] = onFootData;
 			}
 
 			if (s_FakeHealth{playerid} != 255) {
-				d[PR_health] = s_FakeHealth{playerid};
+				onFootData[PR_health] = s_FakeHealth{playerid};
 			}
 
 			if (s_FakeArmour{playerid} != 255) {
-				d[PR_armour] = s_FakeArmour{playerid};
+				onFootData[PR_armour] = s_FakeArmour{playerid};
 			}
 
 			if (s_FakeQuat[playerid][0] == s_FakeQuat[playerid][0]) {
-				d[PR_quaternion] = s_FakeQuat[playerid];
+				onFootData[PR_quaternion] = s_FakeQuat[playerid];
 			}
 
-			if (d[PR_weaponId] == WEAPON_KNIFE && !s_KnifeSync) {
-				d[PR_keys] &= ~KEY_HANDBRAKE;
+			if (onFootData[PR_weaponId] == WEAPON_KNIFE && !s_KnifeSync) {
+				onFootData[PR_keys] &= ~KEY_HANDBRAKE;
 			}
 
 			BS_SetWriteOffset(bs, 8);
-			BS_WriteOnFootSync(bs, d); // rewrite
+			BS_WriteOnFootSync(bs, onFootData); // rewrite
 		}
 		case WC_VEHICLE_SYNC: {
-			new d[PR_InCarSync];
+			new inCarData[PR_InCarSync];
 
 			BS_IgnoreBits(bs, 8);
-			BS_ReadInCarSync(bs, d);
+			BS_ReadInCarSync(bs, inCarData);
 
 			if (s_FakeHealth{playerid} != 255) {
-				d[PR_playerHealth] = s_FakeHealth{playerid};
+				inCarData[PR_playerHealth] = s_FakeHealth{playerid};
 			}
 
 			if (s_FakeArmour{playerid} != 255) {
-				d[PR_armour] = s_FakeArmour{playerid};
+				inCarData[PR_armour] = s_FakeArmour{playerid};
 			}
 
 			BS_SetWriteOffset(bs, 8);
-			BS_WriteInCarSync(bs, d); // rewrite
+			BS_WriteInCarSync(bs, inCarData); // rewrite
 		}
 		case WC_PASSENGER_SYNC: {
-			new d[PR_PassengerSync];
+			new passengerData[PR_PassengerSync];
 
 			BS_IgnoreBits(bs, 8);
-			BS_ReadPassengerSync(bs, d);
+			BS_ReadPassengerSync(bs, passengerData);
 
 			if (s_FakeHealth{playerid} != 255) {
-				d[PR_playerHealth] = s_FakeHealth{playerid};
+				passengerData[PR_playerHealth] = s_FakeHealth{playerid};
 			}
 
 			if (s_FakeArmour{playerid} != 255) {
-				d[PR_playerArmour] = s_FakeArmour{playerid};
+				passengerData[PR_playerArmour] = s_FakeArmour{playerid};
 			}
 
 			BS_SetWriteOffset(bs, 8);
-			BS_WritePassengerSync(bs, d); // rewrite
+			BS_WritePassengerSync(bs, passengerData); // rewrite
 		}
 	}
 
