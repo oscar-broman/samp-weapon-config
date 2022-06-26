@@ -112,10 +112,6 @@ static stock _WC_IncludeStates() <_ALS : _ALS_go> {}
 	#define WC_CONST const
 #endif
 
-#define WC_PLAYER_SYNC 207
-#define WC_VEHICLE_SYNC 200
-#define WC_PASSENGER_SYNC 211
-
 // Given in OnInvalidWeaponDamage
 enum {
 	WC_NO_ERROR,
@@ -316,6 +312,15 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #define WEAPON_EXPLOSION 51
 #define WEAPON_CARPARK 52
 #define WEAPON_UNKNOWN 55
+
+// Define packet IDs
+#define WC_PLAYER_SYNC 207
+#define WC_VEHICLE_SYNC 200
+#define WC_PASSENGER_SYNC 211
+
+// Define RPC IDs
+#define WC_RPC_CLEAR_ANIMATIONS 87
+#define WC_RPC_REQUEST_SPAWN 129
 
 #if WC_DEBUG_SILENT
 	static s_DebugMsgBuf[512];
@@ -958,15 +963,13 @@ static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
 static bool:s_VehicleAlive[MAX_VEHICLES] = {false, ...};
 static bool:s_EnableHealthBar[MAX_PLAYERS];
 static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
-static const s_RPC_ClearPlayerAnimation = 87;
-static const s_RPC_RequestSpawn = 129;
-static s_DisableSyncBugs = true;
-static s_KnifeSync = true;
 static s_FakeHealth[MAX_PLAYERS char];
 static s_FakeArmour[MAX_PLAYERS char];
-static Float:s_FakeQuat[MAX_PLAYERS][4] = {{Float:0x7FFFFFFF, ...}, ...};
-static bool:s_SyncOnFootDataFrozen[MAX_PLAYERS];
+static Float:s_FakeQuat[MAX_PLAYERS][4];
+static bool:s_SyncDataFrozen[MAX_PLAYERS];
 static s_LastSyncData[MAX_PLAYERS][PR_OnFootSync];
+static s_DisableSyncBugs = true;
+static s_KnifeSync = true;
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
@@ -1459,6 +1462,11 @@ stock ResyncPlayer(playerid)
 stock SetDisableSyncBugs(toggle)
 {
 	s_DisableSyncBugs = !!toggle;
+}
+
+stock SetKnifeSync(toggle)
+{
+	s_KnifeSync = !!toggle;
 }
 
 /*
@@ -2278,8 +2286,11 @@ public OnPlayerConnect(playerid)
 	s_EnableHealthBar[playerid] = true; //enable by default
 	s_FakeHealth{playerid} = 255;
 	s_FakeArmour{playerid} = 255;
-	s_FakeQuat[playerid] = Float:{Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF};
-	s_SyncOnFootDataFrozen[playerid] = false;
+	s_FakeQuat[playerid][0] = Float:0x7FFFFFFF;
+	s_FakeQuat[playerid][1] = Float:0x7FFFFFFF;
+	s_FakeQuat[playerid][2] = Float:0x7FFFFFFF;
+	s_FakeQuat[playerid][3] = Float:0x7FFFFFFF;
+	s_SyncDataFrozen[playerid] = false;
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
@@ -4024,7 +4035,7 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 				}
 			}
 
-			if (s_SyncOnFootDataFrozen[playerid]) {
+			if (s_SyncDataFrozen[playerid]) {
 				d = s_LastSyncData[playerid];
 			} else {
 				s_LastSyncData[playerid] = d;
@@ -4606,7 +4617,7 @@ public WC_SpawnForStreamedIn(playerid)
 	new BitStream:bs = BS_New();
 
 	BS_WriteValue(bs, PR_UINT32, playerid);
-	PR_SendRPC(bs, -1, s_RPC_RequestSpawn);
+	PR_SendRPC(bs, -1, WC_RPC_REQUEST_SPAWN);
 	BS_Delete(bs);
 
 	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
@@ -5738,9 +5749,11 @@ static FreezeSyncPacket(playerid, bool:toggle)
 	s_LastSyncData[playerid][PR_udKey] = 0;
 	s_LastSyncData[playerid][PR_lrKey] = 0;
 	s_LastSyncData[playerid][PR_specialAction] = 0;
-	s_LastSyncData[playerid][PR_velocity] = Float:{0.0, 0.0, 0.0};
+	s_LastSyncData[playerid][PR_velocity][0] = 0.0;
+	s_LastSyncData[playerid][PR_velocity][1] = 0.0;
+	s_LastSyncData[playerid][PR_velocity][2] = 0.0;
 
-	s_SyncOnFootDataFrozen[playerid] = toggle;
+	s_SyncDataFrozen[playerid] = toggle;
 
 	return 1;
 }
@@ -5769,12 +5782,14 @@ static SetFakeArmour(playerid, armour)
 
 static GetRotationQuaternion(Float:x, Float:y, Float:z, &Float:qw, &Float:qx, &Float:qy, &Float:qz) // by IllidanS4
 {
-	new Float:cx = floatcos(-0.5*x, degrees);
-	new Float:sx = floatsin(-0.5*x, degrees);
-	new Float:cy = floatcos(-0.5*y, degrees);
-	new Float:sy = floatsin(-0.5*y, degrees);
-	new Float:cz = floatcos(-0.5*z, degrees);
-	new Float:sz = floatsin(-0.5*z, degrees);
+	new
+		Float:cx = floatcos(-0.5 * x, degrees),
+		Float:sx = floatsin(-0.5 * x, degrees),
+		Float:cy = floatcos(-0.5 * y, degrees),
+		Float:sy = floatsin(-0.5 * y, degrees),
+		Float:cz = floatcos(-0.5 * z, degrees),
+		Float:sz = floatsin(-0.5 * z, degrees);
+
 	qw = cx * cy * cz + sx * sy * sz;
 	qx = cx * sy * sz + sx * cy * cz;
 	qy = cx * sy * cz - sx * cy * sz;
@@ -5788,17 +5803,15 @@ static SetFakeFacingAngle(playerid, Float:angle = Float:0x7FFFFFFF)
 	}
 
 	if (angle != angle) {
-		s_FakeQuat[playerid] = Float:{Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF};
+		s_FakeQuat[playerid][0] = Float:0x7FFFFFFF;
+		s_FakeQuat[playerid][1] = Float:0x7FFFFFFF;
+		s_FakeQuat[playerid][2] = Float:0x7FFFFFFF;
+		s_FakeQuat[playerid][3] = Float:0x7FFFFFFF;
 	} else {
 		GetRotationQuaternion(0.0, 0.0, angle, s_FakeQuat[playerid][0], s_FakeQuat[playerid][1], s_FakeQuat[playerid][2], s_FakeQuat[playerid][3]);
 	}
 
 	return 1;
-}
-
-static SetKnifeSync(toggle)
-{
-	s_KnifeSync = !!toggle;
 }
 
 static SendLastSyncPacket(playerid, toplayerid, animation = 0)
@@ -5825,7 +5838,9 @@ static SendLastSyncPacket(playerid, toplayerid, animation = 0)
 
 	// Make them appear standing still if paused
 	if (WC_IsPlayerPaused(playerid)) {
-		s_LastSyncData[playerid][PR_velocity] = Float:{0.0, 0.0, 0.0};
+		s_LastSyncData[playerid][PR_velocity][0] = 0.0;
+		s_LastSyncData[playerid][PR_velocity][1] = 0.0;
+		s_LastSyncData[playerid][PR_velocity][2] = 0.0;
 	}
 
 	// Animations are only sent when they are changed
@@ -5850,7 +5865,7 @@ static ClearAnimationsForPlayer(playerid, forplayerid)
 	new BitStream:bs = BS_New();
 
 	BS_WriteValue(bs, PR_UINT16, playerid);
-	PR_SendRPC(bs, forplayerid, s_RPC_ClearPlayerAnimation);
+	PR_SendRPC(bs, forplayerid, WC_RPC_CLEAR_ANIMATIONS);
 	BS_Delete(bs);
 
 	return 1;
