@@ -314,13 +314,13 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #define WEAPON_UNKNOWN 55
 
 // Define packet IDs
-#define WC_PLAYER_SYNC 207
-#define WC_VEHICLE_SYNC 200
-#define WC_PASSENGER_SYNC 211
+const WC_PLAYER_SYNC = 207;
+const WC_VEHICLE_SYNC = 200;
+const WC_PASSENGER_SYNC = 211;
 
 // Define RPC IDs
-#define WC_RPC_CLEAR_ANIMATIONS 87
-#define WC_RPC_REQUEST_SPAWN 129
+const WC_RPC_CLEAR_ANIMATIONS = 87;
+const WC_RPC_REQUEST_SPAWN = 129;
 
 #if WC_DEBUG_SILENT
 	static s_DebugMsgBuf[512];
@@ -3978,127 +3978,135 @@ public OnPlayerLeaveRaceCheckpoint(playerid)
 	return WC_OnPlayerLeaveRaceCheckpoint(playerid);
 }
 
-public OnIncomingPacket(playerid, packetid, BitStream:bs)
+/*
+ * Pawn.RakNet handlers
+ */
+
+IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 {
-	switch (packetid) {
-		case WC_PLAYER_SYNC: {
-			new onFootData[PR_OnFootSync];
+	new onFootData[PR_OnFootSync];
 
-			BS_IgnoreBits(bs, 8);
-			BS_ReadOnFootSync(bs, onFootData);
+	BS_IgnoreBits(bs, 8);
+	BS_ReadOnFootSync(bs, onFootData);
 
-			if (s_DisableSyncBugs) {
-				// Prevent "ghost shooting" bugs
-				if (IsBulletWeapon(onFootData[PR_weaponId])) {
-					if (1222 <= onFootData[PR_animationId] <= 1236 // PED_RUN_*
-					|| onFootData[PR_animationId] == 1249 // PED_SWAT_RUN
-					|| 1275 <= onFootData[PR_animationId] <= 1287 // PED_WOMAN_(RUN/WALK)_*
-					|| onFootData[PR_animationId] == 459 // FAT_FATRUN_ARMED
-					|| 908 <= onFootData[PR_animationId] <= 909 // MUSCULAR_MUSCLERUN*
-					|| onFootData[PR_animationId] == 1274 // PED_WEAPON_CROUCH
-					|| onFootData[PR_animationId] == 1266 // PED_WALK_PLAYER
-					|| 1241 <= onFootData[PR_animationId] <= 1242 // PED_SHOT_PARTIAL(_B)
-					|| 17 <= onFootData[PR_animationId] <= 27 // Baseball bat
-					|| 745 <= onFootData[PR_animationId] <= 760 // Knife
-					|| 1545 <= onFootData[PR_animationId] <= 1554 // Sword
-					|| 471 <= onFootData[PR_animationId] <= 507 || 1135 <= onFootData[PR_animationId] <= 1151) { // Fight
-						// Only remove action key if holding aim
-						if (onFootData[PR_keys] & KEY_HANDBRAKE) {
-							onFootData[PR_keys] &= ~KEY_ACTION;
-						}
-
-						// Remove fire key
-						onFootData[PR_keys] &= ~KEY_FIRE;
-
-						// Remove aim key
-						onFootData[PR_keys] &= ~KEY_HANDBRAKE;
-					}
+	if (s_DisableSyncBugs) {
+		// Prevent "ghost shooting" bugs
+		if (IsBulletWeapon(onFootData[PR_weaponId])) {
+			if (1222 <= onFootData[PR_animationId] <= 1236 // PED_RUN_*
+			|| onFootData[PR_animationId] == 1249 // PED_SWAT_RUN
+			|| 1275 <= onFootData[PR_animationId] <= 1287 // PED_WOMAN_(RUN/WALK)_*
+			|| onFootData[PR_animationId] == 459 // FAT_FATRUN_ARMED
+			|| 908 <= onFootData[PR_animationId] <= 909 // MUSCULAR_MUSCLERUN*
+			|| onFootData[PR_animationId] == 1274 // PED_WEAPON_CROUCH
+			|| onFootData[PR_animationId] == 1266 // PED_WALK_PLAYER
+			|| 1241 <= onFootData[PR_animationId] <= 1242 // PED_SHOT_PARTIAL(_B)
+			|| 17 <= onFootData[PR_animationId] <= 27 // Baseball bat
+			|| 745 <= onFootData[PR_animationId] <= 760 // Knife
+			|| 1545 <= onFootData[PR_animationId] <= 1554 // Sword
+			|| 471 <= onFootData[PR_animationId] <= 507 || 1135 <= onFootData[PR_animationId] <= 1151) { // Fight
+				// Only remove action key if holding aim
+				if (onFootData[PR_keys] & KEY_HANDBRAKE) {
+					onFootData[PR_keys] &= ~KEY_ACTION;
 				}
-				else if (onFootData[PR_weaponId] == WEAPON_SPRAYCAN
-				|| onFootData[PR_weaponId] == WEAPON_FIREEXTINGUISHER
-				|| onFootData[PR_weaponId] == WEAPON_FLAMETHROWER) {
-					if (!(1160 <= onFootData[PR_animationId] <= 1167)) {
-						// Only remove action key if holding aim
-						if (onFootData[PR_keys] & KEY_HANDBRAKE) {
-							onFootData[PR_keys] &= ~KEY_ACTION;
-						}
 
-						// Remove fire key
-						onFootData[PR_keys] &= ~KEY_FIRE;
+				// Remove fire key
+				onFootData[PR_keys] &= ~KEY_FIRE;
 
-						// Remove aim key
-						onFootData[PR_keys] &= ~KEY_HANDBRAKE;
-					}
-				}
-				else if (onFootData[PR_weaponId] == WEAPON_GRENADE) {
-					if (!(644 <= onFootData[PR_animationId] <= 646)) {
-						onFootData[PR_keys] &= ~KEY_ACTION;
-					}
-				}
-			}
-
-			if (s_SyncDataFrozen[playerid]) {
-				onFootData = s_LastSyncData[playerid];
-			} else {
-				s_LastSyncData[playerid] = onFootData;
-			}
-
-			if (s_FakeHealth{playerid} != 255) {
-				onFootData[PR_health] = s_FakeHealth{playerid};
-			}
-
-			if (s_FakeArmour{playerid} != 255) {
-				onFootData[PR_armour] = s_FakeArmour{playerid};
-			}
-
-			if (s_FakeQuat[playerid][0] == s_FakeQuat[playerid][0]) {
-				onFootData[PR_quaternion] = s_FakeQuat[playerid];
-			}
-
-			if (onFootData[PR_weaponId] == WEAPON_KNIFE && !s_KnifeSync) {
+				// Remove aim key
 				onFootData[PR_keys] &= ~KEY_HANDBRAKE;
 			}
-
-			BS_SetWriteOffset(bs, 8);
-			BS_WriteOnFootSync(bs, onFootData); // rewrite
 		}
-		case WC_VEHICLE_SYNC: {
-			new inCarData[PR_InCarSync];
+		else if (onFootData[PR_weaponId] == WEAPON_SPRAYCAN
+		|| onFootData[PR_weaponId] == WEAPON_FIREEXTINGUISHER
+		|| onFootData[PR_weaponId] == WEAPON_FLAMETHROWER) {
+			if (!(1160 <= onFootData[PR_animationId] <= 1167)) {
+				// Only remove action key if holding aim
+				if (onFootData[PR_keys] & KEY_HANDBRAKE) {
+					onFootData[PR_keys] &= ~KEY_ACTION;
+				}
 
-			BS_IgnoreBits(bs, 8);
-			BS_ReadInCarSync(bs, inCarData);
+				// Remove fire key
+				onFootData[PR_keys] &= ~KEY_FIRE;
 
-			if (s_FakeHealth{playerid} != 255) {
-				inCarData[PR_playerHealth] = s_FakeHealth{playerid};
+				// Remove aim key
+				onFootData[PR_keys] &= ~KEY_HANDBRAKE;
 			}
-
-			if (s_FakeArmour{playerid} != 255) {
-				inCarData[PR_armour] = s_FakeArmour{playerid};
-			}
-
-			BS_SetWriteOffset(bs, 8);
-			BS_WriteInCarSync(bs, inCarData); // rewrite
 		}
-		case WC_PASSENGER_SYNC: {
-			new passengerData[PR_PassengerSync];
-
-			BS_IgnoreBits(bs, 8);
-			BS_ReadPassengerSync(bs, passengerData);
-
-			if (s_FakeHealth{playerid} != 255) {
-				passengerData[PR_playerHealth] = s_FakeHealth{playerid};
+		else if (onFootData[PR_weaponId] == WEAPON_GRENADE) {
+			if (!(644 <= onFootData[PR_animationId] <= 646)) {
+				onFootData[PR_keys] &= ~KEY_ACTION;
 			}
-
-			if (s_FakeArmour{playerid} != 255) {
-				passengerData[PR_playerArmour] = s_FakeArmour{playerid};
-			}
-
-			BS_SetWriteOffset(bs, 8);
-			BS_WritePassengerSync(bs, passengerData); // rewrite
 		}
 	}
 
-	return WC_OnIncomingPacket(playerid, packetid, bs);
+	if (s_SyncDataFrozen[playerid]) {
+		onFootData = s_LastSyncData[playerid];
+	} else {
+		s_LastSyncData[playerid] = onFootData;
+	}
+
+	if (s_FakeHealth{playerid} != 255) {
+		onFootData[PR_health] = s_FakeHealth{playerid};
+	}
+
+	if (s_FakeArmour{playerid} != 255) {
+		onFootData[PR_armour] = s_FakeArmour{playerid};
+	}
+
+	if (s_FakeQuat[playerid][0] == s_FakeQuat[playerid][0]) {
+		onFootData[PR_quaternion] = s_FakeQuat[playerid];
+	}
+
+	if (onFootData[PR_weaponId] == WEAPON_KNIFE && !s_KnifeSync) {
+		onFootData[PR_keys] &= ~KEY_HANDBRAKE;
+	}
+
+	BS_SetWriteOffset(bs, 8);
+	BS_WriteOnFootSync(bs, onFootData); // rewrite
+
+	return 1;
+}
+
+IPacket:WC_VEHICLE_SYNC(playerid, BitStream:bs)
+{
+	new inCarData[PR_InCarSync];
+
+	BS_IgnoreBits(bs, 8);
+	BS_ReadInCarSync(bs, inCarData);
+
+	if (s_FakeHealth{playerid} != 255) {
+		inCarData[PR_playerHealth] = s_FakeHealth{playerid};
+	}
+
+	if (s_FakeArmour{playerid} != 255) {
+		inCarData[PR_armour] = s_FakeArmour{playerid};
+	}
+
+	BS_SetWriteOffset(bs, 8);
+	BS_WriteInCarSync(bs, inCarData); // rewrite
+
+	return 1;
+}
+
+IPacket:WC_PASSENGER_SYNC(playerid, BitStream:bs)
+{
+	new passengerData[PR_PassengerSync];
+
+	BS_IgnoreBits(bs, 8);
+	BS_ReadPassengerSync(bs, passengerData);
+
+	if (s_FakeHealth{playerid} != 255) {
+		passengerData[PR_playerHealth] = s_FakeHealth{playerid};
+	}
+
+	if (s_FakeArmour{playerid} != 255) {
+		passengerData[PR_playerArmour] = s_FakeArmour{playerid};
+	}
+
+	BS_SetWriteOffset(bs, 8);
+	BS_WritePassengerSync(bs, passengerData); // rewrite
+
+	return 1;
 }
 
 /*
@@ -6192,15 +6200,6 @@ CHAIN_FORWARD:WC_OnPlayerEnterRaceCheckpoint(playerid) = 1;
 #endif
 #define OnPlayerLeaveRaceCheckpoint(%0) CHAIN_PUBLIC:WC_OnPlayerLeaveRaceCheckpoint(%0)
 CHAIN_FORWARD:WC_OnPlayerLeaveRaceCheckpoint(playerid) = 1;
-
-
-#if defined _ALS_OnIncomingPacket
-	#undef OnIncomingPacket
-#else
-	#define _ALS_OnIncomingPacket
-#endif
-#define OnIncomingPacket(%0) CHAIN_PUBLIC:WC_OnIncomingPacket(%0)
-CHAIN_FORWARD:WC_OnIncomingPacket(playerid, packetid, BitStream:bs) = 1;
 
 
 #if defined _ALS_OnInvalidWeaponDamage
