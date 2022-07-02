@@ -24,7 +24,7 @@ It's pretty much plug-and-play if you don't have any filterscripts that interfer
 
 ## Requirements
 
-This include file requires the [Pawn.RakNet](https://github.com/katursis/Pawn.RakNet/) plugin.
+This include file requires the [SKY](https://github.com/oscar-broman/SKY/) or [Pawn.RakNet](https://github.com/katursis/Pawn.RakNet/) plugin.
 
 # Features
 
@@ -73,7 +73,7 @@ All players are given infinite health and set to the same team. Damage is counte
 
 The players healthbars are modified by editing SA-MP packets, so they are very responsive.
 
-The death animations are applied as "forcesync" and even the facing angle is force synced (with Pawn.RakNet). This allows perfect animations even for laggy/paused players.
+The death animations are applied as "forcesync" and even the facing angle is force synced (with SKY or Pawn.RakNet). This allows perfect animations even for laggy/paused players.
 
 The *real* `OnPlayerDeath` is never called from the SA-MP server (only in some rare cases). A player never actually dies in their game - they just see a death animation applied and get respawned.
 
