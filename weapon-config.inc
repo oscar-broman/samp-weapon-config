@@ -62,12 +62,17 @@
 	#error streamer.inc is required when WC_USE_STREAMER=true
 #endif
 
-// https://github.com/katursis/Pawn.RakNet/blob/0.3.7/src/Pawn.RakNet.inc
-#if !defined PAWNRAKNET_INC_
-	#tryinclude <Pawn.RakNet>
+#if !defined _INC_SKY && !defined PAWNRAKNET_INC_
+	// https://github.com/oscar-broman/SKY/blob/master/SKY.inc
+	#tryinclude <SKY>
 
-	#if !defined PAWNRAKNET_INC_
-		#error The Pawn.RakNet plugin is required, get it here: github.com/katursis/Pawn.RakNet
+	#if !defined _INC_SKY
+		// https://github.com/katursis/Pawn.RakNet/blob/0.3.7/src/Pawn.RakNet.inc
+		#tryinclude <Pawn.RakNet>
+
+		#if !defined PAWNRAKNET_INC_
+			#error The SKY or Pawn.RakNet plugin is required
+		#endif
 	#endif
 #endif
 
@@ -313,14 +318,16 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #define WEAPON_CARPARK 52
 #define WEAPON_UNKNOWN 55
 
-// Define packet IDs
-const WC_PLAYER_SYNC = 207;
-const WC_VEHICLE_SYNC = 200;
-const WC_PASSENGER_SYNC = 211;
+#if !defined _INC_SKY
+	// Define packet IDs
+	const WC_PLAYER_SYNC = 207;
+	const WC_VEHICLE_SYNC = 200;
+	const WC_PASSENGER_SYNC = 211;
 
-// Define RPC IDs
-const WC_RPC_CLEAR_ANIMATIONS = 87;
-const WC_RPC_REQUEST_SPAWN = 129;
+	// Define RPC IDs
+	const WC_RPC_CLEAR_ANIMATIONS = 87;
+	const WC_RPC_REQUEST_SPAWN = 129;
+#endif
 
 #if WC_DEBUG_SILENT
 	static s_DebugMsgBuf[512];
@@ -920,6 +927,7 @@ static s_DamageFeedLastUpdate[MAX_PLAYERS];
 static s_Spectating[MAX_PLAYERS] = {INVALID_PLAYER_ID, ...};
 static s_LastStop[MAX_PLAYERS];
 static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
+
 #if WC_CUSTOM_VENDING_MACHINES
 	static bool:s_CustomVendingMachines = true;
 	#if WC_USE_STREAMER
@@ -929,6 +937,7 @@ static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
 	#endif
 	static s_VendingUseTimer[MAX_PLAYERS] = {-1, ...};
 #endif
+
 static s_BeingResynced[MAX_PLAYERS];
 static s_KnifeTimeout[MAX_PLAYERS] = {-1, ...};
 static s_SyncData[MAX_PLAYERS][E_RESYNC_DATA];
@@ -963,19 +972,23 @@ static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
 static bool:s_VehicleAlive[MAX_VEHICLES] = {false, ...};
 static bool:s_EnableHealthBar[MAX_PLAYERS];
 static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
-static s_FakeHealth[MAX_PLAYERS char];
-static s_FakeArmour[MAX_PLAYERS char];
-static Float:s_FakeQuat[MAX_PLAYERS][4];
-static bool:s_SyncDataFrozen[MAX_PLAYERS];
-static s_LastSyncData[MAX_PLAYERS][PR_OnFootSync];
-static s_DisableSyncBugs = true;
-static s_KnifeSync = true;
+
+#if !defined _INC_SKY
+	static s_FakeHealth[MAX_PLAYERS char];
+	static s_FakeArmour[MAX_PLAYERS char];
+	static Float:s_FakeQuat[MAX_PLAYERS][4];
+	static bool:s_SyncDataFrozen[MAX_PLAYERS];
+	static s_LastSyncData[MAX_PLAYERS][PR_OnFootSync];
+	static s_DisableSyncBugs = true;
+	static s_KnifeSync = true;
+#endif
 
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
 /*
  * Public API
  */
+ 
 stock IsBulletWeapon(weaponid)
 {
 	return (WEAPON_COLT45 <= weaponid <= WEAPON_SNIPER) || weaponid == WEAPON_MINIGUN;
@@ -1459,15 +1472,21 @@ stock ResyncPlayer(playerid)
 	SpawnPlayerInPlace(playerid);
 }
 
-stock SetDisableSyncBugs(toggle)
-{
-	s_DisableSyncBugs = !!toggle;
-}
+/*
+ * Emulated SKY natives
+ */
 
-stock SetKnifeSync(toggle)
-{
-	s_KnifeSync = !!toggle;
-}
+#if !defined _INC_SKY
+	stock SetDisableSyncBugs(toggle)
+	{
+		s_DisableSyncBugs = !!toggle;
+	}
+
+	stock SetKnifeSync(toggle)
+	{
+		s_KnifeSync = !!toggle;
+	}
+#endif
 
 /*
  * Hooked natives
@@ -2204,6 +2223,7 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 /*
  * Hooked callbacks
  */
+ 
 public OnGameModeInit()
 {
 	state _ALS : _ALS_go;
@@ -2284,13 +2304,16 @@ public OnPlayerConnect(playerid)
 	s_DelayedDeathTimer[playerid] = -1;
 	s_DamageFeedPlayer[playerid] = -1;
 	s_EnableHealthBar[playerid] = true; //enable by default
-	s_FakeHealth{playerid} = 255;
-	s_FakeArmour{playerid} = 255;
-	s_FakeQuat[playerid][0] = Float:0x7FFFFFFF;
-	s_FakeQuat[playerid][1] = Float:0x7FFFFFFF;
-	s_FakeQuat[playerid][2] = Float:0x7FFFFFFF;
-	s_FakeQuat[playerid][3] = Float:0x7FFFFFFF;
-	s_SyncDataFrozen[playerid] = false;
+
+	#if !defined _INC_SKY
+		s_FakeHealth{playerid} = 255;
+		s_FakeArmour{playerid} = 255;
+		s_FakeQuat[playerid][0] = Float:0x7FFFFFFF;
+		s_FakeQuat[playerid][1] = Float:0x7FFFFFFF;
+		s_FakeQuat[playerid][2] = Float:0x7FFFFFFF;
+		s_FakeQuat[playerid][3] = Float:0x7FFFFFFF;
+		s_SyncDataFrozen[playerid] = false;
+	#endif
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
@@ -2321,7 +2344,7 @@ public OnPlayerConnect(playerid)
 	}
 
 	SetPlayerTeam(playerid, s_PlayerTeam[playerid]);
-	FreezeSyncPacket(playerid, false);
+	FreezeSyncPacket(playerid, .toggle = false);
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
 
@@ -2514,7 +2537,7 @@ public OnPlayerSpawn(playerid)
 
 	UpdatePlayerVirtualWorld(playerid);
 	UpdateHealthBar(playerid, true);
-	FreezeSyncPacket(playerid, false);
+	FreezeSyncPacket(playerid, .toggle = false);
 	SetFakeFacingAngle(playerid, _);
 	DamageFeedUpdate(playerid);
 
@@ -2586,7 +2609,7 @@ public OnPlayerRequestClass(playerid, classid)
 		s_IsDying[playerid] = false;
 	}
 
-	FreezeSyncPacket(playerid, false);
+	FreezeSyncPacket(playerid, .toggle = false);
 	UpdatePlayerVirtualWorld(playerid);
 
 	if (s_TrueDeath[playerid]) {
@@ -2769,7 +2792,7 @@ static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2);
 
 forward WC_CbugPunishment(playerid, weapon);
 public WC_CbugPunishment(playerid, weapon) {
-	FreezeSyncPacket(playerid, false);
+	FreezeSyncPacket(playerid, .toggle = false);
 	SetPlayerArmedWeapon(playerid, weapon);
 	
 	if (!IsPlayerDying(playerid)) {
@@ -2804,7 +2827,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				animlib = "PED", animname = "IDLE_stance";
 				ClearAnimations(playerid, 1);
 				ApplyAnimation(playerid, animlib, animname, 4.1, 1, 0, 0, 0, 0, 1);
-				FreezeSyncPacket(playerid, true);
+				FreezeSyncPacket(playerid, .toggle = true);
 				SetPlayerArmedWeapon(playerid, w);
 				SetTimerEx("WC_CbugPunishment", 600, false, "ii", playerid, GetPlayerWeapon(playerid));
 
@@ -2833,7 +2856,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 								s_DelayedDeathTimer[i] = -1;
 								ClearAnimations(i, 1);
 								SetFakeFacingAngle(i, _);
-								FreezeSyncPacket(i, false);
+								FreezeSyncPacket(i, .toggle = false);
 
 								s_IsDying[i] = false;
 
@@ -2925,7 +2948,7 @@ public OnPlayerStreamIn(playerid, forplayerid)
 {
 	// Send ped floor_hit_f
 	if (s_IsDying[playerid]) {
-		SendLastSyncPacket(playerid, forplayerid, 0x2e040000 + 1150);
+		SendLastSyncPacket(playerid, forplayerid, .animation = 0x2e040000 + 1150);
 	}
 
 	return WC_OnPlayerStreamIn(playerid, forplayerid);
@@ -3982,6 +4005,8 @@ public OnPlayerLeaveRaceCheckpoint(playerid)
  * Pawn.RakNet handlers
  */
 
+#if !defined _INC_SKY
+
 IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 {
 	new onFootData[PR_OnFootSync];
@@ -4108,6 +4133,8 @@ IPacket:WC_PASSENGER_SYNC(playerid, BitStream:bs)
 
 	return 1;
 }
+
+#endif
 
 /*
  * Internal functions
@@ -4264,7 +4291,7 @@ static ScriptExit()
 
 		SetFakeHealth(playerid, 255);
 		SetFakeArmour(playerid, 255);
-		FreezeSyncPacket(playerid, false);
+		FreezeSyncPacket(playerid, .toggle = false);
 		SetFakeFacingAngle(playerid, _);
 		SetHealthBarVisible(playerid, false);
 
@@ -4624,11 +4651,7 @@ public WC_SpawnForStreamedIn(playerid)
 		return;
 	}
 
-	new BitStream:bs = BS_New();
-
-	BS_WriteValue(bs, PR_UINT32, playerid);
-	PR_SendRPC(bs, -1, WC_RPC_REQUEST_SPAWN);
-	BS_Delete(bs);
+	SpawnPlayerForWorld(playerid);
 
 	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
@@ -5216,7 +5239,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 	OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
 
 	UpdateHealthBar(playerid);
-	FreezeSyncPacket(playerid, freeze_sync);
+	FreezeSyncPacket(playerid, .toggle = freeze_sync);
 
 	if (respawn_time == -1) {
 		respawn_time = s_RespawnTime;
@@ -5749,6 +5772,23 @@ static AddRejectedHit(playerid, damagedid, reason, weapon, i1 = 0, i2 = 0, i3 = 
 	}
 }
 
+#if !defined _INC_SKY
+
+static SpawnPlayerForWorld(playerid)
+{
+	if (!IsPlayerConnected(playerid)) {
+		return 0;
+	}
+
+	new BitStream:bs = BS_New();
+
+	BS_WriteValue(bs, PR_UINT32, playerid);
+	PR_SendRPC(bs, -1, WC_RPC_REQUEST_SPAWN);
+	BS_Delete(bs);
+
+	return 1;
+}
+
 static FreezeSyncPacket(playerid, bool:toggle)
 {
 	if (!IsPlayerConnected(playerid)) {
@@ -5790,7 +5830,7 @@ static SetFakeArmour(playerid, armour)
 	return 1;
 }
 
-static GetRotationQuaternion(Float:x, Float:y, Float:z, &Float:qw, &Float:qx, &Float:qy, &Float:qz) // by IllidanS4
+static GetRotationQuaternion(Float:x, Float:y, Float:z, &Float:qw, &Float:qx, &Float:qy, &Float:qz)
 {
 	new
 		Float:cx = floatcos(-0.5 * x, degrees),
@@ -5881,6 +5921,8 @@ static ClearAnimationsForPlayer(playerid, forplayerid)
 	return 1;
 }
 
+#endif
+
 forward WC_SecondKnifeAnim(playerid);
 public WC_SecondKnifeAnim(playerid)
 {
@@ -5900,7 +5942,7 @@ public WC_PlayerDeathRespawn(playerid)
 	if (!OnPlayerDeathFinished(playerid, true)) {
 		UpdateHealthBar(playerid);
 		SetFakeFacingAngle(playerid, _);
-		FreezeSyncPacket(playerid, false);
+		FreezeSyncPacket(playerid, .toggle = false);
 
 		return;
 	}
@@ -5995,6 +6037,7 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 /*
  * ALS callbacks
  */
+ 
 #if defined _ALS_OnGameModeInit
 	#undef OnGameModeInit
 #else
@@ -6269,6 +6312,7 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 /*
  * ALS functions
  */
+ 
 #if defined _ALS_SpawnPlayer
 	#undef SpawnPlayer
 #else
