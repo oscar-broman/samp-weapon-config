@@ -2,5 +2,6 @@
   "user": "oscar-broman",
   "repo": "samp-weapon-config",
   "contributors": ["oscar-broman"],
-  "dependencies": ["sampctl/samp-stdlib", "katursis/Pawn.RakNet:1.5.1"]
+  "dependencies": ["sampctl/samp-stdlib", "katursis/Pawn.RakNet:1.5.1"],
+  "dev_dependencies": ["oscar-broman/SKY:2.3.1"]
 }
