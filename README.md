@@ -26,6 +26,8 @@ It's pretty much plug-and-play if you don't have any filterscripts that interfer
 
 This include file requires the [SKY](https://github.com/oscar-broman/SKY/) or [Pawn.RakNet](https://github.com/katursis/Pawn.RakNet/) plugin.
 
+**Note:** SKY has a higher priority if the user has not included any of these dependencies before weapon-config (it will automatically try to include SKY and only then Pawn.RakNet, if fail with the first). Also, SKY will take precedence if both dependencies are included (it will use the SKY plugin instead of Pawn.RakNet).
+
 # Features
 
 - **Server-side health**
