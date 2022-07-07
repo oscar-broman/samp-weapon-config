@@ -4014,6 +4014,11 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 	BS_IgnoreBits(bs, 8);
 	BS_ReadOnFootSync(bs, onFootData);
 
+	// Because of detonator crasher - Sends KEY_HANDBRAKE/KEY_AIM in this packet and cam mode IDs 7, 8, 34, 45, 46, 51 and 65 in WC_AIM_SYNC
+	if (onFootData[PR_weaponId] == WEAPON_BOMB) {
+		onFootData[PR_keys] &= ~KEY_HANDBRAKE;
+	}
+
 	if (s_DisableSyncBugs) {
 		// Prevent "ghost shooting" bugs
 		if (IsBulletWeapon(onFootData[PR_weaponId])) {
