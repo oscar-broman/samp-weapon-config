@@ -323,6 +323,7 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 	const WC_PLAYER_SYNC = 207;
 	const WC_VEHICLE_SYNC = 200;
 	const WC_PASSENGER_SYNC = 211;
+	const WC_AIM_SYNC = 203;
 
 	// Define RPC IDs
 	const WC_RPC_CLEAR_ANIMATIONS = 87;
@@ -4087,7 +4088,9 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 		onFootData[PR_quaternion] = s_FakeQuat[playerid];
 	}
 
-	if (onFootData[PR_weaponId] == WEAPON_KNIFE && !s_KnifeSync) {
+	if (44 <= onFootData[PR_weaponId] <= 45) {
+		onFootData[PR_keys] &= ~KEY_FIRE;
+	} else if (onFootData[PR_weaponId] == WEAPON_KNIFE && !s_KnifeSync) {
 		onFootData[PR_keys] &= ~KEY_HANDBRAKE;
 	}
 
@@ -4135,6 +4138,30 @@ IPacket:WC_PASSENGER_SYNC(playerid, BitStream:bs)
 
 	BS_SetWriteOffset(bs, 8);
 	BS_WritePassengerSync(bs, passengerData); // rewrite
+
+	return 1;
+}
+
+IPacket:WC_AIM_SYNC(playerid, BitStream:bs)
+{
+	new aimData[PR_AimSync];
+
+	BS_IgnoreBits(bs, 8);
+	BS_ReadAimSync(bs, aimData);
+
+	// Fix first-person up/down aim sync
+	if (WEAPON_SNIPER <= s_LastSyncData[playerid][PR_weaponId] <= WEAPON_HEATSEEKER || s_LastSyncData[playerid][PR_weaponId] == WEAPON_CAMERA) {
+		aimData[PR_aimZ] = -aimData[PR_camFrontVec][2];
+
+		if (aimData[PR_aimZ] > 1.0) {
+			aimData[PR_aimZ] = 1.0;
+		} else if (aimData[PR_aimZ] < -1.0) {
+			aimData[PR_aimZ] = -1.0;
+		}
+	}
+
+	BS_SetWriteOffset(bs, 8);
+	BS_WriteAimSync(bs, aimData); // rewrite
 
 	return 1;
 }
