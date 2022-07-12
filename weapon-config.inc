@@ -4447,19 +4447,20 @@ static UpdateHealthBar(playerid, bool:force = false)
 					68.6,
 					"LD_SPAC:white"
 				);
-				PlayerTextDrawTextSize(playerid,
-					s_HealthBarForeground[playerid],
-					WC_Bar_Calculate(
-					57.6,
-					100.0,
-					float(health)),
-					5.0
-				);
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 					printf("(wc) WARN: Unable to create player healthbar foreground");
 				} else {
 					s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = true;
+
+					PlayerTextDrawTextSize(playerid,
+						s_HealthBarForeground[playerid],
+						WC_Bar_Calculate(
+						57.6,
+						100.0,
+						float(health)),
+						5.0
+					);
 
 					PlayerTextDrawAlignment(playerid, 		s_HealthBarForeground[playerid], 1);
 					PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
