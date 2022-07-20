@@ -3975,7 +3975,7 @@ public OnVehicleDeath(vehicleid, killerid)
 public OnPlayerEnterCheckpoint(playerid)
 {
 	if (!WC_IsPlayerSpawned(playerid)) {
-		return 1;
+		return 0;
 	}
 
 	return WC_OnPlayerEnterCheckpoint(playerid);
@@ -3985,7 +3985,7 @@ public OnPlayerLeaveCheckpoint(playerid)
 {
 	// If they're dying, it will be called in PlayerDeath (when the death anim begins)
 	if (s_IsDying[playerid]) {
-		return 1;
+		return 0;
 	}
 
 	return WC_OnPlayerLeaveCheckpoint(playerid);
@@ -3994,7 +3994,7 @@ public OnPlayerLeaveCheckpoint(playerid)
 public OnPlayerEnterRaceCheckpoint(playerid)
 {
 	if (!WC_IsPlayerSpawned(playerid)) {
-		return 1;
+		return 0;
 	}
 
 	return WC_OnPlayerEnterRaceCheckpoint(playerid);
@@ -4004,7 +4004,7 @@ public OnPlayerLeaveRaceCheckpoint(playerid)
 {
 	// If they're dying, it will be called in PlayerDeath (when the death anim begins)
 	if (s_IsDying[playerid]) {
-		return 1;
+		return 0;
 	}
 
 	return WC_OnPlayerLeaveRaceCheckpoint(playerid);
