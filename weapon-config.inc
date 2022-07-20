@@ -47,7 +47,7 @@
 
 // For modes that always have negative cash
 #if !defined WC_CUSTOM_VENDING_MACHINES
-	#define WC_CUSTOM_VENDING_MACHINES true
+	#define WC_CUSTOM_VENDING_MACHINES false
 #endif
 
 #if !defined WC_HEALTH_BAR_FG_COLOR
@@ -5662,7 +5662,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			}
 		}
 
-		if (s_DamageGivenSound[issuerid] && issuerid != INVALID_PLAYER_ID) {
+		if (issuerid != INVALID_PLAYER_ID && s_DamageGivenSound[issuerid]) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound[issuerid], 0.0, 0.0, 0.0);
 
 			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
@@ -5670,7 +5670,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			#else
 			for (new i = GetPlayerPoolSize(); i != -1; i--) {
 			#endif
-				if (s_Spectating[i] == issuerid && i != issuerid) {
+				if (i != issuerid && s_Spectating[i] == issuerid) {
 					PlayerPlaySound(i, s_DamageGivenSound[issuerid], 0.0, 0.0, 0.0);
 				}
 			}
