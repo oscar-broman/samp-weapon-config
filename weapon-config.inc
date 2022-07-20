@@ -3292,11 +3292,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 			DebugMessage(damagedid, "being knifed by %d", playerid);
 			DebugMessage(playerid, "knifing %d", damagedid);
 
-			new Float:x, Float:y, Float:z, Float:a;
+			new Float:a;
 
 			GetPlayerFacingAngle(damagedid, a);
 			SetPlayerFacingAngle(playerid, a);
-			PosInFront(damagedid, -1.0, x, y, z);
 
 			SetPlayerVelocity(damagedid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
@@ -3540,11 +3539,10 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			DebugMessage(playerid, "being knifed by %d", issuerid);
 			DebugMessage(issuerid, "knifing %d", playerid);
 
-			new Float:x, Float:y, Float:z, Float:a;
+			new Float:a;
 
 			GetPlayerFacingAngle(playerid, a);
 			SetPlayerFacingAngle(issuerid, a);
-			PosInFront(playerid, -1.0, x, y, z);
 
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(issuerid, 0.0, 0.0, 0.0);
@@ -4549,17 +4547,6 @@ static SpawnPlayerInPlace(playerid) {
 	s_SpawnInfoModified[playerid] = true;
 
 	SpawnPlayer(playerid);
-}
-
-static PosInFront(playerid, Float:distance, &Float:x, &Float:y, &Float:z)
-{
-	new Float:a;
-
-	GetPlayerPos(playerid, x, y, z);
-	GetPlayerFacingAngle(playerid, a);
-
-	x += (distance * floatsin(-a, degrees));
-	y += (distance * floatcos(-a, degrees));
 }
 
 static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2)
