@@ -35,6 +35,16 @@
 	#define WC_FEED_HEIGHT 5
 #endif
 
+// Damage feeds color (which a player give to another)
+#if !defined WC_FEED_GIVEN_COLOR
+	#define WC_FEED_GIVEN_COLOR 0x30FF50FF // light green
+#endif
+
+// Damage feeds color (which a player take from another)
+#if !defined WC_FEED_TAKEN_COLOR
+	#define WC_FEED_TAKEN_COLOR 0x33CCFFFF // blue
+#endif
+
 // Use Incognito's streamer for custom vending machines
 #if !defined WC_USE_STREAMER
 	#define WC_USE_STREAMER false
@@ -5412,7 +5422,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 			s_InternalPlayerTextDraw[playerid][td] = true;
 
 			PlayerTextDrawLetterSize(playerid, td, 0.2, 0.9);
-			PlayerTextDrawColor(playerid, td, 0x30FF50FF);
+			PlayerTextDrawColor(playerid, td, WC_FEED_GIVEN_COLOR);
 			PlayerTextDrawFont(playerid, td, 1);
 			PlayerTextDrawSetShadow(playerid, td, 0);
 			PlayerTextDrawAlignment(playerid, td, 2);
@@ -5432,7 +5442,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 			s_InternalPlayerTextDraw[playerid][td] = true;
 
 			PlayerTextDrawLetterSize(playerid, td, 0.2, 0.9);
-			PlayerTextDrawColor(playerid, td, 0x33CCFFFF);
+			PlayerTextDrawColor(playerid, td, WC_FEED_TAKEN_COLOR);
 			PlayerTextDrawFont(playerid, td, 1);
 			PlayerTextDrawSetShadow(playerid, td, 0);
 			PlayerTextDrawAlignment(playerid, td, 2);
