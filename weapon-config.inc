@@ -60,10 +60,12 @@
 	#define WC_CUSTOM_VENDING_MACHINES true
 #endif
 
+// Healthbar foreground color
 #if !defined WC_HEALTH_BAR_FG_COLOR
 	#define WC_HEALTH_BAR_FG_COLOR 0xB4191DFF //red
 #endif
 
+// Healthbar background color
 #if !defined WC_HEALTH_BAR_BG_COLOR
 	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C0EFF //dark red
 #endif
@@ -999,7 +1001,7 @@ native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 /*
  * Public API
  */
- 
+
 stock IsBulletWeapon(weaponid)
 {
 	return (WEAPON_COLT45 <= weaponid <= WEAPON_SNIPER) || weaponid == WEAPON_MINIGUN;
@@ -1878,6 +1880,7 @@ stock WC_DestroyVehicle(vehicleid)
 	if (DestroyVehicle(vehicleid)) {
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
 		s_VehicleAlive[vehicleid] = false;
+
 		if (s_VehicleRespawnTimer[vehicleid] != -1) {
 			KillTimer(s_VehicleRespawnTimer[vehicleid]);
 			s_VehicleRespawnTimer[vehicleid] = -1;
@@ -2234,7 +2237,7 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 /*
  * Hooked callbacks
  */
- 
+
 public OnGameModeInit()
 {
 	state _ALS : _ALS_go;
@@ -3964,6 +3967,7 @@ public OnVehicleDeath(vehicleid, killerid)
 		KillTimer(s_VehicleRespawnTimer[vehicleid]);
 		s_VehicleRespawnTimer[vehicleid] = -1;
 	}
+
 	if (s_VehicleAlive[vehicleid]) {
 		s_VehicleAlive[vehicleid] = false;
 
@@ -4054,8 +4058,7 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 				// Remove aim key
 				onFootData[PR_keys] &= ~KEY_HANDBRAKE;
 			}
-		}
-		else if (onFootData[PR_weaponId] == WEAPON_SPRAYCAN
+		} else if (onFootData[PR_weaponId] == WEAPON_SPRAYCAN
 		|| onFootData[PR_weaponId] == WEAPON_FIREEXTINGUISHER
 		|| onFootData[PR_weaponId] == WEAPON_FLAMETHROWER) {
 			if (!(1160 <= onFootData[PR_animationId] <= 1167)) {
@@ -4070,8 +4073,7 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 				// Remove aim key
 				onFootData[PR_keys] &= ~KEY_HANDBRAKE;
 			}
-		}
-		else if (onFootData[PR_weaponId] == WEAPON_GRENADE) {
+		} else if (onFootData[PR_weaponId] == WEAPON_GRENADE) {
 			if (!(644 <= onFootData[PR_animationId] <= 646)) {
 				onFootData[PR_keys] &= ~KEY_ACTION;
 			}
@@ -4158,7 +4160,8 @@ IPacket:WC_AIM_SYNC(playerid, BitStream:bs)
 	BS_ReadAimSync(bs, aimData);
 
 	// Fix first-person up/down aim sync
-	if (WEAPON_SNIPER <= s_LastSyncData[playerid][PR_weaponId] <= WEAPON_HEATSEEKER || s_LastSyncData[playerid][PR_weaponId] == WEAPON_CAMERA) {
+	if (WEAPON_SNIPER <= s_LastSyncData[playerid][PR_weaponId] <= WEAPON_HEATSEEKER
+	|| s_LastSyncData[playerid][PR_weaponId] == WEAPON_CAMERA) {
 		aimData[PR_aimZ] = -aimData[PR_camFrontVec][2];
 
 		if (aimData[PR_aimZ] > 1.0) {
@@ -6066,7 +6069,7 @@ public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
 /*
  * ALS callbacks
  */
- 
+
 #if defined _ALS_OnGameModeInit
 	#undef OnGameModeInit
 #else
@@ -6341,7 +6344,7 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 /*
  * ALS functions
  */
- 
+
 #if defined _ALS_SpawnPlayer
 	#undef SpawnPlayer
 #else
