@@ -3452,7 +3452,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 	UpdateHealthBar(playerid, true);
 
-	if (WC_IsPlayerSpawned(playerid)) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
