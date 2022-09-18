@@ -2463,7 +2463,6 @@ public OnPlayerSpawn(playerid)
 		DebugMessage(playerid, "Being forced into class selection");
 		ForceClassSelection(playerid);
 		SetPlayerHealth(playerid, 0.0);
-		SetPlayerVirtualWorld(playerid, WC_DEATH_WORLD);
 
 		return 1;
 	}
@@ -2630,8 +2629,6 @@ public OnPlayerRequestClass(playerid, classid)
 		s_IsDying[playerid] = false;
 	}
 
-	UpdatePlayerVirtualWorld(playerid);
-
 	if (s_TrueDeath[playerid]) {
 		if (!s_InClassSelection[playerid]) {
 			DebugMessage(playerid, "True death class selection");
@@ -2645,6 +2642,8 @@ public OnPlayerRequestClass(playerid, classid)
 			s_InClassSelection[playerid] = true;
 		}
 
+		UpdatePlayerVirtualWorld(playerid);
+
 		if (WC_OnPlayerRequestClass(playerid, classid)) {
 			s_PlayerClass[playerid] = classid;
 
@@ -2657,6 +2656,7 @@ public OnPlayerRequestClass(playerid, classid)
 
 		s_ForceClassSelection[playerid] = true;
 
+		SetPlayerVirtualWorld(playerid, WC_DEATH_WORLD);
 		SpawnPlayerInPlace(playerid);
 
 		return 0;
@@ -3071,6 +3071,10 @@ public OnPlayerUpdate(playerid)
 {
 	if (s_IsDying[playerid]) {
 		return 1;
+	}
+
+	if (s_ForceClassSelection[playerid]) {
+		return 0;
 	}
 
 	new tick = GetTickCount();
