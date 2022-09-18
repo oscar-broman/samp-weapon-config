@@ -4673,7 +4673,7 @@ public WC_DeathSkipEnd(playerid)
 	}
 
 	SetPlayerArmedWeapon(playerid, s_SyncData[playerid][e_Weapon]);
-	SetPlayerSpecialAction(playerid, 0);
+	SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
 }
 
 forward WC_SpawnForStreamedIn(playerid);
