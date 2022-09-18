@@ -2813,7 +2813,7 @@ public WC_CbugPunishment(playerid, weapon) {
 	FreezeSyncPacket(playerid, .toggle = false);
 	SetPlayerArmedWeapon(playerid, weapon);
 
-	if (!IsPlayerDying(playerid)) {
+	if (!s_IsDying[playerid]) {
 		ClearAnimations(playerid, 1);
 	}
 }
@@ -2822,7 +2822,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
 	new animlib[32], animname[32];
 
-	if (!s_CbugAllowed[playerid] && !IsPlayerDying(playerid) && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
+	if (!s_CbugAllowed[playerid] && !s_IsDying[playerid] && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
 		if (newkeys & KEY_CROUCH) {
 			new tick = GetTickCount();
 			new diff = tick - s_LastShot[playerid][e_Tick];
@@ -6013,8 +6013,8 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 	s_PreviousHits[playerid][idx][e_Weapon] = weapon;
 	s_PreviousHits[playerid][idx][e_Amount] = amount;
 	s_PreviousHits[playerid][idx][e_Bodypart] = bodypart;
-	s_PreviousHits[playerid][idx][e_Health] = GetLastDamageHealth(playerid);
-	s_PreviousHits[playerid][idx][e_Armour] = GetLastDamageArmour(playerid);
+	s_PreviousHits[playerid][idx][e_Health] = s_DamageDoneHealth[playerid];
+	s_PreviousHits[playerid][idx][e_Armour] = s_DamageDoneArmour[playerid];
 
 	if (!IsHighRateWeapon(weapon)) {
 		DebugMessageAll("OnPlayerDamageDone(%d did %f to %d with %d on bodypart %d)", issuerid, amount, playerid, weapon, bodypart);
