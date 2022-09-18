@@ -2791,7 +2791,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 			TogglePlayerSpectating(playerid, false);
 			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 			TogglePlayerControllable(playerid, true);
-			GivePlayerWeapon(playerid, 1, 1);
+			SetPlayerArmedWeapon(playerid, 0);
 		} else {
 			SpawnPlayerInPlace(playerid);
 		}
