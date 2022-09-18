@@ -1030,6 +1030,10 @@ stock WC_IsPlayerSpawned(playerid)
 		return false;
 	}
 
+	if (s_InClassSelection[playerid] || s_ForceClassSelection[playerid]) {
+		return false;
+	}
+
 	switch (GetPlayerState(playerid)) {
 		case PLAYER_STATE_ONFOOT .. PLAYER_STATE_PASSENGER,
 		     PLAYER_STATE_SPAWNED: {
@@ -3448,15 +3452,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 	UpdateHealthBar(playerid, true);
 
-	if (s_IsDying[playerid]) {
-		return 0;
-	}
-
-	if (s_BeingResynced[playerid]) {
-		return 0;
-	}
-
-	if (s_InClassSelection[playerid] || s_ForceClassSelection[playerid]) {
+	if (WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
