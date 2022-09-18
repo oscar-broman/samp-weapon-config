@@ -5254,7 +5254,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 
 	new action = GetPlayerSpecialAction(playerid);
 
-	if (action && action != SPECIAL_ACTION_DUCK) {
+	if (action != SPECIAL_ACTION_NONE && action != SPECIAL_ACTION_DUCK) {
 		if (action == SPECIAL_ACTION_USEJETPACK) {
 			ClearAnimations(playerid);
 		}
@@ -5830,7 +5830,7 @@ static FreezeSyncPacket(playerid, bool:toggle)
 	s_LastSyncData[playerid][PR_keys] = 0;
 	s_LastSyncData[playerid][PR_udKey] = 0;
 	s_LastSyncData[playerid][PR_lrKey] = 0;
-	s_LastSyncData[playerid][PR_specialAction] = 0;
+	s_LastSyncData[playerid][PR_specialAction] = SPECIAL_ACTION_NONE;
 	s_LastSyncData[playerid][PR_velocity][0] = 0.0;
 	s_LastSyncData[playerid][PR_velocity][1] = 0.0;
 	s_LastSyncData[playerid][PR_velocity][2] = 0.0;
