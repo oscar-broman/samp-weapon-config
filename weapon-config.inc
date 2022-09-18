@@ -2566,9 +2566,12 @@ public OnPlayerSpawn(playerid)
 	new animlib[32], animname[32];
 
 	if (s_DeathSkip[playerid] == 2) {
+		new w, a;
+		GetPlayerWeaponData(playerid, 0, w, a);
+
 		DebugMessage(playerid, "Death skipped");
 		SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
-		SetPlayerArmedWeapon(playerid, 0);
+		SetPlayerArmedWeapon(playerid, w);
 		ClearAnimations(playerid);
 
 		animlib = "PED", animname = "IDLE_stance";
@@ -2788,6 +2791,9 @@ public OnPlayerDeath(playerid, killerid, reason)
 			}
 
 			s_DeathSkip[playerid] = 2;
+			
+			new w, a;
+			GetPlayerWeaponData(playerid, 0, w, a);
 
 			ForceClassSelection(playerid);
 			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
@@ -2795,7 +2801,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 			TogglePlayerSpectating(playerid, false);
 			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 			TogglePlayerControllable(playerid, true);
-			SetPlayerArmedWeapon(playerid, 0);
+			SetPlayerArmedWeapon(playerid, w);
 		} else {
 			SpawnPlayerInPlace(playerid);
 		}
@@ -3242,6 +3248,9 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 	if (weaponid == WEAPON_KNIFE) {
 		if (_:amount == _:0.0) {
+			new w, a;
+			GetPlayerWeaponData(playerid, 0, w, a);
+
 			// Resync without bothering the player being knifed
 			if (npc || HasSameTeam(playerid, damagedid)) {
 				if (s_KnifeTimeout[damagedid] != -1) {
@@ -3250,7 +3259,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 				s_KnifeTimeout[damagedid] = SetTimerEx("WC_SpawnForStreamedIn", 150, false, "i", damagedid);
 				ClearAnimations(playerid, 1);
-				SetPlayerArmedWeapon(playerid, 0);
+				SetPlayerArmedWeapon(playerid, w);
 
 				return 0;
 			} else {
@@ -3264,7 +3273,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 					s_KnifeTimeout[damagedid] = SetTimerEx("WC_SpawnForStreamedIn", 150, false, "i", damagedid);
 					ClearAnimations(playerid, 1);
-					SetPlayerArmedWeapon(playerid, 0);
+					SetPlayerArmedWeapon(playerid, w);
 
 					return 0;
 				}
@@ -3277,7 +3286,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 				s_KnifeTimeout[damagedid] = SetTimerEx("WC_SpawnForStreamedIn", 150, false, "i", damagedid);
 				ClearAnimations(playerid, 1);
-				SetPlayerArmedWeapon(playerid, 0);
+				SetPlayerArmedWeapon(playerid, w);
 
 				return 0;
 			}
@@ -3299,10 +3308,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 			DebugMessage(damagedid, "being knifed by %d", playerid);
 			DebugMessage(playerid, "knifing %d", damagedid);
 
-			new Float:a;
+			new Float:angle;
 
-			GetPlayerFacingAngle(damagedid, a);
-			SetPlayerFacingAngle(playerid, a);
+			GetPlayerFacingAngle(damagedid, angle);
+			SetPlayerFacingAngle(playerid, angle);
 
 			SetPlayerVelocity(damagedid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
