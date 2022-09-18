@@ -2971,7 +2971,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 public OnPlayerStreamIn(playerid, forplayerid)
 {
 	// Send ped floor_hit_f
-	if (s_IsDying[playerid]) {
+	if (s_IsDying[playerid] || s_InClassSelection[playerid]) {
 		SendLastSyncPacket(playerid, forplayerid, .animation = 0x2e040000 + 1150);
 	}
 
