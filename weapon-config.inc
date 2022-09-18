@@ -62,12 +62,12 @@
 
 // Healthbar foreground color
 #if !defined WC_HEALTH_BAR_FG_COLOR
-	#define WC_HEALTH_BAR_FG_COLOR 0xB4191DFF //red
+	#define WC_HEALTH_BAR_FG_COLOR 0xB4191DFF // red
 #endif
 
 // Healthbar background color
 #if !defined WC_HEALTH_BAR_BG_COLOR
-	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C0EFF //dark red
+	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C0EFF // dark red
 #endif
 
 #if WC_USE_STREAMER && !defined Streamer_IncludeFileVersion
@@ -1171,8 +1171,8 @@ stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 
 		for (new i = 0; i < steps; i++) {
 			if (i) {
-				s_DamageRangeRanges[weaponid][i] = Float:getarg(1 + i*2);
-				s_DamageRangeValues[weaponid][i] = Float:getarg(2 + i*2);
+				s_DamageRangeRanges[weaponid][i] = Float:getarg(1 + i * 2);
+				s_DamageRangeValues[weaponid][i] = Float:getarg(2 + i * 2);
 			} else {
 				s_DamageRangeValues[weaponid][i] = amount;
 			}
@@ -2317,7 +2317,7 @@ public OnPlayerConnect(playerid)
 	s_DeathTimer[playerid] = -1;
 	s_DelayedDeathTimer[playerid] = -1;
 	s_DamageFeedPlayer[playerid] = -1;
-	s_EnableHealthBar[playerid] = true; //enable by default
+	s_EnableHealthBar[playerid] = true; // enable by default
 
 	#if !defined _INC_SKY
 		s_FakeHealth{playerid} = 255;
@@ -2808,7 +2808,7 @@ forward WC_CbugPunishment(playerid, weapon);
 public WC_CbugPunishment(playerid, weapon) {
 	FreezeSyncPacket(playerid, .toggle = false);
 	SetPlayerArmedWeapon(playerid, weapon);
-	
+
 	if (!IsPlayerDying(playerid)) {
 		ClearAnimations(playerid, 1);
 	}
@@ -3899,7 +3899,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
-				if (health >= 250.0) { //vehicles start on fire below 250 hp
+				if (health >= 250.0) { // vehicles start on fire below 250 hp
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
 					} else {
@@ -5931,7 +5931,7 @@ static SendLastSyncPacket(playerid, toplayerid, animation = 0)
 		s_LastSyncData[playerid][PR_animationFlags] = 0;
 	}
 
-	BS_WriteOnFootSync(bs, s_LastSyncData[playerid], true); 
+	BS_WriteOnFootSync(bs, s_LastSyncData[playerid], true);
 	PR_SendPacket(bs, toplayerid, _, PR_RELIABLE_SEQUENCED);
 	BS_Delete(bs);
 
