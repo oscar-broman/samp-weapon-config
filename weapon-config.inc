@@ -1044,6 +1044,11 @@ stock WC_IsPlayerSpawned(playerid)
 	return false;
 }
 
+stock WC_IsPlayerPaused(playerid)
+{
+	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
+}
+
 stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
 {
 	if (playerid == INVALID_PLAYER_ID || s_ShotsFired[playerid] < shots) {
@@ -4400,11 +4405,6 @@ static HasSameTeam(playerid, otherid)
 	}
 
 	return (s_PlayerTeam[playerid] == s_PlayerTeam[otherid]);
-}
-
-stock WC_IsPlayerPaused(playerid)
-{
-	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
 }
 
 static Float:WC_Bar_Calculate(Float:width, Float:max, Float:value)
