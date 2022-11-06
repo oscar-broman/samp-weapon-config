@@ -5662,7 +5662,7 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 			}
 		}
 
-		if (s_DamageGivenSound[issuerid] && issuerid != INVALID_PLAYER_ID) {
+		if (issuerid != INVALID_PLAYER_ID && s_DamageGivenSound[issuerid]) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound[issuerid], 0.0, 0.0, 0.0);
 
 			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
