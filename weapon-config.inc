@@ -5823,7 +5823,17 @@ static SpawnPlayerForWorld(playerid)
 	new BitStream:bs = BS_New();
 
 	BS_WriteValue(bs, PR_UINT32, playerid);
-	PR_SendRPC(bs, -1, WC_RPC_REQUEST_SPAWN);
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	foreach (new i : Player) {
+	#else
+	for (new i = 0; i != MAX_PLAYERS; i++) {
+	#endif
+		if (i != playerid) {
+			PR_SendRPC(bs, i, WC_RPC_REQUEST_SPAWN);
+		}
+	}
+
 	BS_Delete(bs);
 
 	return 1;
