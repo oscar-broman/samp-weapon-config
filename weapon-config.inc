@@ -3219,6 +3219,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		new npc = IsPlayerNPC(damagedid);
 
 		if (weaponid == WEAPON_KNIFE && _:amount == _:0.0) {
+			if (damagedid == playerid) {
+				return 0;
+			}
+
 			if (s_KnifeTimeout[damagedid] != -1) {
 				KillTimer(s_KnifeTimeout[damagedid]);
 			}
@@ -3265,6 +3269,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		if (_:amount == _:0.0) {
 			new w, a;
 			GetPlayerWeaponData(playerid, 0, w, a);
+
+			if (damagedid == playerid) {
+				return 0;
+			}
 
 			// Resync without bothering the player being knifed
 			if (npc || HasSameTeam(playerid, damagedid)) {
@@ -3516,6 +3524,10 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 		// With the plugin, this part is never actually used (it can't happen)
 		if (_:amount == _:0.0) {
+			if (issuerid == playerid) {
+				return 0;
+			}
+
 			if (s_KnifeTimeout[playerid] != -1) {
 				KillTimer(s_KnifeTimeout[playerid]);
 
