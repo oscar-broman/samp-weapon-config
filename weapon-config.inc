@@ -753,25 +753,25 @@ static s_DamageArmour[][2] = {
 
 // That's right, it's called cuntgun
 stock const g_WeaponName[57][WC_MAX_WEAPON_NAME] = {
-	{"Fist"             }, {"Brass knuckles"}, {"Golf club"           },
-	{"Nightstick"       }, {"Knife"         }, {"Bat"                 },
-	{"Shovel"           }, {"Pool cue"      }, {"Katana"              },
+	{"Soco"             }, {"Soco ingles"   }, {"Golf club"           },
+	{"Cacetete"         }, {"Faca"          }, {"Bat"                 },
+	{"Pa"               }, {"Pool cue"      }, {"Katana"              },
 	{"Chainsaw"         }, {"Purple dildo"  }, {"Dildo"               },
-	{"Vibrator"         }, {"Vibrator"      }, {"Flowers"             },
-	{"Cane"             }, {"Grenade"       }, {"Tear gas"            },
-	{"Molotov"          }, {"Vehicle gun"   }, {"Vehicle gun"         },
-	{"Vehicle gun"      }, {"Colt 45"       }, {"Silenced pistol"     },
+	{"Vibrador"         }, {"Vibrator"      }, {"Flowers"             },
+	{"Cano"             }, {"Grenade"       }, {"Tear gas"            },
+	{"Molotov"          }, {"Arma de veiculo"}, {"Arma de veiculo"         },
+	{"Arma de veiculo"  }, {"Colt 45"       }, {"Silenced pistol"     },
 	{"Deagle"           }, {"Shotgun"       }, {"Sawn-off shotgun"    },
 	{"Combat shotgun"   }, {"Mac-10"        }, {"MP5"                 },
 	{"AK-47"            }, {"M4"            }, {"Tec-9"               },
 	{"Cuntgun"          }, {"Sniper"        }, {"Rocket launcher"     },
 	{"Heat seeking RPG" }, {"Flamethrower"  }, {"Minigun"             },
 	{"Satchel"          }, {"Detonator"     }, {"Spraycan"            },
-	{"Fire extinguisher"}, {"Camera"        }, {"Night vision goggles"},
+	{"Extintor"         }, {"Camera"        }, {"Night vision goggles"},
 	{"Infrared goggles" }, {"Parachute"     }, {"Fake pistol"         },
-	{"Pistol whip"      }, {"Vehicle"       }, {"Helicopter blades"   },
-	{"Explosion"        }, {"Car parking"   }, {"Drowning"            },
-	{"Collision"        }, {"Splat"         }, {"Unknown"             }
+	{"Pistol whip"      }, {"Veiculo"       }, {"Helicopter blades"   },
+	{"Explosao"         }, {"Car parking"   }, {"Drowning"            },
+	{"Colisao"          }, {"Splat"         }, {"Unknown"             }
 };
 
 // Yes - this is every single one of them
@@ -924,7 +924,7 @@ static s_BeingResynced[MAX_PLAYERS];
 static s_KnifeTimeout[MAX_PLAYERS] = {-1, ...};
 static s_SyncData[MAX_PLAYERS][E_RESYNC_DATA];
 static Text:s_HealthBarBorder = Text:INVALID_TEXT_DRAW;
-static Text:s_HealthBarBackground = Text:INVALID_TEXT_DRAW;
+static Text:s_HealthBarBackground[2] = {Text:INVALID_TEXT_DRAW, Text:INVALID_TEXT_DRAW};
 static PlayerText:s_HealthBarForeground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static s_DamageRangeSteps[55];
 static Float:s_DamageRangeRanges[55][WC_MAX_DAMAGE_RANGES];
@@ -3979,20 +3979,41 @@ static ScriptInit()
 		TextDrawSetProportional	(s_HealthBarBorder, 0);
 	}
 
-	s_HealthBarBackground = TextDrawCreate(548.2, 68.6, "LD_SPAC:white");
+	s_HealthBarBackground[0] = TextDrawCreate(548.2, 68.6, "LD_SPAC:white");
 
-	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
+	if (s_HealthBarBackground[0] == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar background textdraw");
 	} else {
-		s_InternalTextDraw[s_HealthBarBackground] = true;
+		s_InternalTextDraw[s_HealthBarBackground[0]] = true;
 
-		TextDrawTextSize		(s_HealthBarBackground, 57.6, 5.0);
-		TextDrawAlignment		(s_HealthBarBackground, 1);
-		TextDrawColor			(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
-		TextDrawSetShadow		(s_HealthBarBackground, 0);
-		TextDrawBackgroundColor	(s_HealthBarBackground, 255);
-		TextDrawFont			(s_HealthBarBackground, 4);
-		TextDrawSetProportional	(s_HealthBarBackground, 0);
+		TextDrawTextSize		(s_HealthBarBackground[0], 57.6, 5.0);
+		TextDrawAlignment		(s_HealthBarBackground[0], 1);
+		TextDrawColor			(s_HealthBarBackground[0], WC_HEALTH_BAR_BG_COLOR);
+		TextDrawSetShadow		(s_HealthBarBackground[0], 0);
+		TextDrawBackgroundColor	(s_HealthBarBackground[0], 255);
+		TextDrawFont			(s_HealthBarBackground[0], 4);
+		TextDrawSetProportional	(s_HealthBarBackground[0], 0);
+	}
+
+	s_HealthBarBackground[1] = TextDrawCreate(517.20, 65.000, "_");
+
+	if (s_HealthBarBackground[1] == Text:INVALID_TEXT_DRAW) {
+		printf("(wc) WARN: Unable to create healthbar background textdraw");
+	} else {
+		s_InternalTextDraw[s_HealthBarBackground[1]] = true;
+
+		TextDrawFont(s_HealthBarBackground[1], 1);
+		TextDrawLetterSize(s_HealthBarBackground[1], 0.733332, 1.1200000);
+		TextDrawTextSize(s_HealthBarBackground[1], 561.500, 28.000);
+		TextDrawSetOutline(s_HealthBarBackground[1], 1);
+		TextDrawSetShadow(s_HealthBarBackground[1], 0);
+		TextDrawAlignment(s_HealthBarBackground[1], 1);
+		TextDrawColor(s_HealthBarBackground[1], WC_HEALTH_BAR_BG_COLOR);
+		TextDrawBackgroundColor(s_HealthBarBackground[1], 255);
+		TextDrawBoxColor(s_HealthBarBackground[1], 255);
+		TextDrawUseBox(s_HealthBarBackground[1], 1);
+		TextDrawSetProportional(s_HealthBarBackground[1], 1);
+		TextDrawSetSelectable(s_HealthBarBackground[1], 0);
 	}
 
 	#if WC_CUSTOM_VENDING_MACHINES
@@ -4127,9 +4148,11 @@ static ScriptExit()
 		s_InternalTextDraw[s_HealthBarBorder] = false;
 	}
 
-	if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-		TextDrawDestroy(s_HealthBarBackground);
-		s_InternalTextDraw[s_HealthBarBackground] = false;
+	for(new i = 0; i < 2; i++) {
+		if (s_HealthBarBackground[i] != Text:INVALID_TEXT_DRAW) {
+			TextDrawDestroy(s_HealthBarBackground[i]);
+			s_InternalTextDraw[s_HealthBarBackground[i]] = false;
+		}
 	}
 }
 
@@ -4212,45 +4235,87 @@ static UpdateHealthBar(playerid, bool:force = false)
 		SetPlayerHealth(playerid, 8000000.0 + float(health));
 
 		if (s_HealthBarVisible[playerid] && !s_IsDying[playerid]) {
-			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+			new bool:isAndroid = GetPVarInt(playerid, "NotAndroid") == 0;
 
-				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
-					playerid,
-					548.2,
-					68.6,
-					"LD_SPAC:white"
-				);
-				PlayerTextDrawTextSize(playerid,
-					s_HealthBarForeground[playerid],
-					WC_Bar_Calculate(
-					57.6,
-					100.0,
-					float(health)),
-					5.0
-				);
+			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+				if(isAndroid) {
+					s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
+						playerid,
+						517.20,
+						65.00,
+						"_"
+					);
+
+					PlayerTextDrawTextSize(playerid,
+						s_HealthBarForeground[playerid],
+						514.5000 + 47.0 * (health / 100.0),
+						28.000
+					);
+				}
+				else {
+					s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
+						playerid,
+						548.2,
+						68.6,
+						"LD_SPAC:white"
+					);
+					PlayerTextDrawTextSize(playerid,
+						s_HealthBarForeground[playerid],
+						WC_Bar_Calculate(
+						57.6,
+						100.0,
+						float(health)),
+						5.0
+					);
+				}
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 					printf("(wc) WARN: Unable to create player healthbar foreground");
 				} else {
 					s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = true;
 
-					PlayerTextDrawAlignment(playerid, 		s_HealthBarForeground[playerid], 1);
-					PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
-					PlayerTextDrawSetShadow(playerid, 		s_HealthBarForeground[playerid], 0);
-					PlayerTextDrawBackgroundColor(playerid, s_HealthBarForeground[playerid], 255);
-					PlayerTextDrawFont(playerid, 			s_HealthBarForeground[playerid], 4);
-					PlayerTextDrawSetProportional(playerid, s_HealthBarForeground[playerid], 0);
-					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
+					if(isAndroid) {
+						PlayerTextDrawFont(playerid, s_HealthBarForeground[playerid], 1);
+						PlayerTextDrawLetterSize(playerid, s_HealthBarForeground[playerid], 0.733332, 1.1200000);
+						PlayerTextDrawSetOutline(playerid, s_HealthBarForeground[playerid], 1);
+						PlayerTextDrawSetShadow(playerid, s_HealthBarForeground[playerid], 0);
+						PlayerTextDrawAlignment(playerid, s_HealthBarForeground[playerid], 1);
+						PlayerTextDrawColor(playerid, s_HealthBarForeground[playerid], -1);
+						PlayerTextDrawBackgroundColor(playerid, s_HealthBarForeground[playerid], 255);
+						PlayerTextDrawBoxColor(playerid, s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
+						PlayerTextDrawUseBox(playerid, s_HealthBarForeground[playerid], 1);
+						PlayerTextDrawSetProportional(playerid, s_HealthBarForeground[playerid], 1);
+						PlayerTextDrawSetSelectable(playerid, s_HealthBarForeground[playerid], 0);
+						PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
+					}
+					else {
+						PlayerTextDrawAlignment(playerid, 		s_HealthBarForeground[playerid], 1);
+						PlayerTextDrawColor(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
+						PlayerTextDrawSetShadow(playerid, 		s_HealthBarForeground[playerid], 0);
+						PlayerTextDrawBackgroundColor(playerid, s_HealthBarForeground[playerid], 255);
+						PlayerTextDrawFont(playerid, 			s_HealthBarForeground[playerid], 4);
+						PlayerTextDrawSetProportional(playerid, s_HealthBarForeground[playerid], 0);
+						PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
+					}
 				}
 			} else if (s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]]) {
-				PlayerTextDrawTextSize(playerid,
-					s_HealthBarForeground[playerid],
-					WC_Bar_Calculate(
-					57.6,
-					100.0,
-					float(health)),
-					5.0
-				);
+				if(isAndroid) {
+					PlayerTextDrawTextSize(playerid,
+						s_HealthBarForeground[playerid],
+						514.5000 + 47.0 * (health / 100.00),
+						28.000
+					);
+				}
+				else {
+					PlayerTextDrawTextSize(playerid,
+						s_HealthBarForeground[playerid],
+						WC_Bar_Calculate(
+						57.6,
+						100.0,
+						float(health)),
+						5.0
+					);
+				}
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
 
@@ -4279,13 +4344,14 @@ static SetHealthBarVisible(playerid, bool:toggle)
 
 	s_HealthBarVisible[playerid] = toggle;
 
+	new healthBarBackgroundIndex = GetPVarInt(playerid, "NotAndroid") == 0 ? 1 : 0;
 	if (toggle) {
-		if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
+		if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW && GetPVarInt(playerid, "NotAndroid") == 1) {
 			TextDrawShowForPlayer(playerid, s_HealthBarBorder);
 		}
 
-		if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-			TextDrawShowForPlayer(playerid, s_HealthBarBackground);
+		if (s_HealthBarBackground[healthBarBackgroundIndex] != Text:INVALID_TEXT_DRAW) {
+			TextDrawShowForPlayer(playerid, s_HealthBarBackground[healthBarBackgroundIndex]);
 		}
 
 		UpdateHealthBar(playerid, true);
@@ -4294,12 +4360,12 @@ static SetHealthBarVisible(playerid, bool:toggle)
 			PlayerTextDrawHide(playerid, s_HealthBarForeground[playerid]);
 		}
 
-		if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
+		if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW && GetPVarInt(playerid, "NotAndroid") == 1) {
 			TextDrawHideForPlayer(playerid, s_HealthBarBorder);
 		}
 
-		if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-			TextDrawHideForPlayer(playerid, s_HealthBarBackground);
+		if (s_HealthBarBackground[healthBarBackgroundIndex] != Text:INVALID_TEXT_DRAW) {
+			TextDrawHideForPlayer(playerid, s_HealthBarBackground[healthBarBackgroundIndex]);
 		}
 	}
 }
