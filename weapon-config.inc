@@ -619,22 +619,22 @@ static s_DamageType[] = {
 // Note that due to various bugs, these can be exceeded, but
 // this include blocks out-of-range values.
 static Float:s_WeaponRange[] = {
-	1.6, // 0 - Fist
-	1.6, // 1 - Brass knuckles
-	1.6, // 2 - Golf club
-	1.6, // 3 - Nitestick
-	1.6, // 4 - Knife
-	1.6, // 5 - Bat
+	1.76, // 0 - Fist
+	1.76, // 1 - Brass knuckles
+	1.76, // 2 - Golf club
+	1.76, // 3 - Nitestick
+	1.76, // 4 - Knife
+	1.76, // 5 - Bat
 	1.6, // 6 - Shovel
-	1.6, // 7 - Pool cue
-	1.6, // 8 - Katana
-	1.6, // 9 - Chainsaw
-	1.6, // 10 - Dildo
-	1.6, // 11 - Dildo 2
-	1.6, // 12 - Vibrator
-	1.6, // 13 - Vibrator 2
-	1.6, // 14 - Flowers
-	1.6, // 15 - Cane
+	1.76, // 7 - Pool cue
+	1.76, // 8 - Katana
+	1.76, // 9 - Chainsaw
+	1.76, // 10 - Dildo
+	1.76, // 11 - Dildo 2
+	1.76, // 12 - Vibrator
+	1.76, // 13 - Vibrator 2
+	1.76, // 14 - Flowers
+	1.76, // 15 - Cane
 	40.0, // 16 - Grenade
 	40.0, // 17 - Teargas
 	40.0, // 18 - Molotov
@@ -665,7 +665,7 @@ static Float:s_WeaponRange[] = {
 	100.0, // 43 - Camera
 	100.0, // 44 - Night vision
 	100.0, // 45 - Infrared
-	1.6  // 46 - Parachute
+	1.76  // 46 - Parachute
 };
 
 // The fastest possible gap between weapon shots in milliseconds
