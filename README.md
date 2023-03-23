@@ -292,7 +292,17 @@ Check if users anti-cbug is toggled. (Using no playerid param will show the glob
 ```pawn
 SetDamageFeed(bool:toggle);
 ```
-Toggle damage feed
+Toggle damage feed for all
+
+```pawn
+SetDamageFeedForPlayer(playerid, toggle = -1);
+```
+Toggle damage feed for player
+
+```pawn
+IsDamageFeedActive(playerid = -1);
+```
+Returns true if damage feed is active for player (for all, if `playerid` passed as -1)
 
 ```pawn
 SetDamageSounds(taken, given);
