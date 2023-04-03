@@ -35,6 +35,16 @@
 	#define WC_FEED_HEIGHT 5
 #endif
 
+// Damage feeds color (which a player give to another)
+#if !defined WC_FEED_GIVEN_COLOR
+	#define WC_FEED_GIVEN_COLOR 0x30FF50FF // light green
+#endif
+
+// Damage feeds color (which a player take from another)
+#if !defined WC_FEED_TAKEN_COLOR
+	#define WC_FEED_TAKEN_COLOR 0x33CCFFFF // blue
+#endif
+
 // Use Incognito's streamer for custom vending machines
 #if !defined WC_USE_STREAMER
 	#define WC_USE_STREAMER false
@@ -50,12 +60,14 @@
 	#define WC_CUSTOM_VENDING_MACHINES true
 #endif
 
+// Healthbar foreground color
 #if !defined WC_HEALTH_BAR_FG_COLOR
-	#define WC_HEALTH_BAR_FG_COLOR 0xB4191DFF //red
+	#define WC_HEALTH_BAR_FG_COLOR 0xB4191DFF // red
 #endif
 
+// Healthbar background color
 #if !defined WC_HEALTH_BAR_BG_COLOR
-	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C0EFF //dark red
+	#define WC_HEALTH_BAR_BG_COLOR 0x5A0C0EFF // dark red
 #endif
 
 #if WC_USE_STREAMER && !defined Streamer_IncludeFileVersion
@@ -590,22 +602,22 @@ static s_DamageType[] = {
 // Note that due to various bugs, these can be exceeded, but
 // this include blocks out-of-range values.
 static Float:s_WeaponRange[] = {
-	1.6, // 0 - Fist
-	1.6, // 1 - Brass knuckles
-	1.6, // 2 - Golf club
-	1.6, // 3 - Nitestick
-	1.6, // 4 - Knife
-	1.6, // 5 - Bat
+	1.76, // 0 - Fist
+	1.76, // 1 - Brass knuckles
+	1.76, // 2 - Golf club
+	1.76, // 3 - Nitestick
+	1.76, // 4 - Knife
+	1.76, // 5 - Bat
 	1.6, // 6 - Shovel
-	1.6, // 7 - Pool cue
-	1.6, // 8 - Katana
-	1.6, // 9 - Chainsaw
-	1.6, // 10 - Dildo
-	1.6, // 11 - Dildo 2
-	1.6, // 12 - Vibrator
-	1.6, // 13 - Vibrator 2
-	1.6, // 14 - Flowers
-	1.6, // 15 - Cane
+	1.76, // 7 - Pool cue
+	1.76, // 8 - Katana
+	1.76, // 9 - Chainsaw
+	1.76, // 10 - Dildo
+	1.76, // 11 - Dildo 2
+	1.76, // 12 - Vibrator
+	1.76, // 13 - Vibrator 2
+	1.76, // 14 - Flowers
+	1.76, // 15 - Cane
 	40.0, // 16 - Grenade
 	40.0, // 17 - Teargas
 	40.0, // 18 - Molotov
@@ -636,7 +648,7 @@ static Float:s_WeaponRange[] = {
 	100.0, // 43 - Camera
 	100.0, // 44 - Night vision
 	100.0, // 45 - Infrared
-	1.6  // 46 - Parachute
+	1.76  // 46 - Parachute
 };
 
 // The fastest possible gap between weapon shots in milliseconds
@@ -988,6 +1000,10 @@ stock WC_IsPlayerSpawned(playerid)
 		return false;
 	}
 
+	if (s_InClassSelection[playerid] || s_ForceClassSelection[playerid]) {
+		return false;
+	}
+
 	switch (GetPlayerState(playerid)) {
 		case PLAYER_STATE_ONFOOT .. PLAYER_STATE_PASSENGER,
 		     PLAYER_STATE_SPAWNED: {
@@ -996,6 +1012,11 @@ stock WC_IsPlayerSpawned(playerid)
 	}
 
 	return false;
+}
+
+stock WC_IsPlayerPaused(playerid)
+{
+	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
 }
 
 stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
@@ -1129,8 +1150,8 @@ stock SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...)
 
 		for (new i = 0; i < steps; i++) {
 			if (i) {
-				s_DamageRangeRanges[weaponid][i] = Float:getarg(1 + i*2);
-				s_DamageRangeValues[weaponid][i] = Float:getarg(2 + i*2);
+				s_DamageRangeRanges[weaponid][i] = Float:getarg(1 + i * 2);
+				s_DamageRangeValues[weaponid][i] = Float:getarg(2 + i * 2);
 			} else {
 				s_DamageRangeValues[weaponid][i] = amount;
 			}
@@ -1822,6 +1843,7 @@ stock WC_DestroyVehicle(vehicleid)
 	if (DestroyVehicle(vehicleid)) {
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
 		s_VehicleAlive[vehicleid] = false;
+
 		if (s_VehicleRespawnTimer[vehicleid] != -1) {
 			KillTimer(s_VehicleRespawnTimer[vehicleid]);
 			s_VehicleRespawnTimer[vehicleid] = -1;
@@ -2257,7 +2279,7 @@ public OnPlayerConnect(playerid)
 	s_DeathTimer[playerid] = -1;
 	s_DelayedDeathTimer[playerid] = -1;
 	s_DamageFeedPlayer[playerid] = -1;
-	s_EnableHealthBar[playerid] = true; //enable by default
+	s_EnableHealthBar[playerid] = true; // enable by default
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
@@ -2389,7 +2411,6 @@ public OnPlayerSpawn(playerid)
 		DebugMessage(playerid, "Being forced into class selection");
 		ForceClassSelection(playerid);
 		SetPlayerHealth(playerid, 0.0);
-		SetPlayerVirtualWorld(playerid, WC_DEATH_WORLD);
 
 		return 1;
 	}
@@ -2492,9 +2513,12 @@ public OnPlayerSpawn(playerid)
 	new animlib[32], animname[32];
 
 	if (s_DeathSkip[playerid] == 2) {
+		new w, a;
+		GetPlayerWeaponData(playerid, 0, w, a);
+
 		DebugMessage(playerid, "Death skipped");
 		SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
-		SetPlayerArmedWeapon(playerid, 0);
+		SetPlayerArmedWeapon(playerid, w);
 		ClearAnimations(playerid);
 
 		animlib = "PED", animname = "IDLE_stance";
@@ -2553,9 +2577,6 @@ public OnPlayerRequestClass(playerid, classid)
 		s_IsDying[playerid] = false;
 	}
 
-	FreezeSyncPacket(playerid, .toggle = false);
-	UpdatePlayerVirtualWorld(playerid);
-
 	if (s_TrueDeath[playerid]) {
 		if (!s_InClassSelection[playerid]) {
 			DebugMessage(playerid, "True death class selection");
@@ -2569,6 +2590,8 @@ public OnPlayerRequestClass(playerid, classid)
 			s_InClassSelection[playerid] = true;
 		}
 
+		UpdatePlayerVirtualWorld(playerid);
+
 		if (WC_OnPlayerRequestClass(playerid, classid)) {
 			s_PlayerClass[playerid] = classid;
 
@@ -2581,6 +2604,7 @@ public OnPlayerRequestClass(playerid, classid)
 
 		s_ForceClassSelection[playerid] = true;
 
+		SetPlayerVirtualWorld(playerid, WC_DEATH_WORLD);
 		SpawnPlayerInPlace(playerid);
 
 		return 0;
@@ -2714,6 +2738,9 @@ public OnPlayerDeath(playerid, killerid, reason)
 			}
 
 			s_DeathSkip[playerid] = 2;
+			
+			new w, a;
+			GetPlayerWeaponData(playerid, 0, w, a);
 
 			ForceClassSelection(playerid);
 			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
@@ -2721,7 +2748,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 			TogglePlayerSpectating(playerid, false);
 			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, 0, 0, 0, 0, 0, 0);
 			TogglePlayerControllable(playerid, true);
-			GivePlayerWeapon(playerid, 1, 1);
+			SetPlayerArmedWeapon(playerid, w);
 		} else {
 			SpawnPlayerInPlace(playerid);
 		}
@@ -2738,8 +2765,8 @@ forward WC_CbugPunishment(playerid, weapon);
 public WC_CbugPunishment(playerid, weapon) {
 	FreezeSyncPacket(playerid, .toggle = false);
 	SetPlayerArmedWeapon(playerid, weapon);
-	
-	if (!IsPlayerDying(playerid)) {
+
+	if (!s_IsDying[playerid]) {
 		ClearAnimations(playerid, 1);
 	}
 }
@@ -2748,7 +2775,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
 	new animlib[32], animname[32];
 
-	if (!s_CbugAllowed[playerid] && !IsPlayerDying(playerid) && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
+	if (!s_CbugAllowed[playerid] && !s_IsDying[playerid] && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
 		if (newkeys & KEY_CROUCH) {
 			new tick = GetTickCount();
 			new diff = tick - s_LastShot[playerid][e_Tick];
@@ -2891,7 +2918,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 public OnPlayerStreamIn(playerid, forplayerid)
 {
 	// Send ped floor_hit_f
-	if (s_IsDying[playerid]) {
+	if (s_IsDying[playerid] || s_InClassSelection[playerid]) {
 		SendLastSyncPacket(playerid, forplayerid, .animation = 0x2e040000 + 1150);
 	}
 
@@ -2950,15 +2977,22 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 			GetPlayerVelocity(playerid, vx, vy, vz);
 
 			if (vx * vx + vy * vy + vz * vz <= 0.05) {
-				#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+				#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
+				foreach (new i : StreamedPlayer[playerid]) {
+				#elseif defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 				foreach (new i : Player) {
 				#else
 				for (new i = GetPlayerPoolSize(); i != -1; i--) {
 				#endif
+					#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
+					SendLastSyncPacket(playerid, i);
+					ClearAnimationsForPlayer(playerid, i);
+					#else
 					if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 						SendLastSyncPacket(playerid, i);
 						ClearAnimationsForPlayer(playerid, i);
 					}
+					#endif
 				}
 			}
 		}
@@ -2992,6 +3026,10 @@ public OnPlayerUpdate(playerid)
 {
 	if (s_IsDying[playerid]) {
 		return 1;
+	}
+
+	if (s_ForceClassSelection[playerid]) {
+		return 0;
 	}
 
 	new tick = GetTickCount();
@@ -3124,6 +3162,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 		new npc = IsPlayerNPC(damagedid);
 
 		if (weaponid == WEAPON_KNIFE && _:amount == _:0.0) {
+			if (damagedid == playerid) {
+				return 0;
+			}
+
 			if (s_KnifeTimeout[damagedid] != -1) {
 				KillTimer(s_KnifeTimeout[damagedid]);
 			}
@@ -3168,6 +3210,13 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 	if (weaponid == WEAPON_KNIFE) {
 		if (_:amount == _:0.0) {
+			new w, a;
+			GetPlayerWeaponData(playerid, 0, w, a);
+
+			if (damagedid == playerid) {
+				return 0;
+			}
+
 			// Resync without bothering the player being knifed
 			if (npc || HasSameTeam(playerid, damagedid)) {
 				if (s_KnifeTimeout[damagedid] != -1) {
@@ -3176,7 +3225,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 				s_KnifeTimeout[damagedid] = SetTimerEx("WC_SpawnForStreamedIn", 150, false, "i", damagedid);
 				ClearAnimations(playerid, 1);
-				SetPlayerArmedWeapon(playerid, 0);
+				SetPlayerArmedWeapon(playerid, w);
 
 				return 0;
 			} else {
@@ -3190,7 +3239,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 					s_KnifeTimeout[damagedid] = SetTimerEx("WC_SpawnForStreamedIn", 150, false, "i", damagedid);
 					ClearAnimations(playerid, 1);
-					SetPlayerArmedWeapon(playerid, 0);
+					SetPlayerArmedWeapon(playerid, w);
 
 					return 0;
 				}
@@ -3203,7 +3252,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 				s_KnifeTimeout[damagedid] = SetTimerEx("WC_SpawnForStreamedIn", 150, false, "i", damagedid);
 				ClearAnimations(playerid, 1);
-				SetPlayerArmedWeapon(playerid, 0);
+				SetPlayerArmedWeapon(playerid, w);
 
 				return 0;
 			}
@@ -3225,11 +3274,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 			DebugMessage(damagedid, "being knifed by %d", playerid);
 			DebugMessage(playerid, "knifing %d", damagedid);
 
-			new Float:x, Float:y, Float:z, Float:a;
+			new Float:angle;
 
-			GetPlayerFacingAngle(damagedid, a);
-			SetPlayerFacingAngle(playerid, a);
-			PosInFront(damagedid, -1.0, x, y, z);
+			GetPlayerFacingAngle(damagedid, angle);
+			SetPlayerFacingAngle(playerid, angle);
 
 			SetPlayerVelocity(damagedid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
@@ -3379,15 +3427,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 	UpdateHealthBar(playerid, true);
 
-	if (s_IsDying[playerid]) {
-		return 0;
-	}
-
-	if (s_BeingResynced[playerid]) {
-		return 0;
-	}
-
-	if (s_InClassSelection[playerid] || s_ForceClassSelection[playerid]) {
+	if (!WC_IsPlayerSpawned(playerid)) {
 		return 0;
 	}
 
@@ -3427,6 +3467,10 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 
 		// With the plugin, this part is never actually used (it can't happen)
 		if (_:amount == _:0.0) {
+			if (issuerid == playerid) {
+				return 0;
+			}
+
 			if (s_KnifeTimeout[playerid] != -1) {
 				KillTimer(s_KnifeTimeout[playerid]);
 
@@ -3473,11 +3517,10 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 			DebugMessage(playerid, "being knifed by %d", issuerid);
 			DebugMessage(issuerid, "knifing %d", playerid);
 
-			new Float:x, Float:y, Float:z, Float:a;
+			new Float:a;
 
 			GetPlayerFacingAngle(playerid, a);
 			SetPlayerFacingAngle(issuerid, a);
-			PosInFront(playerid, -1.0, x, y, z);
 
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(issuerid, 0.0, 0.0, 0.0);
@@ -3831,7 +3874,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				new Float:health;
 
 				GetVehicleHealth(hitid, health);
-				if (health >= 250.0) { //vehicles start on fire below 250 hp
+				if (health >= 250.0) { // vehicles start on fire below 250 hp
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
 					} else {
@@ -3899,6 +3942,7 @@ public OnVehicleDeath(vehicleid, killerid)
 		KillTimer(s_VehicleRespawnTimer[vehicleid]);
 		s_VehicleRespawnTimer[vehicleid] = -1;
 	}
+
 	if (s_VehicleAlive[vehicleid]) {
 		s_VehicleAlive[vehicleid] = false;
 
@@ -3910,7 +3954,7 @@ public OnVehicleDeath(vehicleid, killerid)
 public OnPlayerEnterCheckpoint(playerid)
 {
 	if (!WC_IsPlayerSpawned(playerid)) {
-		return 1;
+		return 0;
 	}
 
 	return WC_OnPlayerEnterCheckpoint(playerid);
@@ -3920,7 +3964,7 @@ public OnPlayerLeaveCheckpoint(playerid)
 {
 	// If they're dying, it will be called in PlayerDeath (when the death anim begins)
 	if (s_IsDying[playerid]) {
-		return 1;
+		return 0;
 	}
 
 	return WC_OnPlayerLeaveCheckpoint(playerid);
@@ -3929,7 +3973,7 @@ public OnPlayerLeaveCheckpoint(playerid)
 public OnPlayerEnterRaceCheckpoint(playerid)
 {
 	if (!WC_IsPlayerSpawned(playerid)) {
-		return 1;
+		return 0;
 	}
 
 	return WC_OnPlayerEnterRaceCheckpoint(playerid);
@@ -3939,7 +3983,7 @@ public OnPlayerLeaveRaceCheckpoint(playerid)
 {
 	// If they're dying, it will be called in PlayerDeath (when the death anim begins)
 	if (s_IsDying[playerid]) {
-		return 1;
+		return 0;
 	}
 
 	return WC_OnPlayerLeaveRaceCheckpoint(playerid);
@@ -4182,11 +4226,6 @@ static HasSameTeam(playerid, otherid)
 	return (s_PlayerTeam[playerid] == s_PlayerTeam[otherid]);
 }
 
-stock WC_IsPlayerPaused(playerid)
-{
-	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
-}
-
 static Float:WC_Bar_Calculate(Float:width, Float:max, Float:value)
 {
 	return ((width / max) * value);
@@ -4383,17 +4422,6 @@ static SpawnPlayerInPlace(playerid) {
 	SpawnPlayer(playerid);
 }
 
-static PosInFront(playerid, Float:distance, &Float:x, &Float:y, &Float:z)
-{
-	new Float:a;
-
-	GetPlayerPos(playerid, x, y, z);
-	GetPlayerFacingAngle(playerid, a);
-
-	x += (distance * floatsin(-a, degrees));
-	y += (distance * floatcos(-a, degrees));
-}
-
 static Float:AngleBetweenPoints(Float:x1, Float:y1, Float:x2, Float:y2)
 {
 	return -(90.0 - atan2(y1 - y2, x1 - x2));
@@ -4406,14 +4434,20 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
+	foreach (new i : StreamedPlayer[playerid]) {
+	#elseif defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
+		#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
+		SendLastSyncPacket(playerid, i);
+		#else
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncPacket(playerid, i);
 		}
+		#endif
 	}
 }
 
@@ -4515,7 +4549,7 @@ public WC_DeathSkipEnd(playerid)
 	}
 
 	SetPlayerArmedWeapon(playerid, s_SyncData[playerid][e_Weapon]);
-	SetPlayerSpecialAction(playerid, 0);
+	SetPlayerSpecialAction(playerid, SPECIAL_ACTION_NONE);
 }
 
 forward WC_SpawnForStreamedIn(playerid);
@@ -4527,15 +4561,22 @@ public WC_SpawnForStreamedIn(playerid)
 
 	SpawnPlayerForWorld(playerid);
 
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
+	foreach (new i : StreamedPlayer[playerid]) {
+	#elseif defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = GetPlayerPoolSize(); i != -1; i--) {
 	#endif
+		#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
+		SendLastSyncPacket(playerid, i);
+		ClearAnimationsForPlayer(playerid, i);
+		#else
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
 			SendLastSyncPacket(playerid, i);
 			ClearAnimationsForPlayer(playerid, i);
 		}
+		#endif
 	}
 }
 
@@ -5096,7 +5137,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], anim_lock = 0, respawn_t
 
 	new action = GetPlayerSpecialAction(playerid);
 
-	if (action && action != SPECIAL_ACTION_DUCK) {
+	if (action != SPECIAL_ACTION_NONE && action != SPECIAL_ACTION_DUCK) {
 		if (action == SPECIAL_ACTION_USEJETPACK) {
 			ClearAnimations(playerid);
 		}
@@ -5254,7 +5295,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 			s_InternalPlayerTextDraw[playerid][td] = true;
 
 			PlayerTextDrawLetterSize(playerid, td, 0.2, 0.9);
-			PlayerTextDrawColor(playerid, td, 0x30FF50FF);
+			PlayerTextDrawColor(playerid, td, WC_FEED_GIVEN_COLOR);
 			PlayerTextDrawFont(playerid, td, 1);
 			PlayerTextDrawSetShadow(playerid, td, 0);
 			PlayerTextDrawAlignment(playerid, td, 2);
@@ -5274,7 +5315,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 			s_InternalPlayerTextDraw[playerid][td] = true;
 
 			PlayerTextDrawLetterSize(playerid, td, 0.2, 0.9);
-			PlayerTextDrawColor(playerid, td, 0x33CCFFFF);
+			PlayerTextDrawColor(playerid, td, WC_FEED_TAKEN_COLOR);
 			PlayerTextDrawFont(playerid, td, 1);
 			PlayerTextDrawSetShadow(playerid, td, 0);
 			PlayerTextDrawAlignment(playerid, td, 2);
@@ -5708,8 +5749,8 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
 	s_PreviousHits[playerid][idx][e_Weapon] = weapon;
 	s_PreviousHits[playerid][idx][e_Amount] = amount;
 	s_PreviousHits[playerid][idx][e_Bodypart] = bodypart;
-	s_PreviousHits[playerid][idx][e_Health] = GetLastDamageHealth(playerid);
-	s_PreviousHits[playerid][idx][e_Armour] = GetLastDamageArmour(playerid);
+	s_PreviousHits[playerid][idx][e_Health] = s_DamageDoneHealth[playerid];
+	s_PreviousHits[playerid][idx][e_Armour] = s_DamageDoneArmour[playerid];
 
 	if (!IsHighRateWeapon(weapon)) {
 		DebugMessageAll("OnPlayerDamageDone(%d did %f to %d with %d on bodypart %d)", issuerid, amount, playerid, weapon, bodypart);
