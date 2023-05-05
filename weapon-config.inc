@@ -1021,7 +1021,7 @@ static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
 	#if WC_USE_STREAMER
 		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {INVALID_STREAMER_ID, ...};
 	#else
-		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {-1, ...};
+		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {INVALID_OBJECT_ID, ...};
 	#endif
 	static s_VendingUseTimer[MAX_PLAYERS];
 #endif
@@ -5306,9 +5306,9 @@ static WasPlayerInVehicle(playerid, time) {
 					s_VendingMachineObject[i] = INVALID_STREAMER_ID;
 				}
 			#else
-				if (s_VendingMachineObject[i] != -1) {
+				if (s_VendingMachineObject[i] != INVALID_OBJECT_ID) {
 					DestroyObject(s_VendingMachineObject[i]);
-					s_VendingMachineObject[i] = -1;
+					s_VendingMachineObject[i] = INVALID_OBJECT_ID;
 				}
 			#endif
 		}
