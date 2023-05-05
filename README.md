@@ -198,7 +198,7 @@ AverageHitRate(playerid, hits, &multiple_weapons = 0);
 Same as above, but for hits inflicted with `OnPlayerGiveDamage`
 
 ```pawn
-DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false);
+DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false);
 ```
 Inflict a hit on a player. All callbacks except `OnPlayerWeaponShot` will be called.  
 **Note:** do not use it inside OnPlayerDamage as you can just modify `amount` there
@@ -230,17 +230,17 @@ GetRespawnTime();
 Get the respawn time
 
 ```pawn
-IsBulletWeapon(weaponid);
+IsBulletWeapon(WEAPON:weaponid);
 ```
 Returns true if the weapon shoots bullets
 
 ```pawn
-IsHighRateWeapon(weaponid);
+IsHighRateWeapon(WEAPON:weaponid);
 ```
 Returns true if the weapon's damage can be reported in high rates to the server (such as fire)
 
 ```pawn
-IsMeleeWeapon(weaponid);
+IsMeleeWeapon(WEAPON:weaponid);
 ```
 Returns true if it's a melee weapon (including `WEAPON_PISTOLWHIP`)
 
@@ -260,12 +260,12 @@ WC_IsPlayerPaused(playerid);
 Returns true if the player is paused (AFK) within last two seconds
 
 ```pawn
-GetWeaponName(weaponid, weapon[], len = sizeof(weapon));
+GetWeaponName(WEAPON:weaponid, weapon[], len = sizeof(weapon));
 ```
 Hooked version of the native, fixed and containing custom weapons (such as pistol whip)
 
 ```pawn
-ReturnWeaponName(weaponid);
+ReturnWeaponName(WEAPON:weaponid);
 ```
 Return the weapon name (uses the fixed GetWeaponName)
 
@@ -349,30 +349,30 @@ Modify a weapon's damage
     * `20` for any other distance
 
 ```pawn
-Float:GetWeaponDamage(weaponid);
+Float:GetWeaponDamage(WEAPON:weaponid);
 ```
 Get the amount of damage of a weapon
 
 ```pawn
-SetWeaponMaxRange(weaponid, Float:range);
+SetWeaponMaxRange(WEAPON:weaponid, Float:range);
 ```
 Set the max range of a weapon. The default value is those from weapon.dat
 Because of a SA-MP bug, weapons can (and will) exceed this range.
 This script, however, will block those out-of-range shots and give a rejected hit.
 
 ```pawn
-Float:GetWeaponMaxRange(weaponid);
+Float:GetWeaponMaxRange(WEAPON:weaponid);
 ```
 Get the max range of a weapon
 
 ```pawn
-SetWeaponShootRate(weaponid, max_rate);
+SetWeaponShootRate(WEAPON:weaponid, max_rate);
 ```
 Set the max allowed shoot rate of a weapon.
 Could be used to prevent C-bug damage or allow infinite shooting if a script uses GivePlayerWeapon to do so.
 
 ```pawn
-GetWeaponShootRate(weaponid);
+GetWeaponShootRate(WEAPON:weaponid);
 ```
 Get the max allowed shoot rate of a weapon
 
@@ -384,7 +384,7 @@ Toggle the custom armour rules on and off. Both are disabled by default.
 * `torso_rules` - Toggle all torso-only rules. When off, all weapons will have effects no matter which bodypart is 'hit'. When on, weapons with the `torso_only` rule (of `SetWeaponArmourRule`) on will only damage armour when the torso is 'hit' (and when it's off, armour is damaged no matter which body part is 'hit').
 
 ```pawn
-SetWeaponArmourRule(weaponid, bool:affects_armour, bool:torso_only);
+SetWeaponArmourRule(WEAPON:weaponid, bool:affects_armour, bool:torso_only);
 ```
 Set custom rules for a weapon. The defaults aren't going to comfort EVERYONE, so everyone needs the ability to modify the weapons themselves.
 * `weaponid` - The ID of the weapon to modify the rules of.
@@ -392,6 +392,6 @@ Set custom rules for a weapon. The defaults aren't going to comfort EVERYONE, so
 * `torso_only` - Whether this weapon will only damage armour when the 'hit' bodypart is the torso or all bodyparts. Only works when `torso_rules` are enabled using `SetCustomArmourRules`.
 
 ```pawn
-EnableHealthBarForPlayer(playerid, bool:enable)
+EnableHealthBarForPlayer(playerid, bool:enable);
 ```
 Show or hide health bar for player.
