@@ -982,7 +982,7 @@ static s_LastSentArmour[MAX_PLAYERS];
 static bool:s_DamageArmourToggle[2] = {false, ...};
 static s_PlayerTeam[MAX_PLAYERS] = {NO_TEAM, ...};
 static s_IsDying[MAX_PLAYERS];
-static s_DeathTimer[MAX_PLAYERS] = {-1, ...};
+static s_DeathTimer[MAX_PLAYERS];
 static bool:s_HealthBarVisible[MAX_PLAYERS];
 static bool:s_SpawnForStreamedIn[MAX_PLAYERS];
 static s_RespawnTime = 3000;
@@ -1010,7 +1010,7 @@ static PlayerText:s_DamageFeedTaken[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW
 static PlayerText:s_DamageFeedGiven[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static s_DamageFeedHitsGiven[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
 static s_DamageFeedHitsTaken[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
-static s_DamageFeedTimer[MAX_PLAYERS] = {-1, ...};
+static s_DamageFeedTimer[MAX_PLAYERS];
 static s_DamageFeedLastUpdate[MAX_PLAYERS];
 static s_Spectating[MAX_PLAYERS] = {INVALID_PLAYER_ID, ...};
 static s_LastStop[MAX_PLAYERS];
@@ -1023,11 +1023,11 @@ static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
 	#else
 		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {-1, ...};
 	#endif
-	static s_VendingUseTimer[MAX_PLAYERS] = {-1, ...};
+	static s_VendingUseTimer[MAX_PLAYERS];
 #endif
 
 static s_BeingResynced[MAX_PLAYERS];
-static s_KnifeTimeout[MAX_PLAYERS] = {-1, ...};
+static s_KnifeTimeout[MAX_PLAYERS];
 static s_SyncData[MAX_PLAYERS][E_RESYNC_DATA];
 static Text:s_HealthBarBorder = Text:INVALID_TEXT_DRAW;
 static Text:s_HealthBarBackground = Text:INVALID_TEXT_DRAW;
@@ -1056,10 +1056,10 @@ static s_PreviousHits[MAX_PLAYERS][10][E_HIT_INFO];
 static s_PreviousHitI[MAX_PLAYERS];
 static Float:s_DamageDoneHealth[MAX_PLAYERS];
 static Float:s_DamageDoneArmour[MAX_PLAYERS];
-static s_DelayedDeathTimer[MAX_PLAYERS] = {-1, ...};
+static s_DelayedDeathTimer[MAX_PLAYERS];
 static bool:s_VehicleAlive[MAX_VEHICLES] = {false, ...};
 static bool:s_EnableHealthBar[MAX_PLAYERS];
-static s_VehicleRespawnTimer[MAX_VEHICLES] = {-1, ...};
+static s_VehicleRespawnTimer[MAX_VEHICLES];
 
 #if !defined _INC_SKY
 	static s_FakeHealth[MAX_PLAYERS char];
@@ -1888,15 +1888,15 @@ stock WC_TogglePlayerSpectating(playerid, toggle)
 {
 	if (TogglePlayerSpectating(playerid, !!toggle)) {
 		if (toggle) {
-			if (s_DeathTimer[playerid] != -1) {
+			if (s_DeathTimer[playerid]) {
 				KillTimer(s_DeathTimer[playerid]);
-				s_DeathTimer[playerid] = -1;
+				s_DeathTimer[playerid] = 0;
 			}
 
 			#if WC_CUSTOM_VENDING_MACHINES
-				if (s_VendingUseTimer[playerid] != -1) {
+				if (s_VendingUseTimer[playerid]) {
 					KillTimer(s_VendingUseTimer[playerid]);
-					s_VendingUseTimer[playerid] = -1;
+					s_VendingUseTimer[playerid] = 0;
 				}
 			#endif
 
@@ -2008,9 +2008,9 @@ stock WC_DestroyVehicle(vehicleid)
 		s_LastVehicleShooter[vehicleid] = INVALID_PLAYER_ID;
 		s_VehicleAlive[vehicleid] = false;
 
-		if (s_VehicleRespawnTimer[vehicleid] != -1) {
+		if (s_VehicleRespawnTimer[vehicleid]) {
 			KillTimer(s_VehicleRespawnTimer[vehicleid]);
-			s_VehicleRespawnTimer[vehicleid] = -1;
+			s_VehicleRespawnTimer[vehicleid] = 0;
 		}
 
 		return 1;
@@ -2856,7 +2856,7 @@ public OnPlayerConnect(playerid)
 	s_LastZVelo[playerid] = 0.0;
 	s_LastZ[playerid] = 0.0;
 	s_LastUpdate[playerid] = tick;
-	s_DamageFeedTimer[playerid] = -1;
+	s_DamageFeedTimer[playerid] = 0;
 	s_DamageFeedLastUpdate[playerid] = tick;
 	s_Spectating[playerid] = INVALID_PLAYER_ID;
 	s_HealthBarVisible[playerid] = false;
@@ -2876,8 +2876,8 @@ public OnPlayerConnect(playerid)
 	s_PreviousHitI[playerid] = 0;
 	s_CbugAllowed[playerid] = s_CbugGlobal;
 	s_CbugFroze[playerid] = 0;
-	s_DeathTimer[playerid] = -1;
-	s_DelayedDeathTimer[playerid] = -1;
+	s_DeathTimer[playerid] = 0;
+	s_DelayedDeathTimer[playerid] = 0;
 	s_DamageFeedPlayer[playerid] = -1;
 	s_EnableHealthBar[playerid] = true; // enable by default
 
@@ -2948,25 +2948,25 @@ public OnPlayerDisconnect(playerid, reason)
 	WC_OnPlayerDisconnect(playerid, reason);
 
 	#if WC_CUSTOM_VENDING_MACHINES
-		if (s_VendingUseTimer[playerid] != -1) {
+		if (s_VendingUseTimer[playerid]) {
 			KillTimer(s_VendingUseTimer[playerid]);
-			s_VendingUseTimer[playerid] = -1;
+			s_VendingUseTimer[playerid] = 0;
 		}
 	#endif
 
-	if (s_DelayedDeathTimer[playerid] != -1) {
+	if (s_DelayedDeathTimer[playerid]) {
 		KillTimer(s_DelayedDeathTimer[playerid]);
-		s_DelayedDeathTimer[playerid] = -1;
+		s_DelayedDeathTimer[playerid] = 0;
 	}
 
-	if (s_DeathTimer[playerid] != -1) {
+	if (s_DeathTimer[playerid]) {
 		KillTimer(s_DeathTimer[playerid]);
-		s_DeathTimer[playerid] = -1;
+		s_DeathTimer[playerid] = 0;
 	}
 
-	if (s_KnifeTimeout[playerid] != -1) {
+	if (s_KnifeTimeout[playerid]) {
 		KillTimer(s_KnifeTimeout[playerid]);
-		s_KnifeTimeout[playerid] = -1;
+		s_KnifeTimeout[playerid] = 0;
 	}
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
@@ -2984,9 +2984,9 @@ public OnPlayerDisconnect(playerid, reason)
 		s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
-	if (s_DamageFeedTimer[playerid] != -1) {
+	if (s_DamageFeedTimer[playerid]) {
 		KillTimer(s_DamageFeedTimer[playerid]);
-		s_DamageFeedTimer[playerid] = -1;
+		s_DamageFeedTimer[playerid] = 0;
 	}
 
 	SetHealthBarVisible(playerid, false);
@@ -3105,9 +3105,9 @@ public OnPlayerSpawn(playerid)
 		GetPlayerFacingAngle(playerid, s_PlayerFallbackSpawnInfo[playerid][e_Rot]);
 	}
 
-	if (s_DeathTimer[playerid] != -1) {
+	if (s_DeathTimer[playerid]) {
 		KillTimer(s_DeathTimer[playerid]);
-		s_DeathTimer[playerid] = -1;
+		s_DeathTimer[playerid] = 0;
 	}
 
 	if (s_IsDying[playerid]) {
@@ -3192,9 +3192,9 @@ public OnPlayerRequestClass(playerid, classid)
 		return 0;
 	}
 
-	if (s_DeathTimer[playerid] != -1) {
+	if (s_DeathTimer[playerid]) {
 		KillTimer(s_DeathTimer[playerid]);
-		s_DeathTimer[playerid] = -1;
+		s_DeathTimer[playerid] = 0;
 	}
 
 	if (s_IsDying[playerid]) {
@@ -3249,9 +3249,9 @@ public OnPlayerDeath(playerid, killerid, reason)
 	s_InClassSelection[playerid] = false;
 
 	#if WC_CUSTOM_VENDING_MACHINES
-		if (s_VendingUseTimer[playerid] != -1) {
+		if (s_VendingUseTimer[playerid]) {
 			KillTimer(s_VendingUseTimer[playerid]);
-			s_VendingUseTimer[playerid] = -1;
+			s_VendingUseTimer[playerid] = 0;
 		}
 	#endif
 
@@ -3266,9 +3266,9 @@ public OnPlayerDeath(playerid, killerid, reason)
 
 	DebugMessageRedAll("OnPlayerDeath(%d died by %d from %d)", playerid, reason, killerid);
 
-	if (s_DeathTimer[playerid] != -1) {
+	if (s_DeathTimer[playerid]) {
 		KillTimer(s_DeathTimer[playerid]);
-		s_DeathTimer[playerid] = -1;
+		s_DeathTimer[playerid] = 0;
 	}
 
 	if (s_IsDying[playerid]) {
@@ -3458,12 +3458,12 @@ public OnPlayerKeyStateChange(playerid, KEY:newkeys, KEY:oldkeys)
 							armour = WC_GetPlayerArmour(i);
 
 							if (s_IsDying[i]) {
-								if (s_DelayedDeathTimer[i] == -1) {
+								if (!s_DelayedDeathTimer[i]) {
 									continue;
 								}
 
 								KillTimer(s_DelayedDeathTimer[i]);
-								s_DelayedDeathTimer[i] = -1;
+								s_DelayedDeathTimer[i] = 0;
 								ClearAnimations(i, FORCE_SYNC:1);
 								SetFakeFacingAngle(i, _);
 								FreezeSyncPacket(i, .toggle = false);
@@ -3477,9 +3477,9 @@ public OnPlayerKeyStateChange(playerid, KEY:newkeys, KEY:oldkeys)
 									}
 								#endif
 
-								if (s_DeathTimer[i] != -1) {
+								if (s_DeathTimer[i]) {
 									KillTimer(s_DeathTimer[i]);
-									s_DeathTimer[i] = -1;
+									s_DeathTimer[i] = 0;
 								}
 							}
 
@@ -3499,7 +3499,7 @@ public OnPlayerKeyStateChange(playerid, KEY:newkeys, KEY:oldkeys)
 			if (s_CustomVendingMachines
 			 && newkeys == KEY_SECONDARY_ATTACK
 			 && !oldkeys
-			 && s_VendingUseTimer[playerid] == -1
+			 && !s_VendingUseTimer[playerid]
 			 && GetPlayerAnimationIndex(playerid) != 1660) {
 				new bool:failed = false;
 
@@ -3574,9 +3574,9 @@ public OnPlayerStreamIn(playerid, forplayerid)
 public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 {
 	#if WC_CUSTOM_VENDING_MACHINES
-		if (s_VendingUseTimer[playerid] != -1) {
+		if (s_VendingUseTimer[playerid]) {
 			KillTimer(s_VendingUseTimer[playerid]);
-			s_VendingUseTimer[playerid] = -1;
+			s_VendingUseTimer[playerid] = 0;
 		}
 	#endif
 
@@ -3605,9 +3605,9 @@ public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstat
 	}
 
 	#if WC_CUSTOM_VENDING_MACHINES
-		if (s_VendingUseTimer[playerid] != -1) {
+		if (s_VendingUseTimer[playerid]) {
 			KillTimer(s_VendingUseTimer[playerid]);
-			s_VendingUseTimer[playerid] = -1;
+			s_VendingUseTimer[playerid] = 0;
 		}
 	#endif
 
@@ -3812,7 +3812,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 				return 0;
 			}
 
-			if (s_KnifeTimeout[damagedid] != -1) {
+			if (s_KnifeTimeout[damagedid]) {
 				KillTimer(s_KnifeTimeout[damagedid]);
 			}
 
@@ -3865,7 +3865,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 
 			// Resync without bothering the player being knifed
 			if (npc || HasSameTeam(playerid, damagedid)) {
-				if (s_KnifeTimeout[damagedid] != -1) {
+				if (s_KnifeTimeout[damagedid]) {
 					KillTimer(s_KnifeTimeout[damagedid]);
 				}
 
@@ -3879,7 +3879,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 				GetPlayerPos(playerid, x, y, z);
 
 				if (GetPlayerDistanceFromPoint(damagedid, x, y, z) > s_WeaponRange[weaponid] + 2.0) {
-					if (s_KnifeTimeout[damagedid] != -1) {
+					if (s_KnifeTimeout[damagedid]) {
 						KillTimer(s_KnifeTimeout[damagedid]);
 					}
 
@@ -3892,7 +3892,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid, bodypart)
 			}
 
 			if (!OnPlayerDamage(damagedid, amount, playerid, weaponid, bodypart)) {
-				if (s_KnifeTimeout[damagedid] != -1) {
+				if (s_KnifeTimeout[damagedid]) {
 					KillTimer(s_KnifeTimeout[damagedid]);
 				}
 
@@ -4117,10 +4117,10 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 				return 0;
 			}
 
-			if (s_KnifeTimeout[playerid] != -1) {
+			if (s_KnifeTimeout[playerid]) {
 				KillTimer(s_KnifeTimeout[playerid]);
 
-				s_KnifeTimeout[playerid] = -1;
+				s_KnifeTimeout[playerid] = 0;
 			}
 
 			if (issuerid == INVALID_PLAYER_ID || HasSameTeam(playerid, issuerid)) {
@@ -4265,9 +4265,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
 public OnPlayerWeaponShot(playerid, weaponid, BULLET_HIT_TYPE:hittype, hitid, Float:fX, Float:fY, Float:fZ)
 {
 	#if WC_CUSTOM_VENDING_MACHINES
-		if (s_VendingUseTimer[playerid] != -1) {
+		if (s_VendingUseTimer[playerid]) {
 			KillTimer(s_VendingUseTimer[playerid]);
-			s_VendingUseTimer[playerid] = -1;
+			s_VendingUseTimer[playerid] = 0;
 		}
 	#endif
 
@@ -4528,7 +4528,7 @@ public OnPlayerWeaponShot(playerid, weaponid, BULLET_HIT_TYPE:hittype, hitid, Fl
 					}
 
 					if (health < 250.0) {
-						if (s_VehicleRespawnTimer[hitid] == -1) {
+						if (!s_VehicleRespawnTimer[hitid]) {
 							health = 249.0;
 							s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid, playerid);
 						}
@@ -4565,15 +4565,15 @@ public WC_KillVehicle(vehicleid, killerid)
 forward WC_OnDeadVehicleSpawn(vehicleid);
 public WC_OnDeadVehicleSpawn(vehicleid)
 {
-	s_VehicleRespawnTimer[vehicleid] = -1;
+	s_VehicleRespawnTimer[vehicleid] = 0;
 	return SetVehicleToRespawn(vehicleid);
 }
 
 public OnVehicleSpawn(vehicleid)
 {
-	if (s_VehicleRespawnTimer[vehicleid] != -1) {
+	if (s_VehicleRespawnTimer[vehicleid]) {
 		KillTimer(s_VehicleRespawnTimer[vehicleid]);
-		s_VehicleRespawnTimer[vehicleid] = -1;
+		s_VehicleRespawnTimer[vehicleid] = 0;
 	}
 
 	s_VehicleAlive[vehicleid] = true;
@@ -4584,9 +4584,9 @@ public OnVehicleSpawn(vehicleid)
 
 public OnVehicleDeath(vehicleid, killerid)
 {
-	if (s_VehicleRespawnTimer[vehicleid] != -1) {
+	if (s_VehicleRespawnTimer[vehicleid]) {
 		KillTimer(s_VehicleRespawnTimer[vehicleid]);
-		s_VehicleRespawnTimer[vehicleid] = -1;
+		s_VehicleRespawnTimer[vehicleid] = 0;
 	}
 
 	if (s_VehicleAlive[vehicleid]) {
@@ -4971,9 +4971,9 @@ static ScriptExit()
 	for (new playerid = 0; playerid != MAX_PLAYERS; playerid++) {
 	#endif
 		#if WC_CUSTOM_VENDING_MACHINES
-			if (s_VendingUseTimer[playerid] != -1) {
+			if (s_VendingUseTimer[playerid]) {
 				KillTimer(s_VendingUseTimer[playerid]);
-				s_VendingUseTimer[playerid] = -1;
+				s_VendingUseTimer[playerid] = 0;
 			}
 		#endif
 
@@ -5902,7 +5902,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 
 forward WC_DelayedDeath(playerid, issuerid, reason);
 public WC_DelayedDeath(playerid, issuerid, reason) {
-	s_DelayedDeathTimer[playerid] = -1;
+	s_DelayedDeathTimer[playerid] = 0;
 
 	WC_OnPlayerDeath(playerid, issuerid, reason);
 }
@@ -5951,7 +5951,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], bool:anim_lock = false, 
 		ApplyAnimation(playerid, animlib, animname, 4.1, false, anim_lock, anim_lock, anim_freeze, 0, FORCE_SYNC:1);
 	}
 
-	if (s_DeathTimer[playerid] != -1) {
+	if (s_DeathTimer[playerid]) {
 		KillTimer(s_DeathTimer[playerid]);
 	}
 
@@ -6005,9 +6005,9 @@ public OnPlayerDeathFinished(playerid, bool:cancelable)
 		s_PlayerHealth[playerid] = s_PlayerMaxHealth[playerid];
 	}
 
-	if (s_DeathTimer[playerid] != -1) {
+	if (s_DeathTimer[playerid]) {
 		KillTimer(s_DeathTimer[playerid]);
-		s_DeathTimer[playerid] = -1;
+		s_DeathTimer[playerid] = 0;
 	}
 
 	new retval = WC_OnPlayerDeathFinished(playerid, cancelable);
@@ -6029,7 +6029,7 @@ public OnPlayerDeathFinished(playerid, bool:cancelable)
 	forward WC_VendingMachineUsed(playerid, Float:health_given);
 	public WC_VendingMachineUsed(playerid, Float:health_given)
 	{
-		s_VendingUseTimer[playerid] = -1;
+		s_VendingUseTimer[playerid] = 0;
 
 		if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT && !s_IsDying[playerid]) {
 			new Float:health = s_PlayerHealth[playerid];
@@ -6048,7 +6048,7 @@ public OnPlayerDeathFinished(playerid, bool:cancelable)
 forward WC_DamageFeedUpdate(playerid);
 public WC_DamageFeedUpdate(playerid)
 {
-	s_DamageFeedTimer[playerid] = -1;
+	s_DamageFeedTimer[playerid] = 0;
 
 	if (IsPlayerConnected(playerid) && IsDamageFeedActive(playerid)) {
 		DamageFeedUpdate(playerid, true);
@@ -6153,7 +6153,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		}
 	}
 
-	if (s_DamageFeedTimer[playerid] != -1) {
+	if (s_DamageFeedTimer[playerid]) {
 		KillTimer(s_DamageFeedTimer[playerid]);
 	}
 
@@ -6161,7 +6161,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		s_DamageFeedTimer[playerid] = SetTimerEx("WC_DamageFeedUpdate", s_DamageFeedMaxUpdateRate - (tick - s_DamageFeedLastUpdate[playerid]), false, "i", playerid);
 	} else {
 		if (lowest_tick == tick + 1) {
-			s_DamageFeedTimer[playerid] = -1;
+			s_DamageFeedTimer[playerid] = 0;
 			modified = true;
 		} else {
 			s_DamageFeedTimer[playerid] = SetTimerEx("WC_DamageFeedUpdate", s_DamageFeedHideDelay - (tick - lowest_tick) + 10, false, "i", playerid);
