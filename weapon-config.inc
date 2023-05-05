@@ -4865,26 +4865,26 @@ static ScriptInit()
 		s_ClassSpawnInfo[i][e_Skin] = -1;
 	}
 
-	s_HealthBarBorder = TextDrawCreate(546.2, 66.4, "LD_SPAC:white");
+	s_HealthBarBorder = TextDrawCreate(546.0, 66.7, "LD_SPAC:white");
 
 	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar border textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBorder] = true;
 
-		TextDrawTextSize	(s_HealthBarBorder, 61.5, 8.8);
+		TextDrawTextSize	(s_HealthBarBorder, 61.7, 8.4);
 		TextDrawColour		(s_HealthBarBorder, 255);
 		TextDrawFont		(s_HealthBarBorder, TEXT_DRAW_FONT_SPRITE_DRAW);
 	}
 
-	s_HealthBarBackground = TextDrawCreate(548.2, 68.6, "LD_SPAC:white");
+	s_HealthBarBackground = TextDrawCreate(548.0, 68.8, "LD_SPAC:white");
 
 	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar background textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBackground] = true;
 
-		TextDrawTextSize	(s_HealthBarBackground, 57.6, 5.0);
+		TextDrawTextSize	(s_HealthBarBackground, 57.8, 4.7);
 		TextDrawColour		(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
 		TextDrawFont		(s_HealthBarBackground, TEXT_DRAW_FONT_SPRITE_DRAW);
 	}
@@ -5105,17 +5105,17 @@ static UpdateHealthBar(playerid, bool:force = false)
 
 				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
 					playerid,
-					548.2,
-					68.6,
+					548.0,
+					68.8,
 					"LD_SPAC:white"
 				);
 				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
-					57.6,
+					57.8,
 					100.0,
 					float(health)),
-					5.0
+					4.7
 				);
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
@@ -5131,10 +5131,10 @@ static UpdateHealthBar(playerid, bool:force = false)
 				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_Bar_Calculate(
-					57.6,
+					57.8,
 					100.0,
 					float(health)),
-					5.0
+					4.7
 				);
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
