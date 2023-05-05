@@ -1019,7 +1019,7 @@ static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
 #if WC_CUSTOM_VENDING_MACHINES
 	static bool:s_CustomVendingMachines = true;
 	#if WC_USE_STREAMER
-		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {INVALID_STREAMER_ID, ...};
+		static STREAMER_TAG_OBJECT:s_VendingMachineObject[sizeof(sc_VendingMachines)] = {STREAMER_TAG_OBJECT:INVALID_STREAMER_ID, ...};
 	#else
 		static s_VendingMachineObject[sizeof(sc_VendingMachines)] = {INVALID_OBJECT_ID, ...};
 	#endif
@@ -5301,9 +5301,9 @@ static WasPlayerInVehicle(playerid, time) {
 	{
 		for (new i = 0; i < sizeof(s_VendingMachineObject); i++) {
 			#if WC_USE_STREAMER
-				if (s_VendingMachineObject[i] != INVALID_STREAMER_ID) {
+				if (_:s_VendingMachineObject[i] != INVALID_STREAMER_ID) {
 					DestroyDynamicObject(s_VendingMachineObject[i]);
-					s_VendingMachineObject[i] = INVALID_STREAMER_ID;
+					s_VendingMachineObject[i] = STREAMER_TAG_OBJECT:INVALID_STREAMER_ID;
 				}
 			#else
 				if (s_VendingMachineObject[i] != INVALID_OBJECT_ID) {
