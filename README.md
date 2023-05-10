@@ -10,7 +10,7 @@ It's pretty much plug-and-play if you don't have any filterscripts that interfer
 2. Replace `OnPlayerGiveDamage` and `OnPlayerTakeDamage` with just one callback:
     
     ```pawn
-    public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
+    public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &WEAPON:weapon, &bodypart)
     ```
 3. Add config functions in `OnGameModeInit` (or any other places, they can be called at any time).
     **Recommended**:
@@ -110,7 +110,7 @@ CallRemoteFunction("SetHealth", "if", playerid, health);
 ### New callbacks
 
 ```pawn
-public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &weapon, &bodypart)
+public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &WEAPON:weapon, &bodypart)
 ```
 Called when damage is about to be inflicted on a player
 Most arguments can be modified (e.g. the damage could be adjusted)
@@ -124,7 +124,7 @@ Most arguments can be modified (e.g. the damage could be adjusted)
 Return 0 to prevent the damage from being inflicted
 
 ```pawn
-public OnPlayerDamageDone(playerid, Float:amount, issuerid, weapon, bodypart)
+public OnPlayerDamageDone(playerid, Float:amount, issuerid, WEAPON:weapon, bodypart)
 ```
 Called after damage has been inflicted
 
@@ -166,7 +166,7 @@ See E_REJECTED_HIT and GetRejectedHit for more
 Return value ignored
 
 ```pawn
-public OnInvalidWeaponDamage(playerid, damagedid, Float:amount, weaponid, bodypart, error, bool:given)
+public OnInvalidWeaponDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bodypart, error, bool:given)
 ```
 When a player takes or gives invalid damage (WC_* errors above)
 * `playerid` - The player that inflicted the damage
@@ -320,7 +320,7 @@ SetVehicleUnoccupiedDamage(bool:toggle);
 Allow vehicles to be damaged when they don't have any players inside them
 
 ```pawn
-SetWeaponDamage(weaponid, damage_type, Float:amount, Float:...);
+SetWeaponDamage(WEAPON:weaponid, damage_type, Float:amount, Float:...);
 ```
 Modify a weapon's damage
 * `weaponid` - The weapon to modify
