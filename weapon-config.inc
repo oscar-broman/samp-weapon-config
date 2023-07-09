@@ -4769,6 +4769,12 @@ IPacket:WC_VEHICLE_SYNC(playerid, BitStream:bs)
 		inCarData[PR_armour] = s_FakeArmour{playerid};
 	}
 
+	#if !defined _INC_open_mp
+		if (44 <= inCarData[PR_weaponId] <= 45) {
+			inCarData[PR_keys] &= ~KEY_FIRE;
+		}
+	#endif
+
 	BS_SetWriteOffset(bs, 8);
 	BS_WriteInCarSync(bs, inCarData); // rewrite
 
@@ -4789,6 +4795,12 @@ IPacket:WC_PASSENGER_SYNC(playerid, BitStream:bs)
 	if (s_FakeArmour{playerid} != 255) {
 		passengerData[PR_playerArmour] = s_FakeArmour{playerid};
 	}
+
+	#if !defined _INC_open_mp
+		if (44 <= passengerData[PR_weaponId] <= 45) {
+			passengerData[PR_keys] &= ~KEY_FIRE;
+		}
+	#endif
 
 	BS_SetWriteOffset(bs, 8);
 	BS_WritePassengerSync(bs, passengerData); // rewrite
