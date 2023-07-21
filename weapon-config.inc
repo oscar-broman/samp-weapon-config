@@ -1049,7 +1049,9 @@ static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
 static bool:s_SpawnInfoModified[MAX_PLAYERS];
 static bool:s_AlreadyConnected[MAX_PLAYERS];
 static s_DeathSkip[MAX_PLAYERS];
+static s_GogglesUsed[MAX_PLAYERS];
 static s_DeathSkipTick[MAX_PLAYERS];
+static s_GogglesTick[MAX_PLAYERS];
 static s_LastDeathTick[MAX_PLAYERS];
 static s_LastVehicleTick[MAX_PLAYERS];
 static s_PreviousHits[MAX_PLAYERS][10][E_HIT_INFO];
@@ -2872,6 +2874,7 @@ public OnPlayerConnect(playerid)
 	s_SpawnInfoModified[playerid] = false;
 	s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
 	s_DeathSkip[playerid] = 0;
+	s_GogglesUsed[playerid] = 0;
 	s_LastVehicleTick[playerid] = 0;
 	s_PreviousHitI[playerid] = 0;
 	s_CbugAllowed[playerid] = s_CbugGlobal;
@@ -4740,13 +4743,26 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 	}
 
 	if (onFootData[PR_weaponId] == _:WEAPON_KNIFE && !s_KnifeSync) {
+		// Remove aim key
 		onFootData[PR_keys] &= ~_:KEY_HANDBRAKE;
-	}
-	#if !defined _INC_open_mp
-		else if (44 <= onFootData[PR_weaponId] <= 45) {
+	} else if (44 <= onFootData[PR_weaponId] <= 45) {
+		// Remove fire key
+		onFootData[PR_keys] &= ~KEY_FIRE;
+
+		// Keep preventing for some more packets
+		s_GogglesTick[playerid] = GetTickCount();
+		s_GogglesUsed[playerid] = 1;
+	} else if (s_GogglesUsed[playerid]) {
+		if (s_GogglesUsed[playerid] == 2 && GetTickCount() - s_GogglesTick[playerid] > 40) {
+			s_GogglesUsed[playerid] = 0;
+		} else {
+			// Remove fire key
 			onFootData[PR_keys] &= ~KEY_FIRE;
+
+			s_GogglesTick[playerid] = GetTickCount();
+			s_GogglesUsed[playerid] = 2;
 		}
-	#endif
+	}
 
 	BS_SetWriteOffset(bs, 8);
 	BS_WriteOnFootSync(bs, onFootData); // rewrite
