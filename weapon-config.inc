@@ -4747,7 +4747,7 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 		onFootData[PR_keys] &= ~_:KEY_HANDBRAKE;
 	} else if (44 <= onFootData[PR_weaponId] <= 45) {
 		// Remove fire key
-		onFootData[PR_keys] &= ~KEY_FIRE;
+		onFootData[PR_keys] &= ~_:KEY_FIRE;
 
 		// Keep preventing for some more packets
 		s_GogglesTick[playerid] = GetTickCount();
@@ -4757,7 +4757,7 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 			s_GogglesUsed[playerid] = 0;
 		} else {
 			// Remove fire key
-			onFootData[PR_keys] &= ~KEY_FIRE;
+			onFootData[PR_keys] &= ~_:KEY_FIRE;
 
 			s_GogglesTick[playerid] = GetTickCount();
 			s_GogglesUsed[playerid] = 2;
