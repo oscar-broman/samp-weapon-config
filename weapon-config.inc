@@ -1051,7 +1051,6 @@ static bool:s_AlreadyConnected[MAX_PLAYERS];
 static s_DeathSkip[MAX_PLAYERS];
 static s_GogglesUsed[MAX_PLAYERS];
 static s_DeathSkipTick[MAX_PLAYERS];
-static s_GogglesTick[MAX_PLAYERS];
 static s_LastDeathTick[MAX_PLAYERS];
 static s_LastVehicleTick[MAX_PLAYERS];
 static s_PreviousHits[MAX_PLAYERS][10][E_HIT_INFO];
@@ -1071,6 +1070,7 @@ static s_VehicleRespawnTimer[MAX_VEHICLES];
 	static s_LastSyncData[MAX_PLAYERS][PR_OnFootSync];
 	static s_DisableSyncBugs = true;
 	static s_KnifeSync = true;
+	static s_GogglesTick[MAX_PLAYERS];
 #endif
 
 #if defined _INC_open_mp
