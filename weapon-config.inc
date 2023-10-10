@@ -4015,9 +4015,20 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 		}
 	}
 
-	if (IsBulletWeapon(weaponid) && _:amount != _:2.6400001049041748046875 && GetPlayerState(playerid) != PLAYER_STATE_DRIVER) {
-		new valid = true;
+	new valid = true;
 
+	if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER) {
+		if (WEAPON_UZI <= weaponid <= WEAPON_MP5 || weaponid == WEAPON_TEC9) {
+			new KEY:keys, ud, lr;
+			GetPlayerKeys(playerid, keys, ud, lr);
+
+			// It is only possible to shoot if you look right or left from car
+			valid = (keys & KEY_LOOK_RIGHT) || (keys & KEY_LOOK_LEFT);
+		} else {
+			// Damage from something unusable from the driver's seat
+			valid = false;
+		}
+	} else if (IsBulletWeapon(weaponid) && _:amount != _:2.6400001049041748046875) {
 		if (!s_LastShot[playerid][e_Valid]) {
 			valid = false;
 			//AddRejectedHit(playerid, damagedid, HIT_LAST_SHOT_INVALID, weaponid);
@@ -4052,10 +4063,10 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 		}
 
 		s_LastShot[playerid][e_Hits] += 1;
+	}
 
-		if (!valid) {
-			return 0;
-		}
+	if (!valid) {
+		return 0;
 	}
 
 	if (npc) {
