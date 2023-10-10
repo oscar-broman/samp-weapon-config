@@ -1049,7 +1049,6 @@ static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
 static bool:s_SpawnInfoModified[MAX_PLAYERS];
 static bool:s_AlreadyConnected[MAX_PLAYERS];
 static s_DeathSkip[MAX_PLAYERS];
-static s_GogglesUsed[MAX_PLAYERS];
 static s_DeathSkipTick[MAX_PLAYERS];
 static s_LastDeathTick[MAX_PLAYERS];
 static s_LastVehicleTick[MAX_PLAYERS];
@@ -1070,6 +1069,7 @@ static s_VehicleRespawnTimer[MAX_VEHICLES];
 	static s_LastSyncData[MAX_PLAYERS][PR_OnFootSync];
 	static s_DisableSyncBugs = true;
 	static s_KnifeSync = true;
+	static s_GogglesUsed[MAX_PLAYERS];
 	static s_GogglesTick[MAX_PLAYERS];
 #endif
 
@@ -2874,7 +2874,6 @@ public OnPlayerConnect(playerid)
 	s_SpawnInfoModified[playerid] = false;
 	s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
 	s_DeathSkip[playerid] = 0;
-	s_GogglesUsed[playerid] = 0;
 	s_LastVehicleTick[playerid] = 0;
 	s_PreviousHitI[playerid] = 0;
 	s_CbugAllowed[playerid] = s_CbugGlobal;
@@ -2892,6 +2891,7 @@ public OnPlayerConnect(playerid)
 		s_FakeQuat[playerid][2] = Float:0x7FFFFFFF;
 		s_FakeQuat[playerid][3] = Float:0x7FFFFFFF;
 		s_SyncDataFrozen[playerid] = false;
+		s_GogglesUsed[playerid] = 0;
 	#endif
 
 	#if defined _INC_open_mp
