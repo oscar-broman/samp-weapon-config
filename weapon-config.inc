@@ -3380,7 +3380,7 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 			}
 
 			s_DeathSkip[playerid] = 2;
-			
+
 			new WEAPON:w, a;
 			GetPlayerWeaponData(playerid, WEAPON_SLOT:0, w, a);
 
@@ -4202,8 +4202,22 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 
 	// If it's lagcomp, only allow damage that's valid for both modes
 	if (s_LagCompMode && s_ValidDamageTaken[weaponid] != 2) {
-		if (issuerid != INVALID_PLAYER_ID && GetPlayerState(issuerid) == PLAYER_STATE_DRIVER && (weaponid == WEAPON_M4 || weaponid == WEAPON_MINIGUN)) {
-			weaponid = weaponid == WEAPON_M4 ? WEAPON_VEHICLE_M4 : WEAPON_VEHICLE_MINIGUN;
+		if (issuerid != INVALID_PLAYER_ID
+		&& (weaponid == WEAPON_M4 || weaponid == WEAPON_MINIGUN)
+		&& GetPlayerState(issuerid) == PLAYER_STATE_DRIVER) {
+			new modelid = GetVehicleModel(GetPlayerVehicleID(issuerid));
+
+			if (weaponid == WEAPON_M4) {
+				if (modelid == 447 || modelid == 464 || modelid == 476) {
+					weaponid = WEAPON_VEHICLE_M4;
+				} else {
+					return 0;
+				}
+			} else if (weaponid == WEAPON_MINIGUN && modelid == 425) {
+				weaponid = WEAPON_VEHICLE_MINIGUN;
+			} else {
+				return 0;
+			}
 		} else {
 			return 0;
 		}
@@ -5510,12 +5524,20 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 		// Figure out what caused the explosion
 		if (issuerid != INVALID_PLAYER_ID) {
 			if (GetPlayerState(issuerid) == PLAYER_STATE_DRIVER) {
-				weaponid = WEAPON_VEHICLE_ROCKETLAUNCHER;
+				new modelid = GetVehicleModel(GetPlayerVehicleID(issuerid));
+
+				if (modelid == 425 || modelid == 432 || modelid == 520) {
+					weaponid = WEAPON_VEHICLE_ROCKETLAUNCHER;
+				}
 			} else if (s_LastExplosive[issuerid]) {
 				weaponid = s_LastExplosive[issuerid];
 			}
 		} else if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER) {
-			weaponid = WEAPON_VEHICLE_ROCKETLAUNCHER;
+			new modelid = GetVehicleModel(GetPlayerVehicleID(playerid));
+
+			if (modelid == 425 || modelid == 432 || modelid == 520) {
+				weaponid = WEAPON_VEHICLE_ROCKETLAUNCHER;
+			}
 		}
 	}
 
