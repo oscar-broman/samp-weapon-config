@@ -395,7 +395,7 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #define WEAPON_HELIBLADES (WEAPON:50)
 #define WEAPON_EXPLOSION (WEAPON:51)
 #define WEAPON_CARPARK (WEAPON:52)
-#define WEAPON_UNKNOWN (WEAPON:55)
+#define WC_WEAPON_UNKNOWN (WEAPON:55)
 
 #if !defined _INC_SKY
 	// Define packet IDs
@@ -1511,7 +1511,7 @@ stock Float:GetLastDamageArmour(playerid)
 	return 0.0;
 }
 
-stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
+stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WC_WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
 	if (playerid < 0 || playerid > MAX_PLAYERS || !IsPlayerConnected(playerid)) {
 		return 0;
@@ -1521,8 +1521,8 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:
 		return 0;
 	}
 
-	if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
-		weaponid = WEAPON_UNKNOWN;
+	if (weaponid < WEAPON_UNARMED || weaponid > WC_WEAPON_UNKNOWN) {
+		weaponid = WC_WEAPON_UNKNOWN;
 	}
 
 	if (issuerid < 0 || issuerid > MAX_PLAYERS || !IsPlayerConnected(issuerid)) {
@@ -1765,7 +1765,7 @@ stock WC_SendDeathMessage(killer, killee, weapon)
 		case WEAPON_CARPARK: {
 			weapon = WEAPON_VEHICLE;
 		}
-		case WEAPON_UNKNOWN: {
+		case WC_WEAPON_UNKNOWN: {
 			weapon = WEAPON_DROWN;
 		}
 	}
@@ -3280,8 +3280,8 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 		return 1;
 	}
 
-	if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
-		reason = WEAPON_UNKNOWN;
+	if (reason < WEAPON_UNARMED || reason > WC_WEAPON_UNKNOWN) {
+		reason = WC_WEAPON_UNKNOWN;
 	}
 
 	new vehicleid = GetPlayerVehicleID(playerid);
@@ -3304,8 +3304,8 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 	}
 
 	if (OnPlayerDamage(playerid, amount, killerid, reason, bodypart)) {
-		if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
-			reason = WEAPON_UNKNOWN;
+		if (reason < WEAPON_UNARMED || reason > WC_WEAPON_UNKNOWN) {
+			reason = WC_WEAPON_UNKNOWN;
 		}
 
 		if (amount == 0.0) {
@@ -5761,7 +5761,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 	return WC_NO_ERROR;
 }
 
-static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
+static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WC_WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
 	if (!WC_IsPlayerSpawned(playerid) || amount < 0.0) {
 		return;
@@ -5770,8 +5770,8 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 	if (!OnPlayerDamage(playerid, amount, issuerid, weaponid, bodypart)) {
 		UpdateHealthBar(playerid);
 
-		if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
-			weaponid = WEAPON_UNKNOWN;
+		if (weaponid < WEAPON_UNARMED || weaponid > WC_WEAPON_UNKNOWN) {
+			weaponid = WC_WEAPON_UNKNOWN;
 		}
 
 		#if WC_DEBUG
@@ -5791,8 +5791,8 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 		return;
 	}
 
-	if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
-		weaponid = WEAPON_UNKNOWN;
+	if (weaponid < WEAPON_UNARMED || weaponid > WC_WEAPON_UNKNOWN) {
+		weaponid = WC_WEAPON_UNKNOWN;
 	}
 
 	#if WC_DEBUG
@@ -5809,7 +5809,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 		}
 	#endif
 
-	if (!ignore_armour && weaponid != WEAPON_COLLISION && weaponid != WEAPON_DROWN && weaponid != WEAPON_CARPARK && weaponid != WEAPON_UNKNOWN
+	if (!ignore_armour && weaponid != WEAPON_COLLISION && weaponid != WEAPON_DROWN && weaponid != WEAPON_CARPARK && weaponid != WC_WEAPON_UNKNOWN
 	&& (!s_DamageArmourToggle[0] || (s_DamageArmour[weaponid][0] && (!s_DamageArmourToggle[1] || ((s_DamageArmour[weaponid][1] && bodypart == 3) || (!s_DamageArmour[weaponid][1])))))) {
 		if (amount <= 0.0) {
 			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
