@@ -4471,6 +4471,11 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 			return 0;
 		}
 
+		if (!IsVehicleStreamedIn(hitid, playerid)) {
+			AddRejectedHit(playerid, damagedid, HIT_UNSTREAMED, weaponid, hitid);
+			return 0;
+		}
+
 		new vehicleid = GetPlayerVehicleID(playerid);
 
 		// Shouldn't be possible to damage the vehicle you're in
