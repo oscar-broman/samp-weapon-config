@@ -3858,7 +3858,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 	}
 
 	if (weaponid == WEAPON_KNIFE) {
-		if (_:amount == _:0.0) {
+		if (_:amount >= _:0.0) {
 			new WEAPON:w, a;
 			GetPlayerWeaponData(playerid, WEAPON_SLOT:0, w, a);
 
@@ -3943,7 +3943,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			ApplyAnimation(playerid, animlib, animname, 4.1, false, true, true, false, 1800, FORCE_SYNC:forcesync);
 
 			return 0;
-		}
+		} else {}
 	}
 
 	if (HasSameTeam(playerid, damagedid)) {
