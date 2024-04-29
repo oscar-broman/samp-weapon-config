@@ -1582,7 +1582,7 @@ stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 			format(output, maxlength, g_HitRejectReasons[reason], i1);
 		}
 		default: {
-			strcopy(output, g_HitRejectReasons[reason], maxlength);
+			format(output, maxlength, "%s", g_HitRejectReasons[reason]);
 		}
 	}
 
