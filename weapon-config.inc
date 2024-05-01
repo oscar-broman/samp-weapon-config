@@ -402,10 +402,7 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 	const WC_PLAYER_SYNC = 207;
 	const WC_VEHICLE_SYNC = 200;
 	const WC_PASSENGER_SYNC = 211;
-
-	#if !defined _INC_open_mp
-		const WC_AIM_SYNC = 203;
-	#endif
+	const WC_AIM_SYNC = 203;
 
 	// Define RPC IDs
 	const WC_RPC_CLEAR_ANIMATIONS = 87;
@@ -1564,34 +1561,30 @@ stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 
 	WC_GetWeaponName(weapon, weapon_name);
 
-	#if defined _INC_open_mp
-		switch (reason) {
-			case SHOOTING_RATE_TOO_FAST,
-				 HIT_RATE_TOO_FAST: {
-				format(output, maxlength, g_HitRejectReasons[reason], i1, i2, i3);
-			}
-			case HIT_OUT_OF_RANGE,
-				 SHOOTING_RATE_TOO_FAST_MULTIPLE,
-				 HIT_RATE_TOO_FAST_MULTIPLE: {
-				format(output, maxlength, g_HitRejectReasons[reason], i1, i2);
-			}
-			case HIT_MULTIPLE_PLAYERS,
-				 HIT_MULTIPLE_PLAYERS_SHOTGUN,
-				 HIT_INVALID_HITTYPE,
-				 HIT_TOO_FAR_FROM_SHOT,
-				 HIT_TOO_FAR_FROM_ORIGIN,
-				 HIT_INVALID_DAMAGE,
-				 HIT_INVALID_VEHICLE,
-				 HIT_DISCONNECTED: {
-				format(output, maxlength, g_HitRejectReasons[reason], i1);
-			}
-			default: {
-				strcopy(output, g_HitRejectReasons[reason], maxlength);
-			}
+	switch (reason) {
+		case SHOOTING_RATE_TOO_FAST,
+			 HIT_RATE_TOO_FAST: {
+			format(output, maxlength, g_HitRejectReasons[reason], i1, i2, i3);
 		}
-	#else
-		format(output, maxlength, g_HitRejectReasons[reason], i1, i2, i3);
-	#endif
+		case HIT_OUT_OF_RANGE,
+			 SHOOTING_RATE_TOO_FAST_MULTIPLE,
+			 HIT_RATE_TOO_FAST_MULTIPLE: {
+			format(output, maxlength, g_HitRejectReasons[reason], i1, i2);
+		}
+		case HIT_MULTIPLE_PLAYERS,
+			 HIT_MULTIPLE_PLAYERS_SHOTGUN,
+			 HIT_INVALID_HITTYPE,
+			 HIT_TOO_FAR_FROM_SHOT,
+			 HIT_TOO_FAR_FROM_ORIGIN,
+			 HIT_INVALID_DAMAGE,
+			 HIT_INVALID_VEHICLE,
+			 HIT_DISCONNECTED: {
+			format(output, maxlength, g_HitRejectReasons[reason], i1);
+		}
+		default: {
+			format(output, maxlength, "%s", g_HitRejectReasons[reason]);
+		}
+	}
 
 	format(output, maxlength, "[%02d:%02d:%02d] (%s -> %s) %s", hour, minute, second, weapon_name, s_RejectedHits[playerid][real_idx][e_Name], output);
 
@@ -2445,7 +2438,7 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 		return IsTextDrawVisibleForPlayer(playerid, textid);
 	}
 
-	stock bool:WC_TextDrawGetString(Text:textid, string[], stringSize = sizeof (string))
+	stock bool:WC_TextDrawGetString(Text:textid, string[], stringSize = sizeof(string))
 	{
 		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
 		return TextDrawGetString(textid, string, stringSize);
@@ -2593,7 +2586,7 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 		return IsPlayerTextDrawVisible(playerid, textid);
 	}
 
-	stock bool:WC_PlayerTextDrawGetString(playerid, PlayerText:textid, string[], stringSize = sizeof (string))
+	stock bool:WC_PlayerTextDrawGetString(playerid, PlayerText:textid, string[], stringSize = sizeof(string))
 	{
 		if (playerid < 0 || playerid >= MAX_PLAYERS) return false;
 		if (_:textid < 0 || textid >= MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][textid]) return false;
@@ -4699,12 +4692,10 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 	BS_IgnoreBits(bs, 8);
 	BS_ReadOnFootSync(bs, onFootData);
 
-	#if !defined _INC_open_mp
-		// Because of detonator crasher - Sends KEY_HANDBRAKE/KEY_AIM in this packet and cam mode IDs 7, 8, 34, 45, 46, 51 and 65 in WC_AIM_SYNC
-		if (onFootData[PR_weaponId] == WEAPON_BOMB) {
-			onFootData[PR_keys] &= ~KEY_HANDBRAKE;
-		}
-	#endif
+	// Because of detonator crasher - Sends KEY_HANDBRAKE/KEY_AIM in this packet and cam mode IDs 7, 8, 34, 45, 46, 51 and 65 in WC_AIM_SYNC
+	if (onFootData[PR_weaponId] == WEAPON_BOMB) {
+		onFootData[PR_keys] &= ~KEY_HANDBRAKE;
+	}
 
 	if (s_DisableSyncBugs) {
 		// Prevent "ghost shooting" bugs
@@ -4842,8 +4833,6 @@ IPacket:WC_PASSENGER_SYNC(playerid, BitStream:bs)
 	return 1;
 }
 
-#if !defined _INC_open_mp
-
 IPacket:WC_AIM_SYNC(playerid, BitStream:bs)
 {
 	new aimData[PR_AimSync];
@@ -4869,13 +4858,9 @@ IPacket:WC_AIM_SYNC(playerid, BitStream:bs)
 	return 1;
 }
 
-#endif
+#if defined _INC_open_mp
 
-#endif
-
-#if defined _INC_open_mp && defined PAWNRAKNET_INC_
-
-// The alternative is to `SetPlayerAdmin` to `false` on death, but this doesn't seem like the "safest" solution.
+// The alternative is to `SetPlayerAdmin` to `false` on death, but this doesn't seem like the "safest" solution
 ORPC:WC_RPC_SET_PLAYER_POS_FIND_Z(playerid, BitStream:bs)
 {
 	if (s_BlockAdminTeleport[playerid]) {
@@ -4888,17 +4873,22 @@ ORPC:WC_RPC_SET_PLAYER_POS_FIND_Z(playerid, BitStream:bs)
 
 #endif
 
+#endif
+
 /*
  * Internal functions
  */
 
 static ScriptInit()
 {
-	#if defined _INC_open_mp
+	new version[16];
+	GetConsoleVarAsString("version", version, sizeof(version));
+
+	if (strfind(version, "open.mp") != -1) {
 		s_LagCompMode = GetConsoleVarAsInt("game.lag_compensation_mode");
-	#else
+	} else {
 		s_LagCompMode = GetConsoleVarAsInt("lagcompmode");
-	#endif
+	}
 
 	if (s_LagCompMode) {
 		SetKnifeSync(false);
