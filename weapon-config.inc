@@ -4693,8 +4693,8 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 	BS_ReadOnFootSync(bs, onFootData);
 
 	// Because of detonator crasher - Sends KEY_HANDBRAKE/KEY_AIM in this packet and cam mode IDs 7, 8, 34, 45, 46, 51 and 65 in WC_AIM_SYNC
-	if (onFootData[PR_weaponId] == WEAPON_BOMB) {
-		onFootData[PR_keys] &= ~KEY_HANDBRAKE;
+	if (onFootData[PR_weaponId] == _:WEAPON_BOMB) {
+		onFootData[PR_keys] &= ~_:KEY_HANDBRAKE;
 	}
 
 	if (s_DisableSyncBugs) {
@@ -4841,8 +4841,8 @@ IPacket:WC_AIM_SYNC(playerid, BitStream:bs)
 	BS_ReadAimSync(bs, aimData);
 
 	// Fix first-person up/down aim sync
-	if (WEAPON_SNIPER <= s_LastSyncData[playerid][PR_weaponId] <= WEAPON_HEATSEEKER
-	|| s_LastSyncData[playerid][PR_weaponId] == WEAPON_CAMERA) {
+	if (_:WEAPON_SNIPER <= s_LastSyncData[playerid][PR_weaponId] <= _:WEAPON_HEATSEEKER
+	|| s_LastSyncData[playerid][PR_weaponId] == _:WEAPON_CAMERA) {
 		aimData[PR_aimZ] = -aimData[PR_camFrontVec][2];
 
 		if (aimData[PR_aimZ] > 1.0) {
