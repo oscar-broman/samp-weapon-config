@@ -6476,7 +6476,7 @@ static IsPlayerBehindPlayer(playerid, targetid, Float:diff = 90.0)
 
 static AddRejectedHit(playerid, damagedid, reason, WEAPON:weapon, i1 = 0, i2 = 0, i3 = 0)
 {
-	if (0 <= playerid < MAX_PLAYERS) {
+	if ((0 <= playerid < MAX_PLAYERS) && (playerid != INVALID_PLAYER_ID)) {
 		new idx = s_RejectedHitsIdx[playerid];
 
 		if (s_RejectedHits[playerid][idx][e_Time]) {
@@ -6503,7 +6503,7 @@ static AddRejectedHit(playerid, damagedid, reason, WEAPON:weapon, i1 = 0, i2 = 0
 		s_RejectedHits[playerid][idx][e_Info2] = _:i2;
 		s_RejectedHits[playerid][idx][e_Info3] = _:i3;
 
-		if (0 <= damagedid < MAX_PLAYERS) {
+		if ((0 <= damagedid < MAX_PLAYERS) && (damagedid != INVALID_PLAYER_ID)) {
 			GetPlayerName(damagedid, s_RejectedHits[playerid][idx][e_Name], MAX_PLAYER_NAME);
 		} else {
 			s_RejectedHits[playerid][idx][e_Name][0] = '#';
