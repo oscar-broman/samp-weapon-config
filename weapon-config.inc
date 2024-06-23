@@ -1064,6 +1064,8 @@ static s_VehicleRespawnTimer[MAX_VEHICLES];
 	static Float:s_FakeQuat[MAX_PLAYERS][4];
 	static bool:s_SyncDataFrozen[MAX_PLAYERS];
 	static s_LastSyncData[MAX_PLAYERS][PR_OnFootSync];
+	static s_TempSyncData[MAX_PLAYERS][PR_OnFootSync];
+	static bool:s_TempDataWritten[MAX_PLAYERS];
 	static s_DisableSyncBugs = true;
 	static s_KnifeSync = true;
 	static s_GogglesUsed[MAX_PLAYERS];
@@ -2883,6 +2885,7 @@ public OnPlayerConnect(playerid)
 		s_FakeQuat[playerid][1] = Float:0x7FFFFFFF;
 		s_FakeQuat[playerid][2] = Float:0x7FFFFFFF;
 		s_FakeQuat[playerid][3] = Float:0x7FFFFFFF;
+		s_TempDataWritten[playerid] = false;
 		s_SyncDataFrozen[playerid] = false;
 		s_GogglesUsed[playerid] = 0;
 	#endif
@@ -3666,6 +3669,13 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 
 public OnPlayerUpdate(playerid)
 {
+	if (s_TempDataWritten[playerid]) {
+		if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
+			s_LastSyncData[playerid] = s_TempSyncData[playerid];
+			s_TempDataWritten[playerid] = false;
+		}
+	}
+
 	if (s_IsDying[playerid]) {
 		return 1;
 	}
@@ -4748,7 +4758,8 @@ IPacket:WC_PLAYER_SYNC(playerid, BitStream:bs)
 	if (s_SyncDataFrozen[playerid]) {
 		onFootData = s_LastSyncData[playerid];
 	} else {
-		s_LastSyncData[playerid] = onFootData;
+		s_TempSyncData[playerid] = onFootData;
+		s_TempDataWritten[playerid] = true;
 	}
 
 	if (s_FakeHealth{playerid} != 255) {
