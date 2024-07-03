@@ -3669,12 +3669,14 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 
 public OnPlayerUpdate(playerid)
 {
-	if (s_TempDataWritten[playerid]) {
-		if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
-			s_LastSyncData[playerid] = s_TempSyncData[playerid];
-			s_TempDataWritten[playerid] = false;
+	#if !defined _INC_SKY
+		if (s_TempDataWritten[playerid]) {
+			if (GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
+				s_LastSyncData[playerid] = s_TempSyncData[playerid];
+				s_TempDataWritten[playerid] = false;
+			}
 		}
-	}
+	#endif
 
 	if (s_IsDying[playerid]) {
 		return 1;
