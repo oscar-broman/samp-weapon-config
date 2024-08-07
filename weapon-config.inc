@@ -398,8 +398,8 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 
 #if defined WEAPON_UNKNOWN
 	#undef WEAPON_UNKNOWN
-	#define WEAPON_UNKNOWN (WEAPON:55)
 #endif
+#define WEAPON_UNKNOWN (WEAPON:55)
 
 #if !defined _INC_SKY
 	// Define packet IDs
