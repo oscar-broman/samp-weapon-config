@@ -396,6 +396,7 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #define WEAPON_EXPLOSION (WEAPON:51)
 #define WEAPON_CARPARK (WEAPON:52)
 
+// Possibly defined in omp-stdlib with a different value
 #if defined WEAPON_UNKNOWN
 	#undef WEAPON_UNKNOWN
 #endif
