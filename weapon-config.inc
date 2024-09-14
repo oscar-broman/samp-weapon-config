@@ -990,7 +990,7 @@ static bool:s_SpawnForStreamedIn[MAX_PLAYERS];
 static s_RespawnTime = 3000;
 static s_CustomFallDamage = false;
 static bool:s_CbugGlobal = true;
-static bool:s_CbugAllowed[MAX_PLAYERS] = true;
+static bool:s_CbugAllowed[MAX_PLAYERS] = {true, ...};
 static s_CbugFroze[MAX_PLAYERS];
 static s_DamageFeed = true;
 static s_DamageFeedPlayer[MAX_PLAYERS] = {-1, ...};
