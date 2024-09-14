@@ -5959,7 +5959,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 		}
 	}
 
-	UpdateHealthBar(playerid);
+	UpdateHealthBar(playerid, true);
 }
 
 forward WC_DelayedDeath(playerid, issuerid, WEAPON:reason);
