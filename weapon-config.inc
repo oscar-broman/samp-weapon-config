@@ -8036,12 +8036,14 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 	#define PlayerTextDrawGetPreviewRot WC_PlayerTextDrawGetPreviewRot
 
 
-	#if defined _ALS_PlayerTextDrawGetPreviewVehicleColours
-		#undef PlayerTextDrawGetPreviewVehicleColours
-	#else
-		#define _ALS_PlayerTextDrawGetPreviewVehicleColours
+	#if __namemax > 31
+		#if defined _ALS_PlayerTextDrawGetPreviewVehicleColours
+			#undef PlayerTextDrawGetPreviewVehicleColours
+		#else
+			#define _ALS_PlayerTextDrawGetPreviewVehicleColours
+		#endif
+		#define PlayerTextDrawGetPreviewVehicleColours WC_PlayerTextDrawGetPreviewVehicleColours
 	#endif
-	#define PlayerTextDrawGetPreviewVehicleColours WC_PlayerTextDrawGetPreviewVehicleColours
 
 
 	#if defined _ALS_TextDrawGetColor
