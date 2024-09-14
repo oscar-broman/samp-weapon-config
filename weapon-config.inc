@@ -5777,7 +5777,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 	}
 
 	if (!OnPlayerDamage(playerid, amount, issuerid, weaponid, bodypart)) {
-		UpdateHealthBar(playerid);
+		UpdateHealthBar(playerid, true);
 
 		if (weaponid < WEAPON_UNARMED || weaponid > WEAPON_UNKNOWN) {
 			weaponid = WEAPON_UNKNOWN;
