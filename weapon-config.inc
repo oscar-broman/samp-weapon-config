@@ -5609,6 +5609,16 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 				}
 			}
 
+			case 13.5300006866455078125,
+			     16.1700000762939453125,
+			     26.40000152587890625,
+			     27.060001373291015625: {
+				// Check chainsaw damage
+				if (weaponid != WEAPON_CHAINSAW) {
+					return WC_INVALID_DAMAGE;
+				}
+			}
+
 			case 54.12000274658203125: {
 				if (!melee) {
 					DebugMessage(issuerid, "weapon changed from %d to melee (punch & swap)", weaponid);
@@ -5675,22 +5685,8 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 		amount /= bullets;
 	}
 
-	// Check chainsaw damage
-	if (weaponid == WEAPON_CHAINSAW) {
-		switch (amount) {
-			case 6.6000003814697265625,
-			     13.5300006866455078125,
-			     16.1700000762939453125,
-			     26.40000152587890625,
-			     27.060001373291015625: {}
-
-			default: {
-				return WC_INVALID_DAMAGE;
-			}
-		}
-	} else if (weaponid == WEAPON_DEAGLE) {
-		// Check deagle damage
-
+	// Check deagle damage
+	if (weaponid == WEAPON_DEAGLE) {
 		switch (amount) {
 			case 46.200000762939453125,
 			     23.1000003814697265625: {}
