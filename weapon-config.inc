@@ -79,11 +79,11 @@
 #endif
 
 #if !defined _INC_SKY && !defined PAWNRAKNET_INC_
-	// https://github.com/oscar-broman/SKY/blob/master/SKY.inc
+	// https://github.com/oscar-broman/SKY
 	#tryinclude <SKY>
 
 	#if !defined _INC_SKY
-		// https://github.com/katursis/Pawn.RakNet/blob/0.3.7/src/Pawn.RakNet.inc
+		// https://github.com/katursis/Pawn.RakNet
 		#tryinclude <Pawn.RakNet>
 
 		#if !defined PAWNRAKNET_INC_
@@ -130,8 +130,8 @@ static stock _WC_IncludeStates() <_ALS : _ALS_go> {}
 
 // Provides a way for const correctness support
 // when used with the newer standard libraries
-// https://github.com/sampctl/samp-stdlib/
-// https://github.com/sampctl/pawn-stdlib
+// https://github.com/pawn-lang/samp-stdlib
+// https://github.com/pawn-lang/pawn-stdlib
 #if !defined SAMP_CONST_CORRECT
 	#define WC_CONST
 #else
@@ -179,12 +179,20 @@ static stock _WC_IncludeStates() <_ALS : _ALS_go> {}
 		#define WEAPON_SLOT: _:
 	#endif
 
+	#if !defined PlayerTextDrawBoxColour
+		#define PlayerTextDrawBoxColour PlayerTextDrawBoxColor
+	#endif
+
 	#if !defined PlayerTextDrawBackgroundColour
 		#define PlayerTextDrawBackgroundColour PlayerTextDrawBackgroundColor
 	#endif
 
 	#if !defined PlayerTextDrawColour
 		#define PlayerTextDrawColour PlayerTextDrawColor
+	#endif
+
+	#if !defined TextDrawBoxColour
+		#define TextDrawBoxColour TextDrawBoxColor
 	#endif
 
 	#if !defined TextDrawBackgroundColour
@@ -416,7 +424,7 @@ forward OnRejectedHit(playerid, hit[E_REJECTED_HIT]);
 #endif
 
 #if defined _INC_open_mp && defined PAWNRAKNET_INC_
-	const WC_RPC_SET_PLAYER_POS_FIND_Z = 13;
+	const WC_RPC_SET_POS_FIND_Z = 13;
 #endif
 
 #if WC_DEBUG_SILENT
@@ -2431,6 +2439,14 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 		if (s_RestorePlayerTeleport[playerid]) return true;
 		return IsPlayerTeleportAllowed(playerid);
 	}
+
+	#if __namemax > 31
+		stock bool:WC_TextDrawSetPreviewVehicleColours(Text:textid, colour1, colour2)
+		{
+			if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
+			return TextDrawSetPreviewVehicleColours(textid, colour1, colour2);
+		}
+	#endif
 
 	stock bool:WC_IsValidTextDraw(Text:textid)
 	{
@@ -4879,7 +4895,7 @@ IPacket:WC_AIM_SYNC(playerid, BitStream:bs)
 #if defined _INC_open_mp
 
 // The alternative is to `SetPlayerAdmin` to `false` on death, but this doesn't seem like the "safest" solution
-ORPC:WC_RPC_SET_PLAYER_POS_FIND_Z(playerid, BitStream:bs)
+ORPC:WC_RPC_SET_POS_FIND_Z(playerid, BitStream:bs)
 {
 	if (s_BlockAdminTeleport[playerid]) {
 		s_BlockAdminTeleport[playerid] = false;
@@ -7401,6 +7417,10 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 	#define _ALS_TextDrawBoxColor
 #endif
 #define TextDrawBoxColor WC_TextDrawBoxColor
+#if !defined _INC_open_mp
+	#undef TextDrawBoxColour
+	#define TextDrawBoxColour WC_TextDrawBoxColor
+#endif
 
 
 #if defined _ALS_TextDrawSetShadow
@@ -7585,6 +7605,10 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 	#define _ALS_PlayerTextDrawBoxColor
 #endif
 #define PlayerTextDrawBoxColor WC_PlayerTextDrawBoxColor
+#if !defined _INC_open_mp
+	#undef PlayerTextDrawBoxColour
+	#define PlayerTextDrawBoxColour WC_PlayerTextDrawBoxColor
+#endif
 
 
 #if defined _ALS_PlayerTextDrawSetShadow
@@ -7701,6 +7725,16 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 		#define _ALS_IsPlayerTeleportAllowed
 	#endif
 	#define IsPlayerTeleportAllowed WC_IsPlayerTeleportAllowed
+
+
+	#if __namemax > 31
+		#if defined _ALS_TextDrawSetPreviewVehicleColours
+			#undef TextDrawSetPreviewVehicleColours
+		#else
+			#define _ALS_TextDrawSetPreviewVehicleColours
+		#endif
+		#define TextDrawSetPreviewVehicleColours WC_TextDrawSetPreviewVehicleColours
+	#endif
 
 
 	#if defined _ALS_IsValidTextDraw
