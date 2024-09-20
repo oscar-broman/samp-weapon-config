@@ -1024,9 +1024,10 @@ static s_DamageFeedTimer[MAX_PLAYERS];
 static s_DamageFeedLastUpdate[MAX_PLAYERS];
 static s_Spectating[MAX_PLAYERS] = {INVALID_PLAYER_ID, ...};
 static s_LastStop[MAX_PLAYERS];
-static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
 
 #if WC_CUSTOM_VENDING_MACHINES
+	static bool:s_AlreadyConnected[MAX_PLAYERS];
+	static bool:s_FirstSpawn[MAX_PLAYERS] = {true, ...};
 	static bool:s_CustomVendingMachines = true;
 	#if WC_USE_STREAMER
 		static STREAMER_TAG_OBJECT:s_VendingMachineObject[sizeof(sc_VendingMachines)] = {STREAMER_TAG_OBJECT:INVALID_STREAMER_ID, ...};
@@ -1057,7 +1058,6 @@ static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
 static bool:s_SpawnInfoModified[MAX_PLAYERS];
-static bool:s_AlreadyConnected[MAX_PLAYERS];
 static s_DeathSkip[MAX_PLAYERS];
 static s_DeathSkipTick[MAX_PLAYERS];
 static s_LastDeathTick[MAX_PLAYERS];
@@ -2881,7 +2881,6 @@ public OnPlayerConnect(playerid)
 	s_LastSentHealth[playerid] = 0;
 	s_LastSentArmour[playerid] = 0;
 	s_LastStop[playerid] = tick;
-	s_FirstSpawn[playerid] = true;
 	s_LastVehicleEnterTime[playerid] = 0;
 	s_TrueDeath[playerid] = true;
 	s_InClassSelection[playerid] = false;
@@ -2956,9 +2955,10 @@ public OnPlayerConnect(playerid)
 		if (!s_AlreadyConnected[playerid]) {
 			RemoveDefaultVendingMachines(playerid);
 		}
-	#endif
 
-	s_AlreadyConnected[playerid] = false;
+		s_AlreadyConnected[playerid] = false;
+		s_FirstSpawn[playerid] = true;
+	#endif
 
 	return WC_OnPlayerConnect(playerid);
 }
@@ -3175,16 +3175,16 @@ public OnPlayerSpawn(playerid)
 		return 1;
 	}
 
-	if (s_FirstSpawn[playerid]) {
-		s_FirstSpawn[playerid] = false;
+	#if WC_CUSTOM_VENDING_MACHINES
+		if (s_FirstSpawn[playerid]) {
+			s_FirstSpawn[playerid] = false;
 
-		#if WC_CUSTOM_VENDING_MACHINES
 			if (s_CustomVendingMachines) {
 				animlib = "VENDING", animname = "null";
 				ApplyAnimation(playerid, animlib, animname, 0.0, false, false, false, false, 0, FORCE_SYNC:0);
 			}
-		#endif
-	}
+		}
+	#endif
 
 	return WC_OnPlayerSpawn(playerid);
 }
@@ -3528,7 +3528,6 @@ public OnPlayerKeyStateChange(playerid, KEY:newkeys, KEY:oldkeys)
 				}
 
 				new Float:z;
-
 				GetPlayerPos(playerid, z, z, z);
 
 				for (new i = 0, Float:health_given; i < sizeof(sc_VendingMachines); i++) {
@@ -4993,9 +4992,10 @@ static ScriptInit()
 		s_TrueDeath[playerid] = true;
 		s_InClassSelection[playerid] = true;
 		s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
-		s_AlreadyConnected[playerid] = true;
 
 		#if WC_CUSTOM_VENDING_MACHINES
+			s_AlreadyConnected[playerid] = true;
+
 			RemoveDefaultVendingMachines(playerid);
 		#endif
 
@@ -5808,8 +5808,12 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 			new Float:length = 0.0;
 
 			if (issuerid != INVALID_PLAYER_ID) {
-				if (IsBulletWeapon(weaponid)) {
+				if (s_LagCompMode && IsBulletWeapon(weaponid)) {
 					length = s_LastShot[issuerid][e_Length];
+				} else {
+					new Float:X, Float:Y, Float:Z;
+					GetPlayerPos(issuerid, X, Y, Z);
+					length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
 				}
 			}
 
@@ -5829,8 +5833,12 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 		new Float:length = 0.0;
 
 		if (issuerid != INVALID_PLAYER_ID) {
-			if (IsBulletWeapon(weaponid)) {
+			if (s_LagCompMode && IsBulletWeapon(weaponid)) {
 				length = s_LastShot[issuerid][e_Length];
+			} else {
+				new Float:X, Float:Y, Float:Z;
+				GetPlayerPos(issuerid, X, Y, Z);
+				length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
 			}
 		}
 
