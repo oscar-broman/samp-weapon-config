@@ -4054,7 +4054,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			valid = false;
 		}
 	} else if (IsBulletWeapon(weaponid) && _:amount != _:2.6400001049041748046875) {
-		if (!s_LastShot[playerid][e_Valid]) {
+		if (!s_LastShot[playerid][e_Valid] || tick - s_LastShot[playerid][e_Tick] > 1500) {
 			valid = false;
 			//AddRejectedHit(playerid, damagedid, HIT_LAST_SHOT_INVALID, weaponid);
 			DebugMessageRed(playerid, "last shot not valid");
