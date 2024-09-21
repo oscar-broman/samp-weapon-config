@@ -787,9 +787,9 @@ static s_MaxWeaponShootRate[] = {
 	90, // 29 - MP5
 	90, // 30 - AK47
 	90, // 31 - M4
-	70, // 32 - Tec9
+	50, // 32 - Tec9
 	800, // 33 - Cuntgun
-	900, // 34 - Sniper
+	800, // 34 - Sniper
 	0, // 35 - Rocket launcher
 	0, // 36 - Heatseeker
 	0, // 37 - Flamethrower
