@@ -4054,7 +4054,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			valid = false;
 		}
 	} else if (IsBulletWeapon(weaponid) && _:amount != _:2.6400001049041748046875) {
-		if (!s_LastShot[playerid][e_Valid] || tick - s_LastShot[playerid][e_Tick] > 1500) {
+		if (!s_LastShot[playerid][e_Valid] || tick - s_LastShot[playerid][e_Tick] > 1500 && weaponid != WEAPON_SNIPER) {
 			valid = false;
 			//AddRejectedHit(playerid, damagedid, HIT_LAST_SHOT_INVALID, weaponid);
 			DebugMessageRed(playerid, "last shot not valid");
@@ -4280,8 +4280,14 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 		// Will be applied on fire, explosion, vehicle and heliblades (carpark) damage
 		// Both players should see eachother, if playerid claims to keep issuerid valid
 		if ((!IsPlayerStreamedIn(playerid, issuerid) && !WC_IsPlayerPaused(issuerid)) || !IsPlayerStreamedIn(issuerid, playerid)) {
-			// Probably fake or belated damage, so let's just reset issuerid
-			issuerid = INVALID_PLAYER_ID;
+			if (s_LagCompMode) {
+				// Probably fake or belated damage, so let's just reset issuerid
+				issuerid = INVALID_PLAYER_ID;
+			} else {
+				// Also could be a sniper bug, reject the hit then
+				AddRejectedHit(playerid, issuerid, HIT_UNSTREAMED, weaponid, issuerid);
+				return 0;
+			}
 		}
 	}
 
@@ -5179,19 +5185,20 @@ static UpdateHealthBar(playerid, bool:force = false)
 					68.8,
 					"LD_SPAC:white"
 				);
-				PlayerTextDrawTextSize(playerid,
-					s_HealthBarForeground[playerid],
-					WC_Bar_Calculate(
-					57.8,
-					100.0,
-					float(health)),
-					4.7
-				);
 
 				if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 					printf("(wc) WARN: Unable to create player healthbar foreground");
 				} else {
 					s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = true;
+
+					PlayerTextDrawTextSize(playerid,
+						s_HealthBarForeground[playerid],
+						WC_Bar_Calculate(
+						57.8,
+						100.0,
+						float(health)),
+						4.7
+					);
 
 					PlayerTextDrawColour(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
 					PlayerTextDrawFont(playerid, 			s_HealthBarForeground[playerid], TEXT_DRAW_FONT_SPRITE_DRAW);
