@@ -2901,10 +2901,6 @@ public OnPlayerConnect(playerid)
 	#if !defined _INC_SKY
 		s_FakeHealth{playerid} = 255;
 		s_FakeArmour{playerid} = 255;
-		s_FakeQuat[playerid][0] = Float:0x7FFFFFFF;
-		s_FakeQuat[playerid][1] = Float:0x7FFFFFFF;
-		s_FakeQuat[playerid][2] = Float:0x7FFFFFFF;
-		s_FakeQuat[playerid][3] = Float:0x7FFFFFFF;
 		s_TempDataWritten[playerid] = false;
 		s_SyncDataFrozen[playerid] = false;
 		s_GogglesUsed[playerid] = 0;
