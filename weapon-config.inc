@@ -3573,7 +3573,11 @@ public OnPlayerKeyStateChange(playerid, KEY:newkeys, KEY:oldkeys)
 		}
 	}
 
-	return WC_OnPlayerKeyStateChange(playerid, newkeys, oldkeys);
+	if (!s_IsDying[playerid]) {
+		return WC_OnPlayerKeyStateChange(playerid, newkeys, oldkeys);
+	} else {
+		return 0;
+	}
 }
 
 public OnPlayerStreamIn(playerid, forplayerid)
