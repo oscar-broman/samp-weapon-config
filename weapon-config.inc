@@ -3678,6 +3678,16 @@ public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstat
 	return WC_OnPlayerStateChange(playerid, newstate, oldstate);
 }
 
+#if defined OnPlayerPickUpDynamicPickup
+	public OnPlayerPickUpDynamicPickup(playerid, STREAMER_TAG_PICKUP:pickupid)
+	{
+		if (!WC_IsPlayerSpawned(playerid)) {
+			return 0;
+		}
+		return WC_OnPlayerPickUpDynamicPickup(playerid, pickupid);
+	}
+#endif
+
 public OnPlayerPickUpPickup(playerid, pickupid)
 {
 	if (!WC_IsPlayerSpawned(playerid)) {
@@ -6946,6 +6956,17 @@ CHAIN_FORWARD:WC_OnPlayerExitVehicle(playerid, vehicleid) = 1;
 #endif
 #define OnPlayerStateChange(%0) CHAIN_PUBLIC:WC_OnPlayerStateChange(%0)
 CHAIN_FORWARD:WC_OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstate) = 1;
+
+
+#if defined OnPlayerPickUpDynamicPickup
+	#if defined _ALS_OnPlayerPickUpDynPickup
+		#undef OnPlayerPickUpDynamicPickup
+	#else
+		#define _ALS_OnPlayerPickUpDynPickup
+	#endif
+	#define OnPlayerPickUpDynamicPickup(%0) CHAIN_PUBLIC:WC_OnPlayerPickUpDynamicPickup(%0)
+	CHAIN_FORWARD:WC_OnPlayerPickUpDynamicPickup(playerid, pickupid) = 1;
+#endif
 
 
 #if defined _ALS_OnPlayerPickUpPickup
