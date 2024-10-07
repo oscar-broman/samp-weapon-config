@@ -1245,9 +1245,11 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	{
 		s_EnableHealthBar[playerid] = enable;
 		SetHealthBarVisible(playerid, enable);
+
 		#if WC_DEBUG
 		DebugMessage(playerid, "health bar is %s for player", (s_EnableHealthBar[playerid]) ? ("enabled") : ("disabled"));
 		#endif
+
 		return true;
 	}
 	return false;
@@ -1397,6 +1399,7 @@ stock SetDamageFeedForPlayer(playerid, toggle = -1)
 	{
 		s_DamageFeedPlayer[playerid] = toggle;
 		DamageFeedUpdate(playerid);
+
 		return 1;
 	}
 
