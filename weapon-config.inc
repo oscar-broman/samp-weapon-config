@@ -1333,6 +1333,7 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
+
 		#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 		foreach (new i : Player) {
 		#else
@@ -1563,17 +1564,17 @@ stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 		return 0;
 	}
 
-	new reason = s_RejectedHits[playerid][real_idx][e_Reason];
-	new hour = s_RejectedHits[playerid][real_idx][e_Hour];
-	new minute = s_RejectedHits[playerid][real_idx][e_Minute];
-	new second = s_RejectedHits[playerid][real_idx][e_Second];
-	new i1 = s_RejectedHits[playerid][real_idx][e_Info1];
-	new i2 = s_RejectedHits[playerid][real_idx][e_Info2];
-	new i3 = s_RejectedHits[playerid][real_idx][e_Info3];
-	new WEAPON:weapon = s_RejectedHits[playerid][real_idx][e_Weapon];
+	new
+		reason = s_RejectedHits[playerid][real_idx][e_Reason],
+		hour = s_RejectedHits[playerid][real_idx][e_Hour],
+		minute = s_RejectedHits[playerid][real_idx][e_Minute],
+		second = s_RejectedHits[playerid][real_idx][e_Second],
+		i1 = s_RejectedHits[playerid][real_idx][e_Info1],
+		i2 = s_RejectedHits[playerid][real_idx][e_Info2],
+		i3 = s_RejectedHits[playerid][real_idx][e_Info3],
+		WEAPON:weapon = s_RejectedHits[playerid][real_idx][e_Weapon];
 
 	new weapon_name[32];
-
 	WC_GetWeaponName(weapon, weapon_name);
 
 	switch (reason) {
@@ -3309,8 +3310,7 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 		}
 	}
 
-	new Float:amount = 0.0;
-	new bodypart = BODY_PART_UNKNOWN;
+	new Float:amount = 0.0, bodypart = BODY_PART_UNKNOWN;
 
 	if (reason == WEAPON_PARACHUTE) {
 		reason = WEAPON_COLLISION;
@@ -3432,8 +3432,7 @@ public OnPlayerKeyStateChange(playerid, KEY:newkeys, KEY:oldkeys)
 
 	if (!s_CbugAllowed[playerid] && !s_IsDying[playerid] && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT) {
 		if (newkeys & KEY_CROUCH) {
-			new tick = GetTickCount();
-			new diff = tick - s_LastShot[playerid][e_Tick];
+			new tick = GetTickCount(), diff = tick - s_LastShot[playerid][e_Tick];
 
 			if (s_LastShot[playerid][e_Tick] && diff < 1200 && !s_CbugFroze[playerid]) {
 				PlayerPlaySound(playerid, 1055, 0.0, 0.0, 0.0);
@@ -3684,6 +3683,7 @@ public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstat
 		if (!WC_IsPlayerSpawned(playerid)) {
 			return 0;
 		}
+
 		return WC_OnPlayerPickUpDynamicPickup(playerid, pickupid);
 	}
 #endif
@@ -3958,15 +3958,13 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			DebugMessage(damagedid, "being knifed by %d", playerid);
 			DebugMessage(playerid, "knifing %d", damagedid);
 
-			new Float:angle;
+			new Float:angle, forcesync = 2;
 
 			GetPlayerFacingAngle(damagedid, angle);
 			SetPlayerFacingAngle(playerid, angle);
 
 			SetPlayerVelocity(damagedid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
-
-			new forcesync = 2;
 
 			if (747 < GetPlayerAnimationIndex(playerid) > 748) {
 				DebugMessageRed(playerid, "applying knife anim for you too (current: %d)", GetPlayerAnimationIndex(playerid));
@@ -4033,8 +4031,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 		}
 	#endif
 
-	new multiple_weapons;
-	new avg_rate = AverageHitRate(playerid, s_MaxHitRateSamples, multiple_weapons);
+	new multiple_weapons, avg_rate = AverageHitRate(playerid, s_MaxHitRateSamples, multiple_weapons);
 
 	// Hit issue flood?
 	// Could be either a cheat or just lag
@@ -4212,15 +4209,13 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 			DebugMessage(playerid, "being knifed by %d", issuerid);
 			DebugMessage(issuerid, "knifing %d", playerid);
 
-			new Float:a;
+			new Float:a, forcesync = 2;
 
 			GetPlayerFacingAngle(playerid, a);
 			SetPlayerFacingAngle(issuerid, a);
 
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(issuerid, 0.0, 0.0, 0.0);
-
-			new forcesync = 2;
 
 			if (GetPlayerAnimationIndex(issuerid) != 747) {
 				DebugMessageRed(issuerid, "applying knife anim for you too (current: %d)", GetPlayerAnimationIndex(issuerid));
@@ -4397,14 +4392,17 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 		return 0;
 	}
 
-	new Float:fOriginX, Float:fOriginY, Float:fOriginZ, Float:fHitPosX, Float:fHitPosY, Float:fHitPosZ;
-	new Float:x, Float:y, Float:z;
+	new
+		Float:fOriginX, Float:fOriginY, Float:fOriginZ,
+		Float:fHitPosX, Float:fHitPosY, Float:fHitPosZ,
+		Float:x, Float:y, Float:z;
 
 	GetPlayerPos(playerid, x, y, z);
 	GetPlayerLastShotVectors(playerid, fOriginX, fOriginY, fOriginZ, fHitPosX, fHitPosY, fHitPosZ);
 
-	new Float:length = VectorSize(fOriginX - fHitPosX, fOriginY - fHitPosY, fOriginZ - fHitPosZ);
-	new Float:origin_dist = VectorSize(fOriginX - x, fOriginY - y, fOriginZ - z);
+	new
+		Float:length = VectorSize(fOriginX - fHitPosX, fOriginY - fHitPosY, fOriginZ - fHitPosZ),
+		Float:origin_dist = VectorSize(fOriginX - x, fOriginY - y, fOriginZ - z);
 
 	if (origin_dist > 15.0) {
 		new in_veh = IsPlayerInAnyVehicle(playerid) || GetPlayerSurfingVehicleID(playerid) != INVALID_VEHICLE_ID;
@@ -4432,8 +4430,9 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 				return 0;
 			}
 
-			new Float:dist = GetPlayerDistanceFromPoint(hitid, fHitPosX, fHitPosY, fHitPosZ);
-			new in_veh = IsPlayerInAnyVehicle(hitid) || GetPlayerSurfingVehicleID(hitid) != INVALID_VEHICLE_ID;
+			new
+				Float:dist = GetPlayerDistanceFromPoint(hitid, fHitPosX, fHitPosY, fHitPosZ),
+				in_veh = IsPlayerInAnyVehicle(hitid) || GetPlayerSurfingVehicleID(hitid) != INVALID_VEHICLE_ID;
 
 			if (dist > 20.0) {
 				if ((!in_veh && GetPlayerSurfingObjectID(hitid) == INVALID_OBJECT_ID) || dist > 50.0) {
@@ -4488,8 +4487,7 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 	s_LastShot[playerid][e_Length] = length;
 	s_LastShot[playerid][e_Hits] = 0;
 
-	new multiple_weapons;
-	new avg_rate = AverageShootRate(playerid, s_MaxShootRateSamples, multiple_weapons);
+	new multiple_weapons, avg_rate = AverageShootRate(playerid, s_MaxShootRateSamples, multiple_weapons);
 
 	// Bullet flood?
 	// Could be either a cheat or just lag
@@ -4526,9 +4524,7 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 		}
 
 		if (s_VehiclePassengerDamage) {
-			new has_driver = false;
-			new has_passenger = false;
-			new seat;
+			new has_driver = false, has_passenger = false, seat;
 
 			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new otherid : Player) {
@@ -5150,8 +5146,9 @@ static UpdateHealthBar(playerid, bool:force = false)
 		return;
 	}
 
-	new health = floatround(s_PlayerHealth[playerid] / s_PlayerMaxHealth[playerid] * 100.0, floatround_ceil);
-	new armour = floatround(s_PlayerArmour[playerid] / s_PlayerMaxArmour[playerid] * 100.0, floatround_ceil);
+	new
+		health = floatround(s_PlayerHealth[playerid] / s_PlayerMaxHealth[playerid] * 100.0, floatround_ceil),
+		armour = floatround(s_PlayerArmour[playerid] / s_PlayerMaxArmour[playerid] * 100.0, floatround_ceil);
 
 	// Make the values reflect what the client should see
 	if (s_IsDying[playerid]) {
@@ -5777,11 +5774,13 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 		case DAMAGE_TYPE_RANGE,
 		     DAMAGE_TYPE_RANGE_MULTIPLIER: {
 			new Float:length = 0.0;
+
 			if (s_LagCompMode) {
 				length = s_LastShot[issuerid][e_Length];
 			} else {
 				new Float:X, Float:Y, Float:Z;
 				GetPlayerPos(issuerid, X, Y, Z);
+
 				length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
 			}
 
@@ -5830,6 +5829,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 				} else {
 					new Float:X, Float:Y, Float:Z;
 					GetPlayerPos(issuerid, X, Y, Z);
+
 					length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
 				}
 			}
@@ -5855,6 +5855,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 			} else {
 				new Float:X, Float:Y, Float:Z;
 				GetPlayerPos(issuerid, X, Y, Z);
+
 				length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
 			}
 		}
@@ -6037,6 +6038,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], bool:anim_lock = false, 
 
 		if (action == SPECIAL_ACTION_USEJETPACK) {
 			new Float:vx, Float:vy, Float:vz;
+
 			GetPlayerVelocity(playerid, vx, vy, vz);
 			SetPlayerVelocity(playerid, vx, vy, vz);
 		}
@@ -6082,19 +6084,18 @@ public OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &re
 public OnRejectedHit(playerid, hit[E_REJECTED_HIT])
 {
 	#if WC_DEBUG
-		new output[256];
-		new reason = hit[e_Reason];
-		new i1 = hit[e_Info1];
-		new i2 = hit[e_Info2];
-		new i3 = hit[e_Info3];
-		new WEAPON:weapon = hit[e_Weapon];
+		new
+			output[256],
+			reason = hit[e_Reason],
+			i1 = hit[e_Info1],
+			i2 = hit[e_Info2],
+			i3 = hit[e_Info3],
+			WEAPON:weapon = hit[e_Weapon];
 
 		new weapon_name[32];
-
 		WC_GetWeaponName(weapon, weapon_name);
 
 		format(output, sizeof(output), "(%s -> %s) %s", weapon_name, hit[e_Name], g_HitRejectReasons[reason]);
-
 		format(output, sizeof(output), output, i1, i2, i3);
 
 		DebugMessageRed(playerid, "Rejected hit: %s", output);
@@ -6488,11 +6489,13 @@ static SaveSyncData(playerid)
 
 static MakePlayerFacePlayer(playerid, targetid, opposite = false, forcesync = true)
 {
-	new Float:x1, Float:y1, Float:z1;
-	new Float:x2, Float:y2, Float:z2;
+	new
+		Float:x1, Float:y1, Float:z1,
+		Float:x2, Float:y2, Float:z2;
 
 	GetPlayerPos(playerid, x1, y1, z1);
 	GetPlayerPos(targetid, x2, y2, z2);
+
 	new Float:angle = AngleBetweenPoints(x2, y2, x1, y1);
 
 	if (opposite) {
@@ -6513,9 +6516,10 @@ static MakePlayerFacePlayer(playerid, targetid, opposite = false, forcesync = tr
 
 static IsPlayerBehindPlayer(playerid, targetid, Float:diff = 90.0)
 {
-	new Float:x1, Float:y1, Float:z1;
-	new Float:x2, Float:y2, Float:z2;
-	new Float:ang, Float:angdiff;
+	new
+		Float:x1, Float:y1, Float:z1,
+		Float:x2, Float:y2, Float:z2,
+		Float:ang, Float:angdiff;
 
 	GetPlayerPos(playerid, x1, y1, z1);
 	GetPlayerPos(targetid, x2, y2, z2);
@@ -6764,6 +6768,7 @@ public WC_PlayerDeathRespawn(playerid)
 
 	if (IsPlayerInAnyVehicle(playerid)) {
 		new Float:x, Float:y, Float:z;
+
 		GetPlayerPos(playerid, x, y, z);
 		SetPlayerPos(playerid, x, y, z);
 	}
