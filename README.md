@@ -12,7 +12,7 @@ It's pretty much plug-and-play if you don't have any filterscripts that interfer
     ```pawn
     public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &WEAPON:weapon, &bodypart)
     ```
-3. Add config functions in `OnGameModeInit` (or any other places, they can be called at any time).
+3. Add config functions in `OnGameModeInit` (or any other places, they can be called at any time).  
     **Recommended**:
     
     ```pawn
