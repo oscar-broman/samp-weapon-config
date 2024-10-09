@@ -1336,10 +1336,10 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 	if (playerid == INVALID_PLAYER_ID) {
 		s_CbugGlobal = enabled;
 
-		#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+		#if defined foreach
 		foreach (new i : Player) {
 		#else
-		for (new i = 0; i != MAX_PLAYERS; i++) {
+		for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 		#endif
 			s_CbugAllowed[i] = enabled;
 		}
@@ -1419,10 +1419,10 @@ stock SetDamageFeed(bool:toggle)
 {
 	s_DamageFeed = toggle;
 
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined foreach
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i != MAX_PLAYERS; i++) {
+	for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 	#endif
 		DamageFeedUpdate(i);
 	}
@@ -3025,10 +3025,10 @@ public OnPlayerDisconnect(playerid, reason)
 
 	new j = 0;
 
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined foreach
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i != MAX_PLAYERS; i++) {
+	for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 	#endif
 		for (j = 0; j < sizeof(s_PreviousHits[]); j++) {
 			if (s_PreviousHits[i][j][e_Issuer] == playerid) {
@@ -3463,10 +3463,10 @@ public OnPlayerKeyStateChange(playerid, KEY:newkeys, KEY:oldkeys)
 
 				new j = 0, Float:health, Float:armour;
 
-				#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+				#if defined foreach
 				foreach (new i : Player) {
 				#else
-				for (new i = 0; i != MAX_PLAYERS; i++) {
+				for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 				#endif
 					for (j = 0; j < sizeof(s_PreviousHits[]); j++) {
 						if (s_PreviousHits[i][j][e_Issuer] == playerid && tick - s_PreviousHits[i][j][e_Tick] <= 1200) {
@@ -3646,10 +3646,10 @@ public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstat
 			if (vx * vx + vy * vy + vz * vz <= 0.05) {
 				#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
 				foreach (new i : StreamedPlayer[playerid]) {
-				#elseif defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+				#elseif defined foreach
 				foreach (new i : Player) {
 				#else
-				for (new i = 0; i != MAX_PLAYERS; i++) {
+				for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 				#endif
 					#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
 					SendLastSyncPacket(playerid, i);
@@ -4529,7 +4529,7 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 		if (s_VehiclePassengerDamage) {
 			new has_driver = false, has_passenger = false, seat;
 
-			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+			#if defined foreach
 			foreach (new otherid : Player) {
 			#else
 			for (new otherid = 0; otherid != MAX_PLAYERS; otherid++) {
@@ -4573,7 +4573,7 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 		if (s_VehicleUnoccupiedDamage) {
 			new has_occupent = false;
 
-			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+			#if defined foreach
 			foreach (new otherid : Player) {
 			#else
 			for (new otherid = 0; otherid != MAX_PLAYERS; otherid++) {
@@ -4981,7 +4981,7 @@ static ScriptInit()
 
 	new worldid, tick = GetTickCount();
 
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined foreach
 	foreach (new playerid : Player) {
 	#else
 	for (new playerid = 0; playerid != MAX_PLAYERS; playerid++) {
@@ -5050,7 +5050,7 @@ static ScriptExit()
 
 	new Float:health;
 
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined foreach
 	foreach (new playerid : Player) {
 	#else
 	for (new playerid = 0; playerid != MAX_PLAYERS; playerid++) {
@@ -5303,10 +5303,10 @@ static UpdateSyncData(playerid)
 
 	#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
 	foreach (new i : StreamedPlayer[playerid]) {
-	#elseif defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#elseif defined foreach
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i != MAX_PLAYERS; i++) {
+	for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 	#endif
 		#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
 		SendLastSyncPacket(playerid, i);
@@ -5430,10 +5430,10 @@ public WC_SpawnForStreamedIn(playerid)
 
 	#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
 	foreach (new i : StreamedPlayer[playerid]) {
-	#elseif defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#elseif defined foreach
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i != MAX_PLAYERS; i++) {
+	for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 	#endif
 		#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
 		SendLastSyncPacket(playerid, i);
@@ -6383,10 +6383,10 @@ static DamageFeedUpdateText(playerid)
 
 static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, WEAPON:weapon)
 {
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined foreach
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i != MAX_PLAYERS; i++) {
+	for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 	#endif
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsGiven[i], i, issuerid, amount, weapon);
@@ -6398,10 +6398,10 @@ static DamageFeedAddHitGiven(playerid, issuerid, Float:amount, WEAPON:weapon)
 
 static DamageFeedAddHitTaken(playerid, issuerid, Float:amount, WEAPON:weapon)
 {
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined foreach
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i != MAX_PLAYERS; i++) {
+	for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 	#endif
 		if (s_Spectating[i] == playerid && i != playerid) {
 			DamageFeedAddHit(s_DamageFeedHitsTaken[i], i, issuerid, amount, weapon);
@@ -6593,10 +6593,10 @@ static SpawnPlayerForWorld(playerid)
 
 	BS_WriteValue(bs, PR_UINT32, playerid);
 
-	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	#if defined foreach
 	foreach (new i : Player) {
 	#else
-	for (new i = 0; i != MAX_PLAYERS; i++) {
+	for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 	#endif
 		if (i != playerid) {
 			PR_SendRPC(bs, i, WC_RPC_REQUEST_SPAWN);
@@ -6814,10 +6814,10 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, WEAPON:weapon, bodyp
 		if (s_DamageTakenSound) {
 			PlayerPlaySound(playerid, s_DamageTakenSound, 0.0, 0.0, 0.0);
 
-			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+			#if defined foreach
 			foreach (new i : Player) {
 			#else
-			for (new i = 0; i != MAX_PLAYERS; i++) {
+			for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 			#endif
 				if (s_Spectating[i] == playerid && i != playerid) {
 					PlayerPlaySound(i, s_DamageTakenSound, 0.0, 0.0, 0.0);
@@ -6828,10 +6828,10 @@ public OnPlayerDamageDone(playerid, Float:amount, issuerid, WEAPON:weapon, bodyp
 		if (s_DamageGivenSound && issuerid != INVALID_PLAYER_ID) {
 			PlayerPlaySound(issuerid, s_DamageGivenSound, 0.0, 0.0, 0.0);
 
-			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+			#if defined foreach
 			foreach (new i : Player) {
 			#else
-			for (new i = 0; i != MAX_PLAYERS; i++) {
+			for (new i = 0, j = GetPlayerPoolSize(); i <= j; i ++) {
 			#endif
 				if (s_Spectating[i] == issuerid && i != issuerid) {
 					PlayerPlaySound(i, s_DamageGivenSound, 0.0, 0.0, 0.0);
