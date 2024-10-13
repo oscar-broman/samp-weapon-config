@@ -3688,7 +3688,11 @@ public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstat
 }
 
 #if defined OnPlayerPickUpDynamicPickup
+	#if defined STREAMER_ENABLE_TAGS
 	public OnPlayerPickUpDynamicPickup(playerid, STREAMER_TAG_PICKUP:pickupid)
+	#else
+	public OnPlayerPickUpDynamicPickup(playerid, pickupid)
+	#endif
 	{
 		if (!WC_IsPlayerSpawned(playerid)) {
 			return 0;
