@@ -54,6 +54,11 @@
 	#define WC_USE_STREAMER false
 #endif
 
+// For AddPlayerClass(Ex)
+#if !defined WC_MAX_CLASSES
+	#define WC_MAX_CLASSES 320
+#endif
+
 // For SetWeaponName
 #if !defined WC_MAX_WEAPON_NAME
 	#define WC_MAX_WEAPON_NAME 21
@@ -1053,7 +1058,7 @@ static s_LastVehicleEnterTime[MAX_PLAYERS];
 static s_TrueDeath[MAX_PLAYERS];
 static s_InClassSelection[MAX_PLAYERS];
 static s_ForceClassSelection[MAX_PLAYERS];
-static s_ClassSpawnInfo[320][E_SPAWN_INFO];
+static s_ClassSpawnInfo[WC_MAX_CLASSES][E_SPAWN_INFO];
 static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
@@ -1398,6 +1403,7 @@ stock SetDamageFeedForPlayer(playerid, toggle = -1)
 	if (IsPlayerConnected(playerid))
 	{
 		s_DamageFeedPlayer[playerid] = toggle;
+
 		DamageFeedUpdate(playerid);
 
 		return 1;
@@ -1833,7 +1839,7 @@ stock WC_AddPlayerClass(modelid, Float:spawn_x, Float:spawn_y, Float:spawn_z, Fl
 {
 	new classid = AddPlayerClass(modelid, spawn_x, spawn_y, spawn_z, z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
 
-	if (0 <= classid <= 319) {
+	if (0 <= classid < WC_MAX_CLASSES) {
 		s_ClassSpawnInfo[classid][e_Skin] = modelid;
 		s_ClassSpawnInfo[classid][e_Team] = 0x7FFFFFFF;
 		s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
@@ -1855,7 +1861,7 @@ stock WC_AddPlayerClassEx(teamid, modelid, Float:spawn_x, Float:spawn_y, Float:s
 {
 	new classid = AddPlayerClassEx(teamid, modelid, spawn_x, spawn_y, spawn_z, z_angle, weapon1, weapon1_ammo, weapon2, weapon2_ammo, weapon3, weapon3_ammo);
 
-	if (0 <= classid <= 319) {
+	if (0 <= classid < WC_MAX_CLASSES) {
 		s_ClassSpawnInfo[classid][e_Skin] = modelid;
 		s_ClassSpawnInfo[classid][e_Team] = teamid;
 		s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
@@ -3235,6 +3241,7 @@ public OnPlayerRequestClass(playerid, classid)
 
 			new Float:x, Float:y, Float:z;
 			GetPlayerPos(playerid, x, y, z);
+
 			RemoveBuildingForPlayer(playerid, 1484, x, y, z, 350.0),
 			RemoveBuildingForPlayer(playerid, 1485, x, y, z, 350.0),
 			RemoveBuildingForPlayer(playerid, 1486, x, y, z, 350.0);
@@ -4315,6 +4322,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 
 	if (IsBulletWeapon(weaponid)) {
 		new Float:x, Float:y, Float:z, Float:dist;
+
 		GetPlayerPos(issuerid, x, y, z);
 		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
@@ -4553,7 +4561,6 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 
 			if (!has_driver && has_passenger) {
 				new Float:health;
-
 				GetVehicleHealth(hitid, health);
 
 				if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
@@ -4591,8 +4598,8 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 
 			if (!has_occupent) {
 				new Float:health;
-
 				GetVehicleHealth(hitid, health);
+
 				if (health >= 250.0) { // vehicles start on fire below 250 hp
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
@@ -5528,6 +5535,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 			}
 
 			new Float:x, Float:y, Float:z, Float:dist;
+
 			GetPlayerPos(issuerid, x, y, z);
 			dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
@@ -5668,6 +5676,7 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 
 	if (melee) {
 		new Float:x, Float:y, Float:z, Float:dist;
+
 		GetPlayerPos(issuerid, x, y, z);
 		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
