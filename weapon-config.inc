@@ -6019,6 +6019,10 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 		if (s_CbugAllowed[playerid]) {
 			WC_OnPlayerDeath(playerid, issuerid, weaponid);
 		} else {
+			if (s_DelayedDeathTimer[playerid]) {
+				KillTimer(s_DelayedDeathTimer[playerid]);
+			}
+
 			s_DelayedDeathTimer[playerid] = SetTimerEx(#WC_DelayedDeath, 1200, false, "iii", playerid, issuerid, weaponid);
 		}
 	}
@@ -6028,7 +6032,10 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 
 forward WC_DelayedDeath(playerid, issuerid, WEAPON:reason);
 public WC_DelayedDeath(playerid, issuerid, WEAPON:reason) {
-	s_DelayedDeathTimer[playerid] = 0;
+	if (s_DelayedDeathTimer[playerid]) {
+		KillTimer(s_DelayedDeathTimer[playerid]);
+		s_DelayedDeathTimer[playerid] = 0;
+	}
 
 	WC_OnPlayerDeath(playerid, issuerid, reason);
 }
