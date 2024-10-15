@@ -3051,6 +3051,11 @@ public OnPlayerSpawn(playerid)
 	s_TrueDeath[playerid] = false;
 	s_InClassSelection[playerid] = false;
 
+	if (s_DeathTimer[playerid]) {
+		KillTimer(s_DeathTimer[playerid]);
+		s_DeathTimer[playerid] = 0;
+	}
+
 	if (s_ForceClassSelection[playerid]) {
 		DebugMessage(playerid, "Being forced into class selection");
 		ForceClassSelection(playerid);
@@ -3131,11 +3136,6 @@ public OnPlayerSpawn(playerid)
 		GetPlayerFacingAngle(playerid, s_PlayerFallbackSpawnInfo[playerid][e_Rot]);
 	}
 
-	if (s_DeathTimer[playerid]) {
-		KillTimer(s_DeathTimer[playerid]);
-		s_DeathTimer[playerid] = 0;
-	}
-
 	if (s_IsDying[playerid]) {
 		s_IsDying[playerid] = false;
 
@@ -3199,6 +3199,11 @@ public OnPlayerRequestClass(playerid, classid)
 {
 	DebugMessage(playerid, "Requested class: %d", classid);
 
+	if (s_DeathTimer[playerid]) {
+		KillTimer(s_DeathTimer[playerid]);
+		s_DeathTimer[playerid] = 0;
+	}
+
 	if (s_DeathSkip[playerid]) {
 		DebugMessage(playerid, "Skipping death - class selection skipped");
 		SpawnPlayer(playerid);
@@ -3216,11 +3221,6 @@ public OnPlayerRequestClass(playerid, classid)
 		SpawnPlayerInPlace(playerid);
 
 		return 0;
-	}
-
-	if (s_DeathTimer[playerid]) {
-		KillTimer(s_DeathTimer[playerid]);
-		s_DeathTimer[playerid] = 0;
 	}
 
 	if (s_IsDying[playerid]) {
@@ -3282,7 +3282,18 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 		}
 	#endif
 
+	if (s_DeathTimer[playerid]) {
+		KillTimer(s_DeathTimer[playerid]);
+		s_DeathTimer[playerid] = 0;
+	}
+
 	if (s_BeingResynced[playerid] || s_ForceClassSelection[playerid]) {
+		return 1;
+	}
+
+	if (s_IsDying[playerid]) {
+		DebugMessageRedAll("death while dying %d", playerid);
+
 		return 1;
 	}
 
@@ -3292,17 +3303,6 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 	}
 
 	DebugMessageRedAll("OnPlayerDeath(%d died by %d from %d)", playerid, reason, killerid);
-
-	if (s_DeathTimer[playerid]) {
-		KillTimer(s_DeathTimer[playerid]);
-		s_DeathTimer[playerid] = 0;
-	}
-
-	if (s_IsDying[playerid]) {
-		DebugMessageRedAll("death while dying %d", playerid);
-
-		return 1;
-	}
 
 	if (reason < WEAPON_UNARMED || reason > WEAPON_UNKNOWN) {
 		reason = WEAPON_UNKNOWN;
