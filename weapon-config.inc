@@ -1908,6 +1908,11 @@ stock WC_TogglePlayerSpectating(playerid, toggle)
 {
 	if (TogglePlayerSpectating(playerid, !!toggle)) {
 		if (toggle) {
+			if (s_DelayedDeathTimer[playerid]) {
+				KillTimer(s_DelayedDeathTimer[playerid]);
+				s_DelayedDeathTimer[playerid] = 0;
+			}
+
 			if (s_DeathTimer[playerid]) {
 				KillTimer(s_DeathTimer[playerid]);
 				s_DeathTimer[playerid] = 0;
@@ -6033,6 +6038,11 @@ static PlayerDeath(playerid, animlib[32], animname[32], bool:anim_lock = false, 
 	s_PlayerHealth[playerid] = 0.0;
 	s_PlayerArmour[playerid] = 0.0;
 	s_IsDying[playerid] = true;
+
+	if (s_DelayedDeathTimer[playerid]) {
+		KillTimer(s_DelayedDeathTimer[playerid]);
+		s_DelayedDeathTimer[playerid] = 0;
+	}
 
 	#if defined _INC_open_mp
 		if (IsPlayerTeleportAllowed(playerid)) {
