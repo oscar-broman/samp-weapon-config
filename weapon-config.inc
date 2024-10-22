@@ -3693,7 +3693,11 @@ public OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STATE:oldstat
 }
 
 #if defined OnPlayerPickUpDynamicPickup
+	#if defined STREAMER_ENABLE_TAGS
 	public OnPlayerPickUpDynamicPickup(playerid, STREAMER_TAG_PICKUP:pickupid)
+	#else
+	public OnPlayerPickUpDynamicPickup(playerid, pickupid)
+	#endif
 	{
 		if (!WC_IsPlayerSpawned(playerid)) {
 			return 0;
@@ -7020,7 +7024,11 @@ CHAIN_FORWARD:WC_OnPlayerStateChange(playerid, PLAYER_STATE:newstate, PLAYER_STA
 		#define _ALS_OnPlayerPickUpDynPickup
 	#endif
 	#define OnPlayerPickUpDynamicPickup(%0) CHAIN_PUBLIC:WC_OnPlayerPickUpDynamicPickup(%0)
+	#if defined STREAMER_ENABLE_TAGS
 	CHAIN_FORWARD:WC_OnPlayerPickUpDynamicPickup(playerid, STREAMER_TAG_PICKUP:pickupid) = 1;
+	#else
+	CHAIN_FORWARD:WC_OnPlayerPickUpDynamicPickup(playerid, pickupid) = 1;
+	#endif
 #endif
 
 
