@@ -83,7 +83,14 @@
 	#error streamer.inc is required when WC_USE_STREAMER=true
 #endif
 
-#if !defined _INC_SKY && !defined PAWNRAKNET_INC_
+#if defined _INC_open_mp
+	// https://github.com/katursis/Pawn.RakNet
+	#tryinclude <Pawn.RakNet>
+
+	#if !defined PAWNRAKNET_INC_
+		#error Pawn.RakNet plugin is required
+	#endif
+#elseif !defined _INC_SKY && !defined PAWNRAKNET_INC_
 	// https://github.com/oscar-broman/SKY
 	#tryinclude <SKY>
 
@@ -92,7 +99,7 @@
 		#tryinclude <Pawn.RakNet>
 
 		#if !defined PAWNRAKNET_INC_
-			#error The SKY or Pawn.RakNet plugin is required
+			#error SKY or Pawn.RakNet plugin is required
 		#endif
 	#endif
 #endif
