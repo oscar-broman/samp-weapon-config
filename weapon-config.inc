@@ -1002,9 +1002,6 @@ static Text:s_HealthBarBorder = Text:INVALID_TEXT_DRAW;
 static Text:s_HealthBarBackground = Text:INVALID_TEXT_DRAW;
 static PlayerText:s_HealthBarForeground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 
-static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
-static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
-
 static s_DamageFeed = true;
 static s_DamageFeedPlayer[MAX_PLAYERS] = {-1, ...};
 static s_DamageFeedHideDelay = 3000;
@@ -1015,6 +1012,9 @@ static s_DamageFeedHitsGiven[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
 static s_DamageFeedHitsTaken[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
 static s_DamageFeedUpdateTick[MAX_PLAYERS];
 static s_DamageFeedTimer[MAX_PLAYERS];
+
+static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
+static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
 
 static s_DamageTakenSound = 1190;
 static s_DamageGivenSound = 17802;
