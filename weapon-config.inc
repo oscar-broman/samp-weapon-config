@@ -981,20 +981,7 @@ stock const g_WeaponName[57][WC_MAX_WEAPON_NAME] = {
 	};
 #endif
 
-// Sorry about the mess..
 static s_LagCompMode;
-static WEAPON:s_LastExplosive[MAX_PLAYERS];
-static s_LastShot[MAX_PLAYERS][E_SHOT_INFO];
-static s_LastShotTicks[MAX_PLAYERS][10];
-static s_LastShotWeapons[MAX_PLAYERS][10];
-static s_LastShotIdx[MAX_PLAYERS];
-static s_LastHitTicks[MAX_PLAYERS][10];
-static s_LastHitWeapons[MAX_PLAYERS][10];
-static s_LastHitIdx[MAX_PLAYERS];
-static s_ShotsFired[MAX_PLAYERS];
-static s_HitsIssued[MAX_PLAYERS];
-static s_MaxShootRateSamples = 4;
-static s_MaxHitRateSamples = 4;
 static Float:s_PlayerMaxHealth[MAX_PLAYERS] = {100.0, ...};
 static Float:s_PlayerHealth[MAX_PLAYERS] = {100.0, ...};
 static Float:s_PlayerMaxArmour[MAX_PLAYERS] = {100.0, ...};
@@ -1002,40 +989,67 @@ static Float:s_PlayerArmour[MAX_PLAYERS] = {0.0, ...};
 static s_LastSentHealth[MAX_PLAYERS];
 static s_LastSentArmour[MAX_PLAYERS];
 static bool:s_DamageArmourToggle[2] = {false, ...};
+static WEAPON:s_LastExplosive[MAX_PLAYERS] = {WEAPON_UNARMED, ...};
 static s_PlayerTeam[MAX_PLAYERS] = {NO_TEAM, ...};
-static s_IsDying[MAX_PLAYERS];
-static s_DeathTimer[MAX_PLAYERS];
-static bool:s_HealthBarVisible[MAX_PLAYERS];
-static bool:s_SpawnForStreamedIn[MAX_PLAYERS];
-static s_RespawnTime = 3000;
-static s_CustomFallDamage = false;
-static bool:s_CbugGlobal = true;
-static bool:s_CbugAllowed[MAX_PLAYERS] = {true, ...};
-static s_CbugFroze[MAX_PLAYERS];
+static s_Spectating[MAX_PLAYERS] = {INVALID_PLAYER_ID, ...};
+static s_LastUpdateTick[MAX_PLAYERS];
+static s_LastVehicleEnterTime[MAX_PLAYERS];
+static s_LastVehicleTick[MAX_PLAYERS];
+
+static bool:s_EnableHealthBar[MAX_PLAYERS] = {true, ...};
+static bool:s_HealthBarVisible[MAX_PLAYERS] = {false, ...};
+static Text:s_HealthBarBorder = Text:INVALID_TEXT_DRAW;
+static Text:s_HealthBarBackground = Text:INVALID_TEXT_DRAW;
+static PlayerText:s_HealthBarForeground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
+
 static s_DamageFeed = true;
 static s_DamageFeedPlayer[MAX_PLAYERS] = {-1, ...};
 static s_DamageFeedHideDelay = 3000;
 static s_DamageFeedMaxUpdateRate = 250;
-static s_VehiclePassengerDamage = false;
-static s_VehicleUnoccupiedDamage = false;
-static Float:s_FallDeathVelocity = -0.6;
-static s_DamageTakenSound = 1190;
-static s_DamageGivenSound = 17802;
-static s_RejectedHits[MAX_PLAYERS][WC_MAX_REJECTED_HITS][E_REJECTED_HIT];
-static s_RejectedHitsIdx[MAX_PLAYERS];
-static s_World[MAX_PLAYERS];
-static s_LastAnim[MAX_PLAYERS] = {-1, ...};
-static Float:s_LastZVelo[MAX_PLAYERS] = {0.0, ...};
-static Float:s_LastZ[MAX_PLAYERS] = {0.0, ...};
-static s_LastUpdate[MAX_PLAYERS] = {-1, ...};
 static PlayerText:s_DamageFeedTaken[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static PlayerText:s_DamageFeedGiven[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static s_DamageFeedHitsGiven[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
 static s_DamageFeedHitsTaken[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
+static s_DamageFeedUpdateTick[MAX_PLAYERS];
 static s_DamageFeedTimer[MAX_PLAYERS];
-static s_DamageFeedLastUpdate[MAX_PLAYERS];
-static s_Spectating[MAX_PLAYERS] = {INVALID_PLAYER_ID, ...};
-static s_LastStop[MAX_PLAYERS];
+
+static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
+static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
+
+static s_DamageTakenSound = 1190;
+static s_DamageGivenSound = 17802;
+
+static s_CustomFallDamage = false;
+static Float:s_FallDeathVelocity = -0.6;
+static s_LastAnim[MAX_PLAYERS] = {-1, ...};
+static Float:s_LastZVelo[MAX_PLAYERS] = {0.0, ...};
+static Float:s_LastZ[MAX_PLAYERS] = {0.0, ...};
+static s_LastStopTick[MAX_PLAYERS];
+
+static bool:s_CbugGlobal = true;
+static bool:s_CbugAllowed[MAX_PLAYERS] = {true, ...};
+static s_CbugFroze[MAX_PLAYERS];
+
+static s_MaxShootRateSamples = 4;
+static s_MaxHitRateSamples = 4;
+
+static s_ShotsFired[MAX_PLAYERS];
+static s_HitsIssued[MAX_PLAYERS];
+static s_LastShot[MAX_PLAYERS][E_SHOT_INFO];
+static s_LastShotTicks[MAX_PLAYERS][10];
+static s_LastShotWeapons[MAX_PLAYERS][10];
+static s_LastShotIdx[MAX_PLAYERS];
+static s_LastHitTicks[MAX_PLAYERS][10];
+static s_LastHitWeapons[MAX_PLAYERS][10];
+static s_LastHitIdx[MAX_PLAYERS];
+
+static s_RejectedHits[MAX_PLAYERS][WC_MAX_REJECTED_HITS][E_REJECTED_HIT];
+static s_RejectedHitIdx[MAX_PLAYERS];
+
+static s_PreviousHits[MAX_PLAYERS][10][E_HIT_INFO];
+static s_PreviousHitIdx[MAX_PLAYERS];
+static Float:s_DamageDoneHealth[MAX_PLAYERS];
+static Float:s_DamageDoneArmour[MAX_PLAYERS];
 
 #if WC_CUSTOM_VENDING_MACHINES
 	static bool:s_AlreadyConnected[MAX_PLAYERS];
@@ -1049,38 +1063,37 @@ static s_LastStop[MAX_PLAYERS];
 	static s_VendingUseTimer[MAX_PLAYERS];
 #endif
 
-static s_BeingResynced[MAX_PLAYERS];
-static s_KnifeTimeout[MAX_PLAYERS];
-static s_SyncData[MAX_PLAYERS][E_RESYNC_DATA];
-static Text:s_HealthBarBorder = Text:INVALID_TEXT_DRAW;
-static Text:s_HealthBarBackground = Text:INVALID_TEXT_DRAW;
-static PlayerText:s_HealthBarForeground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static s_DamageRangeSteps[55];
 static Float:s_DamageRangeRanges[55][WC_MAX_DAMAGE_RANGES];
 static Float:s_DamageRangeValues[55][WC_MAX_DAMAGE_RANGES];
-static s_LastVehicleShooter[MAX_VEHICLES + 1] = {INVALID_PLAYER_ID, ...};
-static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
-static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
-static s_LastVehicleEnterTime[MAX_PLAYERS];
-static s_TrueDeath[MAX_PLAYERS];
-static s_InClassSelection[MAX_PLAYERS];
-static s_ForceClassSelection[MAX_PLAYERS];
+
+static bool:s_IsDying[MAX_PLAYERS] = {false, ...};
+static bool:s_TrueDeath[MAX_PLAYERS] = {true, ...};
+static s_RespawnTime = 3000;
+static s_World[MAX_PLAYERS];
+static s_LastDeathTick[MAX_PLAYERS];
+static s_DelayedDeathTimer[MAX_PLAYERS];
+static s_DeathTimer[MAX_PLAYERS];
+
+static bool:s_InClassSelection[MAX_PLAYERS] = {false, ...};
+static bool:s_ForceClassSelection[MAX_PLAYERS] = {false, ...};
 static s_ClassSpawnInfo[WC_MAX_CLASSES][E_SPAWN_INFO];
 static s_PlayerSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerFallbackSpawnInfo[MAX_PLAYERS][E_SPAWN_INFO];
 static s_PlayerClass[MAX_PLAYERS] = {-2, ...};
-static bool:s_SpawnInfoModified[MAX_PLAYERS];
+static bool:s_SpawnInfoModified[MAX_PLAYERS] = {false, ...};
 static s_DeathSkip[MAX_PLAYERS];
 static s_DeathSkipTick[MAX_PLAYERS];
-static s_LastDeathTick[MAX_PLAYERS];
-static s_LastVehicleTick[MAX_PLAYERS];
-static s_PreviousHits[MAX_PLAYERS][10][E_HIT_INFO];
-static s_PreviousHitI[MAX_PLAYERS];
-static Float:s_DamageDoneHealth[MAX_PLAYERS];
-static Float:s_DamageDoneArmour[MAX_PLAYERS];
-static s_DelayedDeathTimer[MAX_PLAYERS];
+
+static bool:s_BeingResynced[MAX_PLAYERS] = {false, ...};
+static bool:s_SpawnForStreamedIn[MAX_PLAYERS] = {false, ...};
+static s_KnifeTimeout[MAX_PLAYERS];
+static s_SyncData[MAX_PLAYERS][E_RESYNC_DATA];
+
+static s_VehiclePassengerDamage = false;
+static s_VehicleUnoccupiedDamage = false;
 static bool:s_VehicleAlive[MAX_VEHICLES] = {false, ...};
-static bool:s_EnableHealthBar[MAX_PLAYERS];
+static s_LastVehicleShooter[MAX_VEHICLES] = {INVALID_PLAYER_ID, ...};
 static s_VehicleRespawnTimer[MAX_VEHICLES];
 
 #if !defined _INC_SKY
@@ -1155,7 +1168,7 @@ stock WC_IsPlayerSpawned(playerid)
 
 stock WC_IsPlayerPaused(playerid)
 {
-	return (GetTickCount() - s_LastUpdate[playerid] > 2000);
+	return (GetTickCount() - s_LastUpdateTick[playerid] > 2000);
 }
 
 stock AverageShootRate(playerid, shots, &multiple_weapons = 0)
@@ -1569,7 +1582,7 @@ stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 		return 0;
 	}
 
-	new real_idx = (s_RejectedHitsIdx[playerid] - idx) % WC_MAX_REJECTED_HITS;
+	new real_idx = (s_RejectedHitIdx[playerid] - idx) % WC_MAX_REJECTED_HITS;
 
 	// JIT plugin fix
 	if (real_idx < 0) {
@@ -1837,7 +1850,7 @@ stock WC_ClearAnimations(playerid, FORCE_SYNC:forcesync = FORCE_SYNC:1)
 		return 0;
 	}
 
-	s_LastStop[playerid] = GetTickCount();
+	s_LastStopTick[playerid] = GetTickCount();
 
 	return ClearAnimations(playerid, forcesync);
 }
@@ -1954,7 +1967,7 @@ stock WC_TogglePlayerControllable(playerid, toggle)
 		return 0;
 	}
 
-	s_LastStop[playerid] = GetTickCount();
+	s_LastStopTick[playerid] = GetTickCount();
 
 	return TogglePlayerControllable(playerid, !!toggle);
 }
@@ -1965,7 +1978,7 @@ stock WC_SetPlayerPos(playerid, Float:x, Float:y, Float:z)
 		return 0;
 	}
 
-	s_LastStop[playerid] = GetTickCount();
+	s_LastStopTick[playerid] = GetTickCount();
 
 	return SetPlayerPos(playerid, x, y, z);
 }
@@ -1976,7 +1989,7 @@ stock WC_SetPlayerPosFindZ(playerid, Float:x, Float:y, Float:z)
 		return 0;
 	}
 
-	s_LastStop[playerid] = GetTickCount();
+	s_LastStopTick[playerid] = GetTickCount();
 
 	return SetPlayerPosFindZ(playerid, x, y, z);
 }
@@ -1988,7 +2001,7 @@ stock WC_SetPlayerVelocity(playerid, Float:X, Float:Y, Float:Z)
 	}
 
 	if (X == 0.0 && Y == 0.0 && Z == 0.0) {
-		s_LastStop[playerid] = GetTickCount();
+		s_LastStopTick[playerid] = GetTickCount();
 	}
 
 	return SetPlayerVelocity(playerid, X, Y, Z);
@@ -2884,7 +2897,7 @@ public OnPlayerConnect(playerid)
 	s_LastShotIdx[playerid] = 0;
 	s_LastShot[playerid][e_Tick] = 0;
 	s_LastHitIdx[playerid] = 0;
-	s_RejectedHitsIdx[playerid] = 0;
+	s_RejectedHitIdx[playerid] = 0;
 	s_ShotsFired[playerid] = 0;
 	s_HitsIssued[playerid] = 0;
 	s_PlayerTeam[playerid] = NO_TEAM;
@@ -2895,14 +2908,14 @@ public OnPlayerConnect(playerid)
 	s_LastAnim[playerid] = -1;
 	s_LastZVelo[playerid] = 0.0;
 	s_LastZ[playerid] = 0.0;
-	s_LastUpdate[playerid] = tick;
+	s_LastUpdateTick[playerid] = tick;
 	s_DamageFeedTimer[playerid] = 0;
-	s_DamageFeedLastUpdate[playerid] = tick;
+	s_DamageFeedUpdateTick[playerid] = tick;
 	s_Spectating[playerid] = INVALID_PLAYER_ID;
 	s_HealthBarVisible[playerid] = false;
 	s_LastSentHealth[playerid] = 0;
 	s_LastSentArmour[playerid] = 0;
-	s_LastStop[playerid] = tick;
+	s_LastStopTick[playerid] = tick;
 	s_LastVehicleEnterTime[playerid] = 0;
 	s_TrueDeath[playerid] = true;
 	s_InClassSelection[playerid] = false;
@@ -2912,7 +2925,7 @@ public OnPlayerConnect(playerid)
 	s_PlayerFallbackSpawnInfo[playerid][e_Skin] = -1;
 	s_DeathSkip[playerid] = 0;
 	s_LastVehicleTick[playerid] = 0;
-	s_PreviousHitI[playerid] = 0;
+	s_PreviousHitIdx[playerid] = 0;
 	s_CbugAllowed[playerid] = s_CbugGlobal;
 	s_CbugFroze[playerid] = 0;
 	s_DeathTimer[playerid] = 0;
@@ -3077,8 +3090,8 @@ public OnPlayerSpawn(playerid)
 	}
 
 	new tick = GetTickCount();
-	s_LastUpdate[playerid] = tick;
-	s_LastStop[playerid] = tick;
+	s_LastUpdateTick[playerid] = tick;
+	s_LastStopTick[playerid] = tick;
 
 	if (s_BeingResynced[playerid]) {
 		s_BeingResynced[playerid] = false;
@@ -3776,7 +3789,7 @@ public OnPlayerUpdate(playerid)
 		s_SpawnForStreamedIn[playerid] = false;
 	}
 
-	s_LastUpdate[playerid] = tick;
+	s_LastUpdateTick[playerid] = tick;
 
 	// Detect fall damage based on velocity and animation
 	if (s_CustomFallDamage) {
@@ -3793,7 +3806,7 @@ public OnPlayerUpdate(playerid)
 			surfing = 1;
 		}
 
-		if (surfing || tick - s_LastStop[playerid] < 2000) {
+		if (surfing || tick - s_LastStopTick[playerid] < 2000) {
 			vz = 0.0;
 			s_LastZVelo[playerid] = 0.0;
 		} else {
@@ -4734,7 +4747,7 @@ public OnPlayerLeaveRaceCheckpoint(playerid)
 	{
 		if (IsAdminTeleportAllowed() && IsPlayerAdmin(playerid) || WC_IsPlayerTeleportAllowed(playerid)) {
 			if (!s_IsDying[playerid]) {
-				s_LastStop[playerid] = GetTickCount();
+				s_LastStopTick[playerid] = GetTickCount();
 			}
 			#if defined PAWNRAKNET_INC_
 				else {
@@ -5021,9 +5034,9 @@ static ScriptInit()
 		}
 
 		s_World[playerid] = worldid;
-		s_LastUpdate[playerid] = tick;
-		s_DamageFeedLastUpdate[playerid] = tick;
-		s_LastStop[playerid] = tick;
+		s_LastUpdateTick[playerid] = tick;
+		s_DamageFeedUpdateTick[playerid] = tick;
+		s_LastStopTick[playerid] = tick;
 		s_LastVehicleEnterTime[playerid] = 0;
 		s_TrueDeath[playerid] = true;
 		s_InClassSelection[playerid] = true;
@@ -6323,8 +6336,8 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		KillTimer(s_DamageFeedTimer[playerid]);
 	}
 
-	if (tick - s_DamageFeedLastUpdate[playerid] < s_DamageFeedMaxUpdateRate && modified) {
-		s_DamageFeedTimer[playerid] = SetTimerEx("WC_DamageFeedUpdate", s_DamageFeedMaxUpdateRate - (tick - s_DamageFeedLastUpdate[playerid]), false, "i", playerid);
+	if (tick - s_DamageFeedUpdateTick[playerid] < s_DamageFeedMaxUpdateRate && modified) {
+		s_DamageFeedTimer[playerid] = SetTimerEx("WC_DamageFeedUpdate", s_DamageFeedMaxUpdateRate - (tick - s_DamageFeedUpdateTick[playerid]), false, "i", playerid);
 	} else {
 		if (lowest_tick == tick + 1) {
 			s_DamageFeedTimer[playerid] = 0;
@@ -6336,7 +6349,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		if (modified) {
 			DamageFeedUpdateText(playerid);
 
-			s_DamageFeedLastUpdate[playerid] = tick;
+			s_DamageFeedUpdateTick[playerid] = tick;
 		}
 	}
 }
@@ -6602,7 +6615,7 @@ static IsPlayerBehindPlayer(playerid, targetid, Float:diff = 90.0)
 static AddRejectedHit(playerid, damagedid, reason, WEAPON:weapon, i1 = 0, i2 = 0, i3 = 0)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
-		new idx = s_RejectedHitsIdx[playerid];
+		new idx = s_RejectedHitIdx[playerid];
 
 		if (s_RejectedHits[playerid][idx][e_Time]) {
 			idx += 1;
@@ -6611,7 +6624,7 @@ static AddRejectedHit(playerid, damagedid, reason, WEAPON:weapon, i1 = 0, i2 = 0
 				idx = 0;
 			}
 
-			s_RejectedHitsIdx[playerid] = idx;
+			s_RejectedHitIdx[playerid] = idx;
 		}
 
 		new time, hour, minute, second;
@@ -6849,13 +6862,13 @@ public OnInvalidWeaponDamage(playerid, damagedid, Float:amount, WEAPON:weaponid,
 
 public OnPlayerDamageDone(playerid, Float:amount, issuerid, WEAPON:weapon, bodypart)
 {
-	new idx = s_PreviousHitI[playerid];
+	new idx = s_PreviousHitIdx[playerid];
 
-	s_PreviousHitI[playerid] = (s_PreviousHitI[playerid] - 1) % sizeof(s_PreviousHits[]);
+	s_PreviousHitIdx[playerid] = (s_PreviousHitIdx[playerid] - 1) % sizeof(s_PreviousHits[]);
 
 	// JIT plugin fix
-	if (s_PreviousHitI[playerid] < 0) {
-		s_PreviousHitI[playerid] += sizeof(s_PreviousHits[]);
+	if (s_PreviousHitIdx[playerid] < 0) {
+		s_PreviousHitIdx[playerid] += sizeof(s_PreviousHits[]);
 	}
 
 	s_PreviousHits[playerid][idx][e_Tick] = GetTickCount();
