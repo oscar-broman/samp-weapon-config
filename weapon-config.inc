@@ -3395,6 +3395,7 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 
 	if (s_PlayerHealth[playerid] <= 0.0005) {
 		s_PlayerHealth[playerid] = 0.0;
+		s_PlayerArmour[playerid] = 0.0;
 		s_IsDying[playerid] = true;
 
 		s_LastDeathTick[playerid] = GetTickCount();
@@ -4090,11 +4091,15 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 
 	if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER) {
 		if (WEAPON_UZI <= weaponid <= WEAPON_MP5 || weaponid == WEAPON_TEC9) {
-			new KEY:keys, ud, lr;
-			GetPlayerKeys(playerid, keys, ud, lr);
+			new vehicleid = GetPlayerVehicleID(playerid);
 
-			// It is only possible to shoot if you look right or left from car
-			valid = (keys & KEY_LOOK_RIGHT) || (keys & KEY_LOOK_LEFT);
+			if (!IsVehicleBike(vehicleid)) {
+				new KEY:keys, ud, lr;
+				GetPlayerKeys(playerid, keys, ud, lr);
+
+				// It is only possible to shoot if you look right or left from car
+				valid = (keys & KEY_LOOK_RIGHT) || (keys & KEY_LOOK_LEFT);
+			}
 		} else {
 			// Damage from something unusable from the driver's seat
 			valid = false;
@@ -4111,8 +4116,8 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 				AddRejectedHit(playerid, damagedid, HIT_MULTIPLE_PLAYERS_SHOTGUN, weaponid, s_LastShot[playerid][e_Hits] + 1);
 			}
 		} else if (s_LastShot[playerid][e_Hits] > 0) {
-			// Sniper doesn't always send OnPlayerWeaponShot
-			if (s_LastShot[playerid][e_Hits] >= 3 && weaponid != WEAPON_SNIPER) {
+			// Sniper doesn't always send OnPlayerWeaponShot, so let's raise the limits
+			if (s_LastShot[playerid][e_Hits] >= 6 || s_LastShot[playerid][e_Hits] >= 3 && weaponid != WEAPON_SNIPER) {
 				valid = false;
 				AddRejectedHit(playerid, damagedid, HIT_MULTIPLE_PLAYERS, weaponid, s_LastShot[playerid][e_Hits] + 1);
 			} else {
@@ -4120,7 +4125,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			}
 		}
 
-		if (valid) {
+		if (valid && weaponid != WEAPON_SNIPER) {
 			new Float:dist = GetPlayerDistanceFromPoint(damagedid, s_LastShot[playerid][e_HX], s_LastShot[playerid][e_HY], s_LastShot[playerid][e_HZ]);
 
 			if (dist > 20.0) {
@@ -4605,7 +4610,7 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 		}
 
 		if (s_VehicleUnoccupiedDamage) {
-			new has_occupent = false;
+			new has_occupant = false;
 
 			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new otherid : Player) {
@@ -4620,10 +4625,10 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 					continue;
 				}
 
-				has_occupent = true;
+				has_occupant = true;
 			}
 
-			if (!has_occupent) {
+			if (!has_occupant) {
 				new Float:health;
 				GetVehicleHealth(hitid, health);
 
