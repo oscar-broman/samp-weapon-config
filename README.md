@@ -112,7 +112,7 @@ CallRemoteFunction("SetHealth", "if", playerid, health);
 ```pawn
 public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &WEAPON:weapon, &bodypart)
 ```
-Called when damage is about to be inflicted on a player
+Called when damage is about to be inflicted on a player, not called for NPCs
 Most arguments can be modified (e.g. the damage could be adjusted)
 * `playerid` - The player who is about to get damaged
 * `amount` - The amount of damage about to get inflicted (0.0 means all HP)
@@ -126,7 +126,7 @@ Return 0 to prevent the damage from being inflicted
 ```pawn
 public OnPlayerDamageDone(playerid, Float:amount, issuerid, WEAPON:weapon, bodypart)
 ```
-Called after damage has been inflicted
+Called after damage has been inflicted, called on NPCs
 
 Same parameters as above, but they can not be modified
 
