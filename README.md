@@ -112,7 +112,7 @@ CallRemoteFunction("SetHealth", "if", playerid, health);
 ```pawn
 public OnPlayerDamage(&playerid, &Float:amount, &issuerid, &WEAPON:weapon, &bodypart)
 ```
-Called when damage is about to be inflicted on a player
+Called when damage is about to be inflicted on a player, not called on NPCs  
 Most arguments can be modified (e.g. the damage could be adjusted)
 * `playerid` - The player who is about to get damaged
 * `amount` - The amount of damage about to get inflicted (0.0 means all HP)
@@ -126,8 +126,7 @@ Return 0 to prevent the damage from being inflicted
 ```pawn
 public OnPlayerDamageDone(playerid, Float:amount, issuerid, WEAPON:weapon, bodypart)
 ```
-Called after damage has been inflicted
-
+Called after damage has been inflicted, called on NPCs  
 Same parameters as above, but they can not be modified
 
 Return value ignored
@@ -136,7 +135,6 @@ Return value ignored
 public OnPlayerPrepareDeath(playerid, animlib[32], animname[32], &anim_lock, &respawn_time)
 ```
 Before the death animation is applied
-
 * `playerid` - The player that is about to die
 * `animlib` - The anim lib to play (change to empty string for no animation)
 * `animname` - The anim name to play
@@ -149,7 +147,6 @@ Return value ignored
 public OnPlayerDeathFinished(playerid)
 ```
 When the death animation has finished and the player has been sent to respawn
-
 * `playerid` - The player
 
 Return value ignored
@@ -157,9 +154,8 @@ Return value ignored
 ```pawn
 public OnRejectedHit(playerid, hit[E_REJECTED_HIT])
 ```
-When a shot or damage given is rejected
+When a shot or damage given is rejected  
 See E_REJECTED_HIT and GetRejectedHit for more
-
 * `playerid` - The player whose hit was rejected
 * `hit` - An enum containing information about the rejected hit
 
@@ -185,12 +181,12 @@ Return value ignored
 ```pawn
 AverageShootRate(playerid, shots, &multiple_weapons = 0);
 ```
-The average time (in milliseconds) between shots.
+The average time (in milliseconds) between shots
 * `playerid` - The player
 * `hits` - Number of hits to average on (max 10)
 * `multiple_weapons` - Will be set to 1 if different weapons were used in the last shots
 
-Returns -1 if there is not enough data to calculate the rate, otherwise the average time is returned.
+Returns -1 if there is not enough data to calculate the rate, otherwise the average time is returned
 
 ```pawn
 AverageHitRate(playerid, hits, &multiple_weapons = 0);
@@ -200,9 +196,9 @@ Same as above, but for hits inflicted with `OnPlayerGiveDamage`
 ```pawn
 DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false);
 ```
-Inflict a hit on a player. All callbacks except `OnPlayerWeaponShot` will be called.  
+Inflict a hit on a player. All callbacks except `OnPlayerWeaponShot` will be called  
 **Note:** do not use it inside OnPlayerDamage as you can just modify `amount` there
-* `ignore_armour` - When `true` will do damage straight to health, and not armour.
+* `ignore_armour` - When `true` will do damage straight to health, and not armour
 
 ```pawn
 Float:GetPlayerHealth(playerid, &Float:health = 0.0);
@@ -282,12 +278,12 @@ Toggle vending machines (they are removed and disabled by default)
 ```pawn
 SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID);
 ```
-Toggle anti-cbug per player or globally. (Using no playerid param will default all users to default)
+Toggle anti-cbug per player or globally (using no playerid param will default all users to default)
 
 ```pawn
 bool:GetCbugAllowed(playerid = INVALID_PLAYER_ID);
 ```
-Check if users anti-cbug is toggled. (Using no playerid param will show the global toggle value)
+Check if users anti-cbug is toggled (using no playerid param will show the global toggle value)
 
 ```pawn
 SetDamageFeed(bool:toggle);
@@ -325,21 +321,20 @@ SetWeaponDamage(WEAPON:weaponid, damage_type, Float:amount, Float:...);
 Modify a weapon's damage
 * `weaponid` - The weapon to modify
 * `damage_type` - One of the following:
-    * DAMAGE_TYPE_MULTIPLIER
-        Multiply the original damage inflicted by amount
+    * `DAMAGE_TYPE_MULTIPLIER`  
+        Multiply the original damage inflicted by amount  
         This is default for melee, grenades, and other weapons that
         inflict different amounts of damage (shotguns excluded)
-    * DAMAGE_TYPE_STATIC
-        Inflict a specific amount of damage for each hit
-        For shotguns, this modifies the value for each bullet that hit the player
+    * `DAMAGE_TYPE_STATIC`  
+        Inflict a specific amount of damage for each hit  
+        For shotguns, this modifies the value for each bullet that hit the player  
         Combat shotgun shoots 8 bullets, other shotguns shoot 15
-    * DAMAGE_TYPE_RANGE_MULTIPLIER
+    * `DAMAGE_TYPE_RANGE_MULTIPLIER`  
         Same as DAMAGE_TYPE_MULTIPLIER, but the damage depends on the distance
-    * DAMAGE_TYPE_RANGE
+    * `DAMAGE_TYPE_RANGE`  
         Same as DAMAGE_TYPE_STATIC, but the damage depends on the distance
 * `amount` - The amount of damage
-* `...` - If `damage_type` contains `RANGE`, the arguments should be a list of ranges and damage
-    For example:
+* `...` - If `damage_type` contains `RANGE`, the arguments should be a list of ranges and damage, for example:
     ```pawn
     SetWeaponDamage(WEAPON_SNIPER, DAMAGE_TYPE_RANGE, 40.0, 20.0, 30.0, 60.0, 20.0);
     ```
@@ -356,9 +351,9 @@ Get the amount of damage of a weapon
 ```pawn
 SetWeaponMaxRange(WEAPON:weaponid, Float:range);
 ```
-Set the max range of a weapon. The default value is those from weapon.dat
+Set the max range of a weapon. The default value is those from weapon.dat  
 Because of a SA-MP bug, weapons can (and will) exceed this range.
-This script, however, will block those out-of-range shots and give a rejected hit.
+This script, however, will block those out-of-range shots and give a rejected hit
 
 ```pawn
 Float:GetWeaponMaxRange(WEAPON:weaponid);
@@ -368,8 +363,8 @@ Get the max range of a weapon
 ```pawn
 SetWeaponShootRate(WEAPON:weaponid, max_rate);
 ```
-Set the max allowed shoot rate of a weapon.
-Could be used to prevent C-bug damage or allow infinite shooting if a script uses GivePlayerWeapon to do so.
+Set the max allowed shoot rate of a weapon  
+Could be used to prevent C-bug damage or allow infinite shooting if a script uses GivePlayerWeapon to do so
 
 ```pawn
 GetWeaponShootRate(WEAPON:weaponid);
@@ -379,19 +374,24 @@ Get the max allowed shoot rate of a weapon
 ```pawn
 SetCustomArmourRules(bool:armour_rules, bool:torso_rules);
 ```
-Toggle the custom armour rules on and off. Both are disabled by default.
-* `armour_rules` - Toggle all of the rules. When off, nothing is affected. Armour is affected as it normally would. When on, weapons can be set to either damage armour before health or just take health and never damage armour.
-* `torso_rules` - Toggle all torso-only rules. When off, all weapons will have effects no matter which bodypart is 'hit'. When on, weapons with the `torso_only` rule (of `SetWeaponArmourRule`) on will only damage armour when the torso is 'hit' (and when it's off, armour is damaged no matter which body part is 'hit').
+Toggle the custom armour rules on and off. Both are disabled by default
+* `armour_rules` - Toggle all of the rules  
+  When off, nothing is affected. Armour is affected as it normally would  
+  When on, weapons can be set to either damage armour before health or just take health and never damage armour
+* `torso_rules` - Toggle all torso-only rules  
+  When off, all weapons will have effects no matter which bodypart is 'hit'  
+  When on, weapons with the `torso_only` rule (of `SetWeaponArmourRule`) on will only damage armour when the torso is 'hit'
+  (and when it's off, armour is damaged no matter which body part is 'hit')
 
 ```pawn
 SetWeaponArmourRule(WEAPON:weaponid, bool:affects_armour, bool:torso_only);
 ```
-Set custom rules for a weapon. The defaults aren't going to comfort EVERYONE, so everyone needs the ability to modify the weapons themselves.
-* `weaponid` - The ID of the weapon to modify the rules of.
-* `affects_armour` - Whether this weapon will distribute damage over armour and health or just damage health directly.
-* `torso_only` - Whether this weapon will only damage armour when the 'hit' bodypart is the torso or all bodyparts. Only works when `torso_rules` are enabled using `SetCustomArmourRules`.
+Set custom rules for a weapon. The defaults aren't going to comfort EVERYONE, so everyone needs the ability to modify the weapons themselves
+* `weaponid` - The ID of the weapon to modify the rules of
+* `affects_armour` - Whether this weapon will distribute damage over armour and health or just damage health directly
+* `torso_only` - Whether this weapon will only damage armour when the 'hit' bodypart is the torso or all bodyparts. Only works when `torso_rules` are enabled using `SetCustomArmourRules`
 
 ```pawn
 EnableHealthBarForPlayer(playerid, bool:enable);
 ```
-Show or hide health bar for player.
+Show or hide health bar for player
