@@ -3449,7 +3449,7 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 		}
 	}
 
-	UpdateHealthBar(playerid);
+	UpdateHealthBar(playerid, .forcesync = true);
 
 	return 1;
 }
@@ -5186,7 +5186,7 @@ static Float:WC_CalculateBar(Float:width, Float:max, Float:value)
 	return ((width / max) * value);
 }
 
-static UpdateHealthBar(playerid, bool:force = false)
+static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false)
 {
 	if (s_BeingResynced[playerid] || s_ForceClassSelection[playerid]) {
 		return;
@@ -5222,7 +5222,9 @@ static UpdateHealthBar(playerid, bool:force = false)
 	SetFakeHealth(playerid, health);
 	SetFakeArmour(playerid, armour);
 
-	UpdateSyncData(playerid);
+	if (forcesync || WC_IsPlayerPaused(playerid)) {
+		UpdateSyncData(playerid);
+	}
 
 	if (health != s_LastSentHealth[playerid]) {
 		s_LastSentHealth[playerid] = health;
@@ -5344,6 +5346,8 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
+	new anim = GetPlayerAnimationIndex(playerid);
+
 	#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
 	foreach (new i : StreamedPlayer[playerid]) {
 	#elseif defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
@@ -5352,10 +5356,10 @@ static UpdateSyncData(playerid)
 	for (new i = 0; i != MAX_PLAYERS; i++) {
 	#endif
 		#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
-		SendLastSyncPacket(playerid, i);
+		SendLastSyncPacket(playerid, i, .animation = anim);
 		#else
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
-			SendLastSyncPacket(playerid, i);
+			SendLastSyncPacket(playerid, i, .animation = anim);
 		}
 		#endif
 	}
@@ -6129,7 +6133,7 @@ static PlayerDeath(playerid, animlib[32], animname[32], bool:anim_lock = false, 
 
 	OnPlayerPrepareDeath(playerid, animlib, animname, anim_lock, respawn_time);
 
-	UpdateHealthBar(playerid);
+	UpdateHealthBar(playerid, .forcesync = true);
 	FreezeSyncPacket(playerid, .toggle = freeze_sync);
 
 	if (respawn_time == -1) {
