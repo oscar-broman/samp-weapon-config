@@ -4,6 +4,6 @@
   "contributors": ["oscar-broman"],
   "dependencies": [
     "sampctl/samp-stdlib",
-    "oscar-broman/SKY:2.3.2"
+    "oscar-broman/SKY:v2.4.1"
   ]
 }
