@@ -1027,7 +1027,7 @@ static Float:s_LastZ[MAX_PLAYERS] = {0.0, ...};
 static s_LastStopTick[MAX_PLAYERS];
 
 static bool:s_CbugGlobal = true;
-static bool:s_CbugDeathDelay = false;
+static bool:s_CbugDeathDelay = true;
 static bool:s_CbugAllowed[MAX_PLAYERS] = {true, ...};
 static s_CbugFroze[MAX_PLAYERS];
 

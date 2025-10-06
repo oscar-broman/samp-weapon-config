@@ -400,4 +400,4 @@ Show or hide health bar for player
 SetCbugDeathDelay(bool:toggle);
 ```
 
-Toggles a 1.2-second delay on player death to verify that the last shot was not fired using a cbug. This setting has no effect if cbug is allowed.
+Toggles a 1.2-second delay on player death to verify that the last shot was not fired using a cbug (enabled by default). This setting has no effect if cbug is allowed.
