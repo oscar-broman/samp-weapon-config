@@ -395,3 +395,9 @@ Set custom rules for a weapon. The defaults aren't going to comfort EVERYONE, so
 EnableHealthBarForPlayer(playerid, bool:enable);
 ```
 Show or hide health bar for player
+
+```pawn
+SetCbugDeathDelay(bool:toggle);
+```
+
+Toggles a 1.2-second delay on player death to verify that the last shot was not fired using a cbug. This setting has no effect if cbug is allowed.
