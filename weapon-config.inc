@@ -3623,7 +3623,7 @@ public OnPlayerStreamIn(playerid, forplayerid)
 {
 	// Send ped floor_hit_f
 	if (s_IsDying[playerid] || s_InClassSelection[playerid]) {
-		SendLastSyncPacket(playerid, forplayerid, .animation = 0x2e040000 + 1150);
+		SendLastSyncPacket(playerid, forplayerid, .animation = 0x2e040000 + 1151);
 	}
 
 	return WC_OnPlayerStreamIn(playerid, forplayerid);
@@ -4951,7 +4951,7 @@ IPacket:WC_AIM_SYNC(playerid, BitStream:bs)
 
 #if defined _INC_open_mp
 
-// The alternative is to `SetPlayerAdmin` to `false` on death, but this doesn't seem like the "safest" solution
+// The alternative is `SetPlayerAdmin` to `false` on death, but this doesn't seem like the "safest" solution
 ORPC:WC_RPC_SET_POS_FIND_Z(playerid, BitStream:bs)
 {
 	if (s_BlockAdminTeleport[playerid]) {
@@ -4962,9 +4962,9 @@ ORPC:WC_RPC_SET_POS_FIND_Z(playerid, BitStream:bs)
 	return 1;
 }
 
-#endif
+#endif // _INC_open_mp
 
-#endif
+#endif // _INC_SKY
 
 /*
  * Internal functions
@@ -5346,8 +5346,6 @@ static UpdateSyncData(playerid)
 		return;
 	}
 
-	new anim = GetPlayerAnimationIndex(playerid);
-
 	#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
 	foreach (new i : StreamedPlayer[playerid]) {
 	#elseif defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
@@ -5356,10 +5354,10 @@ static UpdateSyncData(playerid)
 	for (new i = 0; i != MAX_PLAYERS; i++) {
 	#endif
 		#if defined _Y_ITERATE_LOCAL_VERSION && defined _FOREACH_STREAMED && !defined FOREACH_NO_STREAMED
-		SendLastSyncPacket(playerid, i, .animation = anim);
+		SendLastSyncPacket(playerid, i);
 		#else
 		if (i != playerid && IsPlayerStreamedIn(playerid, i)) {
-			SendLastSyncPacket(playerid, i, .animation = anim);
+			SendLastSyncPacket(playerid, i);
 		}
 		#endif
 	}
@@ -6797,9 +6795,9 @@ static SendLastSyncPacket(playerid, toplayerid, animation = 0)
 	}
 
 	// Animations are only sent when they are changed
-	if (!animation) {
-		s_LastSyncData[playerid][PR_animationId] = 0;
-		s_LastSyncData[playerid][PR_animationFlags] = 0;
+	if (animation) {
+		s_LastSyncData[playerid][PR_animationId] = animation & 0xFFFF;
+		s_LastSyncData[playerid][PR_animationFlags] = (animation >> 16) & 0xFFFF;
 	}
 
 	BS_WriteOnFootSync(bs, s_LastSyncData[playerid], true);
@@ -6824,7 +6822,7 @@ static ClearAnimationsForPlayer(playerid, forplayerid)
 	return 1;
 }
 
-#endif
+#endif // _INC_SKY
 
 forward WC_SecondKnifeAnim(playerid);
 public WC_SecondKnifeAnim(playerid)
