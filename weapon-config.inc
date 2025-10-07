@@ -1027,6 +1027,7 @@ static Float:s_LastZ[MAX_PLAYERS] = {0.0, ...};
 static s_LastStopTick[MAX_PLAYERS];
 
 static bool:s_CbugGlobal = true;
+static bool:s_CbugDeathDelay = true;
 static bool:s_CbugAllowed[MAX_PLAYERS] = {true, ...};
 static s_CbugFroze[MAX_PLAYERS];
 
@@ -1643,6 +1644,11 @@ stock ResyncPlayer(playerid)
 	s_BeingResynced[playerid] = true;
 
 	SpawnPlayerInPlace(playerid);
+}
+
+stock SetCbugDeathDelay(bool:toggle)
+{
+	s_CbugDeathDelay = toggle;
 }
 
 /*
@@ -6068,7 +6074,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 			}
 		}
 
-		if (s_CbugAllowed[playerid]) {
+		if (s_CbugAllowed[playerid] || !s_CbugDeathDelay) {
 			WC_OnPlayerDeath(playerid, issuerid, weaponid);
 		} else {
 			if (s_DelayedDeathTimer[playerid]) {
