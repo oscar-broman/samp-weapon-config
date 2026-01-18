@@ -1118,14 +1118,6 @@ static s_VehicleRespawnTimer[MAX_VEHICLES];
 		static bool:s_BlockAdminTeleport[MAX_PLAYERS];
 	#endif
 #endif
-bool:WC_IsTargetAnNPC(const targetid)
-{
-#if defined _INC_open_mp
-  return NPC_IsValid(targetid);
-#else 
-  return bool:IsPlayerNPC(targetid);
-#endif
-}
 native WC_IsValidVehicle(vehicleid) = IsValidVehicle;
 
 /*
@@ -4177,10 +4169,12 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 	if (IsPlayerNPC(playerid)) {
 		return 0;
 	}
-	if(playerid != INVALID_PLAYER_ID && WC_IsTargetAnNPC(issuerid))
+
+	if(playerid != INVALID_PLAYER_ID && IsPlayerNPC(issuerid))
 	{
 	    DamagePlayer(playerid, s_WeaponDamage[weaponid], issuerid, weaponid, bodypart, !IsBulletWeapon(weaponid));
     }
+
 	UpdateHealthBar(playerid, true);
 
 	if (!WC_IsPlayerSpawned(playerid)) {
