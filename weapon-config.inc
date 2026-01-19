@@ -4171,9 +4171,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 		return 0;
 	}
 
-    if (playerid != INVALID_PLAYER_ID && IsPlayerNPC(issuerid)) {
-        DamagePlayer(playerid, s_WeaponDamage[weaponid], issuerid, weaponid, bodypart, !IsBulletWeapon(weaponid));
-    }
+	if (IsPlayerNPC(issuerid)) {
+		InflictDamage(playerid, s_WeaponDamage[weaponid], issuerid, weaponid, bodypart, !IsBulletWeapon(weaponid));
+	}
 
 	UpdateHealthBar(playerid, true);
 
