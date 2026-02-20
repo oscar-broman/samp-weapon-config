@@ -3161,7 +3161,7 @@ public OnPlayerSpawn(playerid)
 		}
 	} else {
 		s_PlayerFallbackSpawnInfo[playerid][e_Team] = s_PlayerTeam[playerid];
-		s_PlayerFallbackSpawnInfo[playerid][e_Skin] = GetPlayerSkin(playerid);
+		s_PlayerFallbackSpawnInfo[playerid][e_Skin] = GetPlayerActualSkin(playerid);
 		GetPlayerPos(
 			playerid,
 			s_PlayerFallbackSpawnInfo[playerid][e_PosX],
@@ -3440,14 +3440,15 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 
 			s_DeathSkip[playerid] = 2;
 
-			new WEAPON:w, a;
+			new WEAPON:w, a, skin;
 			GetPlayerWeaponData(playerid, WEAPON_SLOT:0, w, a);
+			skin = GetPlayerActualSkin(playerid);
 
 			ForceClassSelection(playerid);
-			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0);
+			SetSpawnInfo(playerid, s_PlayerTeam[playerid], skin, x, y, z, r, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0);
 			TogglePlayerSpectating(playerid, true);
 			TogglePlayerSpectating(playerid, false);
-			SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0);
+			SetSpawnInfo(playerid, s_PlayerTeam[playerid], skin, x, y, z, r, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0);
 			TogglePlayerControllable(playerid, true);
 			SetPlayerArmedWeapon(playerid, w);
 		} else {
@@ -3776,7 +3777,7 @@ public OnPlayerUpdate(playerid)
 				GetPlayerPos(playerid, x, y, z);
 				GetPlayerFacingAngle(playerid, r);
 
-				SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0);
+				SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerActualSkin(playerid), x, y, z, r, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0);
 
 				s_DeathSkipTick[playerid] = 0;
 
@@ -5337,7 +5338,7 @@ static SpawnPlayerInPlace(playerid) {
 	GetPlayerPos(playerid, x, y, z);
 	GetPlayerFacingAngle(playerid, r);
 
-	SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerSkin(playerid), x, y, z, r, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0);
+	SetSpawnInfo(playerid, s_PlayerTeam[playerid], GetPlayerActualSkin(playerid), x, y, z, r, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0, WEAPON_UNARMED, 0);
 
 	s_SpawnInfoModified[playerid] = true;
 
@@ -6572,7 +6573,7 @@ static SaveSyncData(playerid)
 	GetPlayerPos(playerid, s_SyncData[playerid][e_PosX], s_SyncData[playerid][e_PosY], s_SyncData[playerid][e_PosZ]);
 	GetPlayerFacingAngle(playerid, s_SyncData[playerid][e_PosA]);
 
-	s_SyncData[playerid][e_Skin] = GetPlayerSkin(playerid);
+	s_SyncData[playerid][e_Skin] = GetPlayerActualSkin(playerid);
 	s_SyncData[playerid][e_Team] = GetPlayerTeam(playerid);
 
 	s_SyncData[playerid][e_Weapon] = GetPlayerWeapon(playerid);
@@ -6671,6 +6672,21 @@ static AddRejectedHit(playerid, damagedid, reason, WEAPON:weapon, i1 = 0, i2 = 0
 
 		OnRejectedHit(playerid, s_RejectedHits[playerid][idx]);
 	}
+}
+
+static GetPlayerActualSkin(playerid)
+{
+	#if defined GetPlayerCustomSkin
+		new skin = GetPlayerCustomSkin(playerid);
+
+		if (skin == 0) {
+			skin = GetPlayerSkin(playerid);
+		}
+
+		return skin;
+	#else
+		return GetPlayerSkin(playerid);
+	#endif
 }
 
 #if !defined _INC_SKY
