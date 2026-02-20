@@ -4172,10 +4172,6 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 		return 0;
 	}
 
-	if (IsPlayerNPC(issuerid)) {
-		InflictDamage(playerid, s_WeaponDamage[weaponid], issuerid, weaponid, bodypart, !IsBulletWeapon(weaponid));
-	}
-
 	UpdateHealthBar(playerid, true);
 
 	if (!WC_IsPlayerSpawned(playerid)) {
@@ -4305,7 +4301,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 			} else {
 				return 0;
 			}
-		} else {
+		} else if (!IsPlayerNPC(issuerid)) {
 			return 0;
 		}
 	}
