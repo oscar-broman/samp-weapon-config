@@ -2184,7 +2184,11 @@ stock WC_TextDrawAlignment(Text:text, TEXT_DRAW_ALIGN:alignment)
 stock WC_TextDrawColor(Text:text, color)
 {
 	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawColor(text, color);
+	#if defined _INC_open_mp
+		return TextDrawColour(text, color);
+	#else
+		return TextDrawColor(text, color);
+	#endif
 }
 
 stock WC_TextDrawUseBox(Text:text, use)
@@ -2196,7 +2200,11 @@ stock WC_TextDrawUseBox(Text:text, use)
 stock WC_TextDrawBoxColor(Text:text, color)
 {
 	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawBoxColor(text, color);
+	#if defined _INC_open_mp
+		return TextDrawBoxColour(text, color);
+	#else
+		return TextDrawBoxColor(text, color);
+	#endif
 }
 
 stock WC_TextDrawSetShadow(Text:text, size)
@@ -2214,9 +2222,12 @@ stock WC_TextDrawSetOutline(Text:text, size)
 stock WC_TextDrawBackgroundColor(Text:text, color)
 {
 	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawBackgroundColor(text, color);
+	#if defined _INC_open_mp
+		return TextDrawBackgroundColour(text, color);
+	#else
+		return TextDrawBackgroundColor(text, color);
+	#endif
 }
-
 stock WC_TextDrawFont(Text:text, TEXT_DRAW_FONT:font)
 {
 	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
@@ -2292,7 +2303,11 @@ stock WC_TextDrawSetPreviewRot(Text:text, Float:fRotX, Float:fRotY, Float:fRotZ,
 stock WC_TextDrawSetPreviewVehCol(Text:text, color1, color2)
 {
 	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawSetPreviewVehCol(text, color1, color2);
+	#if defined _INC_open_mp
+		return TextDrawSetPreviewVehicleColours(text, color1, color2);
+	#else
+		return TextDrawSetPreviewVehCol(text, color1, color2);
+	#endif
 }
 
 #if defined _INC_y_va
@@ -2351,7 +2366,11 @@ stock WC_PlayerTextDrawColor(playerid, PlayerText:text, color)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
 	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
-	return PlayerTextDrawColor(playerid, text, color);
+	#if defined _INC_open_mp
+		return PlayerTextDrawColour(playerid, text, color);
+	#else
+		return PlayerTextDrawColor(playerid, text, color);
+	#endif
 }
 
 stock WC_PlayerTextDrawUseBox(playerid, PlayerText:text, use)
@@ -2365,7 +2384,11 @@ stock WC_PlayerTextDrawBoxColor(playerid, PlayerText:text, color)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
 	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
-	return PlayerTextDrawBoxColor(playerid, text, color);
+	#if defined _INC_open_mp
+		return PlayerTextDrawBoxColour(playerid, text, color);
+	#else
+		return PlayerTextDrawBoxColor(playerid, text, color);
+	#endif
 }
 
 stock WC_PlayerTextDrawSetShadow(playerid, PlayerText:text, size)
@@ -2386,7 +2409,11 @@ stock WC_PlayerTextDrawBackgroundColo(playerid, PlayerText:text, color)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
 	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
-	return PlayerTextDrawBackgroundColor(playerid, text, color);
+	#if defined _INC_open_mp
+		return PlayerTextDrawBackgroundColour(playerid, text, color);
+	#else
+		return PlayerTextDrawBackgroundColor(playerid, text, color);
+	#endif
 }
 
 stock WC_PlayerTextDrawFont(playerid, PlayerText:text, TEXT_DRAW_FONT:font)
@@ -2461,7 +2488,11 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
 	if (_:text < 0 || text >= PlayerText:MAX_PLAYER_TEXT_DRAWS || s_InternalPlayerTextDraw[playerid][text]) return 0;
-	return PlayerTextDrawSetPreviewVehCol(playerid, text, color1, color2);
+	#if defined _INC_open_mp
+		return PlayerTextDrawSetPreviewVehicleColours(playerid, text, color1, color2);
+	#else
+		return PlayerTextDrawSetPreviewVehCol(playerid, text, color1, color2);
+	#endif
 }
 
 #if defined _INC_open_mp
