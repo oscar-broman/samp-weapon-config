@@ -4310,7 +4310,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 			return 0;
 		}
 
-		if (s_IsDying[issuerid] && (IsBulletWeapon(weaponid) || IsMeleeWeapon(weaponid)) && GetTickCount() - s_LastDeathTick[issuerid] > 80) {
+		if (s_IsDying[issuerid]
+		&& (IsBulletWeapon(weaponid) || IsMeleeWeapon(weaponid) || WEAPON_VEHICLE_M4 <= weaponid <= WEAPON_VEHICLE_MINIGUN)
+		&& GetTickCount() - s_LastDeathTick[issuerid] > 80) {
 			DebugMessageRed(playerid, "shot/punched by dead player (%d)", issuerid);
 			return 0;
 		}
