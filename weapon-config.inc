@@ -5589,7 +5589,9 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 	}
 
 	// Only torso from non-bullet weapons
-	if (!IsBulletWeapon(weaponid) && bodypart != 3) {
+	if (!IsBulletWeapon(weaponid)
+		&& !(WEAPON_VEHICLE_M4 <= weaponid <= WEAPON_VEHICLE_MINIGUN)
+		&& bodypart != 3) {
 		return WC_INVALID_DAMAGE;
 	}
 
