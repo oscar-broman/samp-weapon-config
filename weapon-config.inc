@@ -3784,14 +3784,12 @@ public OnPlayerUpdate(playerid)
 				new animlib[] = "PED", animname[] = "IDLE_stance";
 				ApplyAnimation(playerid, animlib, animname, 4.1, true, false, false, false, 1, FORCE_SYNC:1);
 			}
-		} else {
-			if (GetPlayerAnimationIndex(playerid) != 1189) {
-				s_DeathSkip[playerid] = 0;
+		} else if (GetPlayerAnimationIndex(playerid) != 1189) {
+			s_DeathSkip[playerid] = 0;
 
-				WC_DeathSkipEnd(playerid);
+			WC_DeathSkipEnd(playerid);
 
-				DebugMessage(playerid, "Death skip end");
-			}
+			DebugMessage(playerid, "Death skip end");
 		}
 	}
 
@@ -5590,6 +5588,11 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 		weaponid = WEAPON_CARPARK;
 	}
 
+	// Only torso from non-bullet weapons
+	if (!IsBulletWeapon(weaponid) && bodypart != 3) {
+		return WC_INVALID_DAMAGE;
+	}
+
 	// Finish processing drown/fire/carpark quickly, since they are sent at very high rates
 	if (IsHighRateWeapon(weaponid)) {
 		// Apply reasonable bounds
@@ -5620,11 +5623,9 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 					AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, WEAPON:weaponid, _:dist);
 					return WC_INVALID_DISTANCE;
 				}
-			} else {
-				if (dist > s_WeaponRange[weaponid] + 2.0) {
-					AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, WEAPON:weaponid, _:dist, _:s_WeaponRange[weaponid]);
-					return WC_INVALID_DISTANCE;
-				}
+			} else if (dist > s_WeaponRange[weaponid] + 2.0) {
+				AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, WEAPON:weaponid, _:dist, _:s_WeaponRange[weaponid]);
+				return WC_INVALID_DISTANCE;
 			}
 		}
 
