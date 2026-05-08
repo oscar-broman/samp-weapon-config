@@ -1508,6 +1508,7 @@ stock SetPlayerMaxHealth(playerid, Float:value)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		s_PlayerMaxHealth[playerid] = value;
+		UpdateHealthBar(playerid, true);
 	}
 }
 
@@ -1515,6 +1516,7 @@ stock SetPlayerMaxArmour(playerid, Float:value)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		s_PlayerMaxArmour[playerid] = value;
+		UpdateHealthBar(playerid, true);
 	}
 }
 
