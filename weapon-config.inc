@@ -1008,8 +1008,8 @@ static Float:s_HealthBarBorder_Width = 61.7;
 static Float:s_HealthBarBorder_Height = 8.4;
 static Float:s_HealthBarBG_Offset_X = 2.0;
 static Float:s_HealthBarBG_Offset_Y = 2.1;
-static Float:s_HealthBarBG_Offset_Height = -3.9;
 static Float:s_HealthBarBG_Offset_Width = -3.7;
+static Float:s_HealthBarBG_Offset_Height = -3.9;
 // Foreground uses same values as s_HealthBarBackground
 
 static s_DamageFeed = true;
@@ -1291,14 +1291,45 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	return false;
 }
 
-stock SetHealthBarPosition(Float:x, Float:y, bool:syncForAll = false)
+// Changes the position based on the top left corner of the border
+// TODO: Documentation
+stock SetHealthBarPosition(Float:x, Float:y)
 {
 	// Everything else is relative to the border
 	s_HealthBarBorder_X = x;
 	s_HealthBarBorder_Y = y;
 	
+	// Update background and border positon
+	s_InternalTextDraw[s_HealthBarBorder] = false;
+	TextDrawDestroy(s_HealthBarBorder);
+	s_HealthBarBorder = TextDrawCreate(s_HealthBarBorder_X, s_HealthBarBorder_Y, "LD_SPAC:white");
+
+	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
+		printf("(wc) WARN: Unable to create healthbar border textdraw");
+	} else {
+		s_InternalTextDraw[s_HealthBarBorder] = true;
+
+		TextDrawTextSize	(s_HealthBarBorder, s_HealthBarBorder_Width, s_HealthBarBorder_Height);
+		TextDrawColour		(s_HealthBarBorder, 255);
+		TextDrawFont		(s_HealthBarBorder, TEXT_DRAW_FONT_SPRITE_DRAW);
+	}
+
+	s_InternalTextDraw[s_HealthBarBackground] = false;
+	TextDrawDestroy(s_HealthBarBackground);
+	s_HealthBarBackground = TextDrawCreate(s_HealthBarBorder_X + s_HealthBarBG_Offset_X, s_HealthBarBorder_Y + s_HealthBarBG_Offset_Y, "LD_SPAC:white");
+
+	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
+		printf("(wc) WARN: Unable to create healthbar background textdraw");
+	} else {
+		s_InternalTextDraw[s_HealthBarBackground] = true;
+
+		TextDrawTextSize	(s_HealthBarBackground, s_HealthBarBorder_Width + s_HealthBarBG_Offset_Width, s_HealthBarBorder_Height + s_HealthBarBG_Offset_Height);
+		TextDrawColour		(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
+		TextDrawFont		(s_HealthBarBackground, TEXT_DRAW_FONT_SPRITE_DRAW);
+	}
+
 	#if WC_DEBUG
-	DebugMessage(playerid, "health bar position set to X %.1f, Y %.1f - %s all sync", x, y, (syncForAll) ? ("with") : ("without"));
+	DebugMessage(-1, "health bar position set to X %.1f, Y %.1f", x, y);
 	#endif
 
 	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
@@ -1306,14 +1337,88 @@ stock SetHealthBarPosition(Float:x, Float:y, bool:syncForAll = false)
 	#else
 	for (new i = 0; i != MAX_PLAYERS; i++) {
 	#endif
-		// TODO: Per-Player health bar positions
-		if (syncForAll) {
-			// If syncForAll is true, change position of all players
+		if (s_EnableHealthBar[i] && s_HealthBarVisible[i]) {
+			TextDrawShowForPlayer(i, s_HealthBarBorder);
+			TextDrawShowForPlayer(i, s_HealthBarBackground);
 		}
+
+		// TODO: Per-Player health bar positions
+		// TODO: Only change for players with no custom position set
+		TextDrawTextSize(s_HealthBarBorder, s_HealthBarBorder_Width, s_HealthBarBorder_Height);
+		TextDrawTextSize(s_HealthBarBackground, (s_HealthBarBorder_Width + s_HealthBarBG_Offset_Width), (s_HealthBarBorder_Height + s_HealthBarBG_Offset_Height));
+
 		UpdateHealthBar(i, _, _, true);
 	}
 
 	return 1;
+}
+
+// Using -1 makes so the value isn't changed
+// TODO: Documentation
+stock SetHealthBarSize(Float:width = -1.0, Float:height = -1.0, Float:background_offset_width = -1.0, Float:background_offset_height = -1.0)
+{
+	if (width != -1.0) {
+		s_HealthBarBorder_Width = width;
+	}
+	if (height != -1.0) {
+		s_HealthBarBorder_Height = height;
+	}
+	if (background_offset_width != -1.0) {
+		s_HealthBarBG_Offset_Width = background_offset_width;
+	}
+	if (background_offset_height != -1.0) {
+		s_HealthBarBG_Offset_Height = background_offset_height;
+	}
+
+	#if WC_DEBUG
+	DebugMessage(-1, "health bar size set to Width %.1f, Height %.1f with background offset Width %.1f, Height %.1f", width, height, background_offset_width, background_offset_height);
+	#endif
+
+	// Update background and border positon
+	s_InternalTextDraw[s_HealthBarBorder] = false;
+	TextDrawDestroy(s_HealthBarBorder);
+	s_HealthBarBorder = TextDrawCreate(s_HealthBarBorder_X, s_HealthBarBorder_Y, "LD_SPAC:white");
+
+	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
+		printf("(wc) WARN: Unable to create healthbar border textdraw");
+	} else {
+		s_InternalTextDraw[s_HealthBarBorder] = true;
+
+		TextDrawTextSize	(s_HealthBarBorder, s_HealthBarBorder_Width, s_HealthBarBorder_Height);
+		TextDrawColour		(s_HealthBarBorder, 255);
+		TextDrawFont		(s_HealthBarBorder, TEXT_DRAW_FONT_SPRITE_DRAW);
+	}
+
+	s_InternalTextDraw[s_HealthBarBackground] = false;
+	TextDrawDestroy(s_HealthBarBackground);
+	s_HealthBarBackground = TextDrawCreate(s_HealthBarBorder_X + s_HealthBarBG_Offset_X, s_HealthBarBorder_Y + s_HealthBarBG_Offset_Y, "LD_SPAC:white");
+
+	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
+		printf("(wc) WARN: Unable to create healthbar background textdraw");
+	} else {
+		s_InternalTextDraw[s_HealthBarBackground] = true;
+
+		TextDrawTextSize	(s_HealthBarBackground, s_HealthBarBorder_Width + s_HealthBarBG_Offset_Width, s_HealthBarBorder_Height + s_HealthBarBG_Offset_Height);
+		TextDrawColour		(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
+		TextDrawFont		(s_HealthBarBackground, TEXT_DRAW_FONT_SPRITE_DRAW);
+	}
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	foreach (new i : Player) {
+	#else
+	for (new i = 0; i != MAX_PLAYERS; i++) {
+		if (s_EnableHealthBar[i] && s_HealthBarVisible[i]) {
+			TextDrawShowForPlayer(i, s_HealthBarBorder);
+			TextDrawShowForPlayer(i, s_HealthBarBackground);
+		}
+
+		// TODO: Per-Player health bar sizes
+		// TODO: Only change for players with no custom size set
+		TextDrawTextSize(s_HealthBarBorder, s_HealthBarBorder_Width, s_HealthBarBorder_Height);
+		TextDrawTextSize(s_HealthBarBackground, (s_HealthBarBorder_Width + s_HealthBarBG_Offset_Width), (s_HealthBarBorder_Height + s_HealthBarBG_Offset_Height));
+
+		UpdateHealthBar(i, _, _, true);
+	}
 }
 
 stock SetWeaponDamage(WEAPON:weaponid, damage_type, Float:amount, Float:...)
@@ -5034,7 +5139,7 @@ static ScriptInit()
 		s_ClassSpawnInfo[i][e_Skin] = -1;
 	}
 
-	s_HealthBarBorder = TextDrawCreate(546.0, 66.7, "LD_SPAC:white");
+	s_HealthBarBorder = TextDrawCreate(s_HealthBarBorder_X, s_HealthBarBorder_Y, "LD_SPAC:white");
 
 	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
 		printf("(wc) WARN: Unable to create healthbar border textdraw");
@@ -5053,7 +5158,7 @@ static ScriptInit()
 	} else {
 		s_InternalTextDraw[s_HealthBarBackground] = true;
 
-		TextDrawTextSize	(s_HealthBarBackground, s_HealthBarBorder_Width - s_HealthBarBG_Offset_Width, s_HealthBarBorder_Height - s_HealthBarBG_Offset_Height);
+		TextDrawTextSize	(s_HealthBarBackground, s_HealthBarBorder_Width + s_HealthBarBG_Offset_Width, s_HealthBarBorder_Height + s_HealthBarBG_Offset_Height);
 		TextDrawColour		(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
 		TextDrawFont		(s_HealthBarBackground, TEXT_DRAW_FONT_SPRITE_DRAW);
 	}
@@ -5228,7 +5333,7 @@ static Float:WC_CalculateBar(Float:width, Float:max, Float:value)
 	return ((width / max) * value);
 }
 
-static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false, bool:updatePositions = false)
+static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false, bool:updatePositionsAndSize = false)
 {
 	if (s_BeingResynced[playerid] || s_ForceClassSelection[playerid]) {
 		return;
@@ -5252,34 +5357,12 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false, boo
 		}
 	}
 
-	if (updatePositions) {
-		// TODO: Per-player health bar position
+	if (updatePositionsAndSize) {
+		// TODO: Per-player health bar position & size
 		if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
-			#if defined PlayerTextDrawSetPos
-				PlayerTextDrawSetPos(playerid, s_HealthBarForeground[playerid], (s_HealthBarBorder_X + s_HealthBarBG_Offset_X), (s_HealthBarBorder_Y + s_HealthBarBG_Offset_Y));
-				if (s_HealthBarVisible[playerid]) {
-					PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
-				}
-			#else
-				TextDrawDestroy(s_HealthBarForeground[playerid]);
-				s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
-				force = true;
-			#endif
-
-			#if defined TextDrawSetPos
-				TextDrawSetPos(s_HealthBarBorder, s_HealthBarBorder_X, s_HealthBarBorder_Y);
-				TextDrawSetPos(s_HealthBarBackground, s_HealthBarBorder_X + s_HealthBarBG_Offset_X, s_HealthBarBorder_Y + s_HealthBarBG_Offset_Y);
-				if (s_HealthBarVisible[playerid]) {
-					TextDrawShowForPlayer(playerid, s_HealthBarBorder);
-					TextDrawShowForPlayer(playerid, s_HealthBarBackground);
-				}
-			#else
-				TextDrawDestroy(s_HealthBarBorder);
-				s_HealthBarBorder = INVALID_TEXT_DRAW;
-				TextDrawDestroy(s_HealthBarBackground);
-				s_HealthBarBackground = INVALID_TEXT_DRAW;
-				force = true;
-			#endif
+			PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
+			s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+			force = true;
 		}
 	}
 
@@ -5323,10 +5406,10 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false, boo
 					PlayerTextDrawTextSize(playerid,
 						s_HealthBarForeground[playerid],
 						WC_CalculateBar(
-						s_HealthBarBorder_Width - s_HealthBarBG_Offset_Width,
+						s_HealthBarBorder_Width + s_HealthBarBG_Offset_Width,
 						100.0,
 						float(health)),
-						s_HealthBarBorder_Height - s_HealthBarBG_Offset_Height
+						s_HealthBarBorder_Height + s_HealthBarBG_Offset_Height
 					);
 
 					PlayerTextDrawColour(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
@@ -5337,10 +5420,10 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false, boo
 				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_CalculateBar(
-					s_HealthBarBorder_Width - s_HealthBarBG_Offset_Width,
+					s_HealthBarBorder_Width + s_HealthBarBG_Offset_Width,
 					100.0,
 					float(health)),
-					s_HealthBarBorder_Height - s_HealthBarBG_Offset_Height
+					s_HealthBarBorder_Height + s_HealthBarBG_Offset_Height
 				);
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
