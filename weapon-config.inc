@@ -1333,7 +1333,7 @@ stock SetHealthBarPosition(Float:x, Float:y, Float:background_offset_x = -1.0, F
 	}
 
 	#if WC_DEBUG
-	DebugMessage(-1, "health bar position set to X %.1f, Y %.1f", x, y);
+	DebugMessageAll("health bar position set to X %.1f, Y %.1f", x, y);
 	#endif
 
 	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
@@ -1373,7 +1373,7 @@ stock SetHealthBarSize(Float:width = -1.0, Float:height = -1.0, Float:background
 	}
 
 	#if WC_DEBUG
-	DebugMessage(-1, "health bar size set to Width %.1f, Height %.1f with background offset Width %.1f, Height %.1f", width, height, background_offset_width, background_offset_height);
+	DebugMessageAll("health bar size set to Width %.1f, Height %.1f with background offset Width %.1f, Height %.1f", width, height, background_offset_width, background_offset_height);
 	#endif
 
 	// Update background and border positon
@@ -1382,7 +1382,7 @@ stock SetHealthBarSize(Float:width = -1.0, Float:height = -1.0, Float:background
 	s_HealthBarBorder = TextDrawCreate(s_HealthBarBorder_X, s_HealthBarBorder_Y, "LD_SPAC:white");
 
 	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
-		printf("(wc) WARN: Unable to create healthbar border textdraw");
+		DebugMessageRedAll("Unable to create healthbar border textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBorder] = true;
 
@@ -1396,7 +1396,7 @@ stock SetHealthBarSize(Float:width = -1.0, Float:height = -1.0, Float:background
 	s_HealthBarBackground = TextDrawCreate(s_HealthBarBorder_X + s_HealthBarBG_Offset_X, s_HealthBarBorder_Y + s_HealthBarBG_Offset_Y, "LD_SPAC:white");
 
 	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
-		printf("(wc) WARN: Unable to create healthbar background textdraw");
+		DebugMessageRedAll("Unable to create healthbar background textdraw");
 	} else {
 		s_InternalTextDraw[s_HealthBarBackground] = true;
 
