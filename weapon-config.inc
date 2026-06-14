@@ -1008,8 +1008,8 @@ static Float:s_HealthBarBorder_Width = 61.7;
 static Float:s_HealthBarBorder_Height = 8.4;
 static Float:s_HealthBarBG_Offset_X = 2.0;
 static Float:s_HealthBarBG_Offset_Y = 2.1;
-static Float:s_HealthBarBG_Offset_Height = 3.9;
-static Float:s_HealthBarBG_Offset_Width = 3.7;
+static Float:s_HealthBarBG_Offset_Height = -3.9;
+static Float:s_HealthBarBG_Offset_Width = -3.7;
 // Foreground uses same values as s_HealthBarBackground
 
 static s_DamageFeed = true;
