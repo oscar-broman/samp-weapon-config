@@ -397,6 +397,27 @@ EnableHealthBarForPlayer(playerid, bool:enable);
 Show or hide health bar for player
 
 ```pawn
+SetHealthBarPosition(Float:x, Float:y)
+```
+Set the position of the health bar for all players.
+* `x` and `y` are positions for the top-left point of the border. The other parts (background and foreground health bar) are offsets from this, see `SetHealthBarSize`
+* Default `x` is 546.0
+* Default `y` is 66.7
+
+```pawn
+SetHealthBarSize(Float:width = -1.0, Float:height = -1.0, Float:background_offset_width = -1.0, Float:background_offset_height = -1.0)
+```
+Set the size of the background and the health bar.
+* Using -1 on any of the arguments will make so that value doesn't change.
+* Default `width` is 61.7
+* Default `height` is 8.4
+* Default `background_offset_width` is -3.7 
+    * This offset is calculated based on the border, and applies to the health display itself (the background & foreground)
+* Default `background_offset_height` is -3.9
+    * This offset is calculated based on the border, and applies to the health display itself (the background & foreground)
+
+
+```pawn
 SetCbugDeathDelay(bool:toggle);
 ```
 

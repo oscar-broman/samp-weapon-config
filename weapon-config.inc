@@ -1291,8 +1291,6 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	return false;
 }
 
-// Changes the position based on the top left corner of the border
-// TODO: Documentation
 stock SetHealthBarPosition(Float:x, Float:y)
 {
 	// Everything else is relative to the border
@@ -1353,8 +1351,6 @@ stock SetHealthBarPosition(Float:x, Float:y)
 	return 1;
 }
 
-// Using -1 makes so the value isn't changed
-// TODO: Documentation
 stock SetHealthBarSize(Float:width = -1.0, Float:height = -1.0, Float:background_offset_width = -1.0, Float:background_offset_height = -1.0)
 {
 	if (width != -1.0) {
