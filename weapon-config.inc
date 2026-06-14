@@ -1291,11 +1291,17 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	return false;
 }
 
-stock SetHealthBarPosition(Float:x, Float:y)
+stock SetHealthBarPosition(Float:x, Float:y, Float:background_offset_x = -1.0, Float:background_offset_y = -1.0)
 {
 	// Everything else is relative to the border
 	s_HealthBarBorder_X = x;
 	s_HealthBarBorder_Y = y;
+	if (background_offset_x != -1.0) {
+		s_HealthBarBG_Offset_X = background_offset_x;
+	}
+	if (background_offset_y != -1.0) {
+		s_HealthBarBG_Offset_Y = background_offset_y;
+	}
 	
 	// Update background and border positon
 	s_InternalTextDraw[s_HealthBarBorder] = false;
