@@ -1558,7 +1558,7 @@ stock Float:GetLastDamageArmour(playerid)
 
 stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
-	if (playerid < 0 || playerid > MAX_PLAYERS || !IsPlayerConnected(playerid)) {
+	if (playerid < 0 || playerid >= MAX_PLAYERS || !IsPlayerConnected(playerid)) {
 		return 0;
 	}
 
@@ -1570,7 +1570,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:
 		weaponid = WEAPON_UNKNOWN;
 	}
 
-	if (issuerid < 0 || issuerid > MAX_PLAYERS || !IsPlayerConnected(issuerid)) {
+	if (issuerid < 0 || issuerid >= MAX_PLAYERS || !IsPlayerConnected(issuerid)) {
 		issuerid = INVALID_PLAYER_ID;
 	}
 
@@ -4559,7 +4559,7 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 
 	// Destroy vehicles with passengers in them
 	if (hittype == BULLET_HIT_TYPE_VEHICLE) {
-		if (hitid < 0 || hitid > MAX_VEHICLES || !WC_IsValidVehicle(hitid)) {
+		if (hitid <= 0 || hitid >= MAX_VEHICLES || !WC_IsValidVehicle(hitid)) {
 			AddRejectedHit(playerid, damagedid, HIT_INVALID_VEHICLE, weaponid, hitid);
 			return 0;
 		}
