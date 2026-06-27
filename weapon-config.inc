@@ -1300,6 +1300,10 @@ stock SetWeaponDamage(WEAPON:weaponid, damage_type, Float:amount, Float:...)
 
 		new steps = (args - 1) / 2;
 
+		if (steps > WC_MAX_DAMAGE_RANGES) {
+			return 0;
+		}
+
 		s_DamageType[weaponid] = damage_type;
 		s_DamageRangeSteps[weaponid] = steps;
 
@@ -1359,7 +1363,9 @@ stock SetDamageSounds(taken, given)
 
 stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
-	if (playerid == INVALID_PLAYER_ID) {
+	if (0 <= playerid < MAX_PLAYERS) {
+		s_CbugAllowed[playerid] = enabled;
+	} else {
 		s_CbugGlobal = enabled;
 
 		#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
@@ -1369,8 +1375,6 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 		#endif
 			s_CbugAllowed[i] = enabled;
 		}
-	} else {
-		s_CbugAllowed[playerid] = enabled;
 	}
 
 	return enabled;
@@ -1378,11 +1382,11 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 
 stock bool:GetCbugAllowed(playerid = INVALID_PLAYER_ID)
 {
-	if (playerid == INVALID_PLAYER_ID) {
-		return s_CbugGlobal;
+	if (0 <= playerid < MAX_PLAYERS) {
+		return s_CbugAllowed[playerid];
 	}
 
-	return s_CbugAllowed[playerid];
+	return s_CbugGlobal;
 }
 
 stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
@@ -1435,7 +1439,7 @@ stock SetDamageFeedForPlayer(playerid, toggle = -1)
 
 stock IsDamageFeedActive(playerid = -1)
 {
-	if (playerid != -1) {
+	if (0 <= playerid < MAX_PLAYERS) {
 		return s_DamageFeedPlayer[playerid] == 1 || s_DamageFeed && s_DamageFeedPlayer[playerid] != 0;
 	}
 
@@ -1581,7 +1585,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:
 
 stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 {
-	if (idx >= WC_MAX_REJECTED_HITS) {
+	if (playerid < 0 || playerid >= MAX_PLAYERS || idx >= WC_MAX_REJECTED_HITS) {
 		return 0;
 	}
 
@@ -5990,10 +5994,9 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 	}
 
 	OnPlayerDamageDone(playerid, amount, issuerid, weaponid, bodypart);
-	new animlib[32] = "PED", animname[32];
 
 	if (s_PlayerHealth[playerid] <= 0.0005) {
-		new vehicleid = GetPlayerVehicleID(playerid);
+		new vehicleid = GetPlayerVehicleID(playerid), animlib[32] = "PED", animname[32];
 
 		if (vehicleid) {
 			TogglePlayerControllable(playerid, false);
@@ -6552,7 +6555,9 @@ static DamageFeedAddHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], playerid, issuer
 	arr[idx][e_Issuer] = issuerid;
 	arr[idx][e_Weapon] = weapon;
 
-	GetPlayerName(issuerid, arr[idx][e_Name], MAX_PLAYER_NAME);
+	if (0 <= issuerid < MAX_PLAYERS) {
+		GetPlayerName(issuerid, arr[idx][e_Name], MAX_PLAYER_NAME);
+	}
 
 	DamageFeedUpdate(playerid, true);
 }
