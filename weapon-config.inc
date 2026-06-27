@@ -2841,18 +2841,18 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 	stock WC_EditPlayerClass(classid, team, skin, Float:spawnX, Float:spawnY, Float:spawnZ, Float:angle, WEAPON:weapon1 = WEAPON_FIST, ammo1 = 0, WEAPON:weapon2 = WEAPON_FIST, ammo2 = 0, WEAPON:weapon3 = WEAPON_FIST, ammo3 = 0)
 	{
 		if (EditPlayerClass(classid, team, skin, spawnX, spawnY, spawnZ, angle, weapon1, ammo1, weapon2, ammo2, weapon3, ammo3)) {
-			s_ClassSpawnInfo[classid][e_Skin] = modelid;
-			s_ClassSpawnInfo[classid][e_Team] = teamid;
-			s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
-			s_ClassSpawnInfo[classid][e_PosY] = spawn_y;
-			s_ClassSpawnInfo[classid][e_PosZ] = spawn_z;
-			s_ClassSpawnInfo[classid][e_Rot] = z_angle;
+			s_ClassSpawnInfo[classid][e_Skin] = skin;
+			s_ClassSpawnInfo[classid][e_Team] = team;
+			s_ClassSpawnInfo[classid][e_PosX] = spawnX;
+			s_ClassSpawnInfo[classid][e_PosY] = spawnY;
+			s_ClassSpawnInfo[classid][e_PosZ] = spawnZ;
+			s_ClassSpawnInfo[classid][e_Rot] = angle;
 			s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
-			s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
+			s_ClassSpawnInfo[classid][e_Ammo1] = ammo1;
 			s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
-			s_ClassSpawnInfo[classid][e_Ammo2] = weapon2_ammo;
+			s_ClassSpawnInfo[classid][e_Ammo2] = ammo2;
 			s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
-			s_ClassSpawnInfo[classid][e_Ammo3] = weapon3_ammo;
+			s_ClassSpawnInfo[classid][e_Ammo3] = ammo3;
 
 			return 1;
 		}
