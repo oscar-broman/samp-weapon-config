@@ -1510,7 +1510,7 @@ stock Float:GetWeaponMaxRange(WEAPON:weaponid)
 
 stock SetPlayerMaxHealth(playerid, Float:value)
 {
-	if (0 <= playerid < MAX_PLAYERS) {
+	if (0 <= playerid < MAX_PLAYERS && value > 0.0) {
 		s_PlayerMaxHealth[playerid] = value;
 		UpdateHealthBar(playerid, true);
 	}
@@ -1518,7 +1518,7 @@ stock SetPlayerMaxHealth(playerid, Float:value)
 
 stock SetPlayerMaxArmour(playerid, Float:value)
 {
-	if (0 <= playerid < MAX_PLAYERS) {
+	if (0 <= playerid < MAX_PLAYERS && value > 0.0) {
 		s_PlayerMaxArmour[playerid] = value;
 		UpdateHealthBar(playerid, true);
 	}
