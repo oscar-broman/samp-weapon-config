@@ -5868,13 +5868,15 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 		     DAMAGE_TYPE_RANGE_MULTIPLIER: {
 			new Float:length = 0.0;
 
-			if (s_LagCompMode) {
-				length = s_LastShot[issuerid][e_Length];
-			} else {
-				new Float:X, Float:Y, Float:Z;
-				GetPlayerPos(issuerid, X, Y, Z);
+			if (issuerid != INVALID_PLAYER_ID) {
+				if (s_LagCompMode) {
+					length = s_LastShot[issuerid][e_Length];
+				} else {
+					new Float:X, Float:Y, Float:Z;
+					GetPlayerPos(issuerid, X, Y, Z);
 
-				length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
+					length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
+				}
 			}
 
 			for (new i = s_DamageRangeSteps[weaponid] - 1; i >= 0; i--) {
