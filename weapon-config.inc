@@ -3893,9 +3893,9 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 		return 0;
 	}
 
-	if (!s_LagCompMode) {
-		new npc = IsPlayerNPC(damagedid);
+	new npc = IsPlayerNPC(damagedid);
 
+	if (!s_LagCompMode) {
 		if (weaponid == WEAPON_KNIFE && _:amount == _:0.0) {
 			if (damagedid == playerid) {
 				return 0;
@@ -3935,8 +3935,6 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 
 		return 0;
 	}
-
-	new npc = IsPlayerNPC(damagedid);
 
 	// From stealth knife, can be any weapon
 	if (_:amount == _:1833.33154296875) {
@@ -4009,7 +4007,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			DebugMessage(damagedid, "being knifed by %d", playerid);
 			DebugMessage(playerid, "knifing %d", damagedid);
 
-			new Float:angle, forcesync = 2;
+			new anim = GetPlayerAnimationIndex(playerid), Float:angle, forcesync = 2;
 
 			GetPlayerFacingAngle(damagedid, angle);
 			SetPlayerFacingAngle(playerid, angle);
@@ -4017,8 +4015,8 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			SetPlayerVelocity(damagedid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
 
-			if (747 < GetPlayerAnimationIndex(playerid) > 748) {
-				DebugMessageRed(playerid, "applying knife anim for you too (current: %d)", GetPlayerAnimationIndex(playerid));
+			if (anim != 747 && anim != 748) {
+				DebugMessageRed(playerid, "applying knife anim for you too (current: %d)", anim);
 
 				forcesync = 1;
 			}
@@ -4264,7 +4262,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 			DebugMessage(playerid, "being knifed by %d", issuerid);
 			DebugMessage(issuerid, "knifing %d", playerid);
 
-			new Float:a, forcesync = 2;
+			new anim = GetPlayerAnimationIndex(issuerid), Float:a, forcesync = 2;
 
 			GetPlayerFacingAngle(playerid, a);
 			SetPlayerFacingAngle(issuerid, a);
@@ -4272,8 +4270,8 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(issuerid, 0.0, 0.0, 0.0);
 
-			if (GetPlayerAnimationIndex(issuerid) != 747) {
-				DebugMessageRed(issuerid, "applying knife anim for you too (current: %d)", GetPlayerAnimationIndex(issuerid));
+			if (anim != 747) {
+				DebugMessageRed(issuerid, "applying knife anim for you too (current: %d)", anim);
 
 				forcesync = 1;
 			}
