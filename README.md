@@ -397,28 +397,73 @@ EnableHealthBarForPlayer(playerid, bool:enable);
 Show or hide health bar for player
 
 ```pawn
-SetHealthBarPosition(Float:x, Float:y, Float:background_offset_x = -1.0, Float:background_offset_y = -1.0)
+GetPlayerHealthBarPosition(playerid = -1, &Float:x, &Float:y);
 ```
-Set the position of the health bar for all players.
-* `x` and `y` are positions for the top-left point of the border. The other parts (background and foreground health bar) are offsets from this
-* Using -1 on `background_offset_x` or `background_offset_y` will make so that value deosn't change.
-    * The actual health display bar will use the same values as the background.
-* Default `x` is 546.0
-* Default `y` is 66.7
-* Default `background_offset_x` is 2.0
-* Default `background_offset_y` is 2.1
+Get the effective health bar position for a player
+* `playerid` - The player whose position to get. Use `-1` to get the global position
+* `x` and `y` - Variables in which to store the position
 
 ```pawn
-SetHealthBarSize(Float:width = -1.0, Float:height = -1.0, Float:background_offset_width = -1.0, Float:background_offset_height = -1.0)
+GetPlayerHealthBarSize(playerid = -1, &Float:x, &Float:y);
 ```
-Set the size of the background and the health bar.
-* Using -1 on any of the arguments will make so that value doesn't change.
-* Default `width` is 61.7
-* Default `height` is 8.4
-* Default `background_offset_width` is -3.7 
-    * This offset is calculated based on the border, and applies to the health display itself (the background & foreground)
-* Default `background_offset_height` is -3.9
-    * This offset is calculated based on the border, and applies to the health display itself (the background & foreground)
+Get the effective health bar size for a player
+* `playerid` - The player whose size to get. Use `-1` to get the global size
+* `x` and `y` - Variables in which to store the width and height
+
+```pawn
+GetPlayerHealthBarPadding(playerid = -1, Float:padding[4]);
+```
+Get the effective health bar padding for a player
+* `playerid` - The player whose padding to get. Use `-1` to get the global padding
+* `padding` - An array in which to store the top, right, bottom, and left padding
+
+```pawn
+SetHealthBarPosition(Float:x, Float:y);
+```
+Set the global health bar position
+* `x` and `y` - The position of the top-left corner of the health bar border
+* The default position is `546.0, 66.7`
+* Players with a custom position are not affected
+
+```pawn
+SetHealthBarSize(Float:x, Float:y);
+```
+Set the global health bar size
+* `x` and `y` - The width and height of the health bar border
+* The default size is `61.7, 8.4`
+* Players with a custom size are not affected
+
+```pawn
+SetHealthBarPadding(const Float:padding[4]);
+```
+Set the global padding between the health bar border and its contents
+* `padding` - The top, right, bottom, and left padding
+* The default padding is `{2.1, 1.9, 1.6, 2.0}`
+* Players with custom padding are not affected
+
+```pawn
+SetHealthBarPositionForPlayer(playerid, Float:x = Float:0x7FFFFFFF, Float:y = Float:0x7FFFFFFF);
+```
+Set the health bar position for a player
+* `playerid` - The player whose position to set
+* `x` and `y` - The position of the top-left corner of the health bar border
+* Omit `x` and `y` to reset the player to the global position
+
+```pawn
+SetHealthBarSizeForPlayer(playerid, Float:x = Float:0x7FFFFFFF, Float:y = Float:0x7FFFFFFF);
+```
+Set the health bar size for a player
+* `playerid` - The player whose size to set
+* `x` and `y` - The width and height of the health bar border
+* Omit `x` and `y` to reset the player to the global size
+
+```pawn
+SetHealthBarPaddingForPlayer(playerid, const Float:padding[4] = {Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF});
+```
+Set the health bar padding for a player
+* `playerid` - The player whose padding to set
+* `padding` - The top, right, bottom, and left padding
+* Omit `padding` to reset the player to the global padding
 
 
 ```pawn
