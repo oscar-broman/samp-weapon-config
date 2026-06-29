@@ -1513,7 +1513,11 @@ stock SetPlayerMaxHealth(playerid, Float:value)
 	if (0 <= playerid < MAX_PLAYERS && value > 0.0) {
 		s_PlayerMaxHealth[playerid] = value;
 		UpdateHealthBar(playerid, true);
+
+		return 1;
 	}
+
+	return 0;
 }
 
 stock SetPlayerMaxArmour(playerid, Float:value)
@@ -1521,7 +1525,11 @@ stock SetPlayerMaxArmour(playerid, Float:value)
 	if (0 <= playerid < MAX_PLAYERS && value > 0.0) {
 		s_PlayerMaxArmour[playerid] = value;
 		UpdateHealthBar(playerid, true);
+
+		return 1;
 	}
+
+	return 0;
 }
 
 stock Float:GetPlayerMaxHealth(playerid)
@@ -4309,7 +4317,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 	}
 
 	// Should still be damaged by grenades or fire after someone has died
-	if (issuerid != INVALID_PLAYER_ID && IsPlayerConnected(issuerid)) {
+	if (IsPlayerConnected(issuerid)) {
 		if (HasSameTeam(playerid, issuerid)) {
 			return 0;
 		}
@@ -4349,6 +4357,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 				return 0;
 			}
 		}
+	} else if (issuerid != INVALID_PLAYER_ID) {
+		// Probably fake damage, so let's just reset issuerid
+		issuerid = INVALID_PLAYER_ID;
 	}
 
 	new Float:bullets = 0.0, err;
