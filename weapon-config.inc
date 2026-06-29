@@ -1300,6 +1300,10 @@ stock SetWeaponDamage(WEAPON:weaponid, damage_type, Float:amount, Float:...)
 
 		new steps = (args - 1) / 2;
 
+		if (steps > WC_MAX_DAMAGE_RANGES) {
+			return 0;
+		}
+
 		s_DamageType[weaponid] = damage_type;
 		s_DamageRangeSteps[weaponid] = steps;
 
@@ -1359,7 +1363,9 @@ stock SetDamageSounds(taken, given)
 
 stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 {
-	if (playerid == INVALID_PLAYER_ID) {
+	if (0 <= playerid < MAX_PLAYERS) {
+		s_CbugAllowed[playerid] = enabled;
+	} else {
 		s_CbugGlobal = enabled;
 
 		#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
@@ -1369,8 +1375,6 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 		#endif
 			s_CbugAllowed[i] = enabled;
 		}
-	} else {
-		s_CbugAllowed[playerid] = enabled;
 	}
 
 	return enabled;
@@ -1378,11 +1382,11 @@ stock SetCbugAllowed(bool:enabled, playerid = INVALID_PLAYER_ID)
 
 stock bool:GetCbugAllowed(playerid = INVALID_PLAYER_ID)
 {
-	if (playerid == INVALID_PLAYER_ID) {
-		return s_CbugGlobal;
+	if (0 <= playerid < MAX_PLAYERS) {
+		return s_CbugAllowed[playerid];
 	}
 
-	return s_CbugAllowed[playerid];
+	return s_CbugGlobal;
 }
 
 stock SetCustomFallDamage(bool:toggle, Float:damage_multiplier = 25.0, Float:death_velocity = -0.6)
@@ -1435,7 +1439,7 @@ stock SetDamageFeedForPlayer(playerid, toggle = -1)
 
 stock IsDamageFeedActive(playerid = -1)
 {
-	if (playerid != -1) {
+	if (0 <= playerid < MAX_PLAYERS) {
 		return s_DamageFeedPlayer[playerid] == 1 || s_DamageFeed && s_DamageFeedPlayer[playerid] != 0;
 	}
 
@@ -1506,18 +1510,26 @@ stock Float:GetWeaponMaxRange(WEAPON:weaponid)
 
 stock SetPlayerMaxHealth(playerid, Float:value)
 {
-	if (0 <= playerid < MAX_PLAYERS) {
+	if (0 <= playerid < MAX_PLAYERS && value > 0.0) {
 		s_PlayerMaxHealth[playerid] = value;
 		UpdateHealthBar(playerid, true);
+
+		return 1;
 	}
+
+	return 0;
 }
 
 stock SetPlayerMaxArmour(playerid, Float:value)
 {
-	if (0 <= playerid < MAX_PLAYERS) {
+	if (0 <= playerid < MAX_PLAYERS && value > 0.0) {
 		s_PlayerMaxArmour[playerid] = value;
 		UpdateHealthBar(playerid, true);
+
+		return 1;
 	}
+
+	return 0;
 }
 
 stock Float:GetPlayerMaxHealth(playerid)
@@ -1558,7 +1570,7 @@ stock Float:GetLastDamageArmour(playerid)
 
 stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
-	if (playerid < 0 || playerid > MAX_PLAYERS || !IsPlayerConnected(playerid)) {
+	if (playerid < 0 || playerid >= MAX_PLAYERS || !IsPlayerConnected(playerid)) {
 		return 0;
 	}
 
@@ -1570,7 +1582,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:
 		weaponid = WEAPON_UNKNOWN;
 	}
 
-	if (issuerid < 0 || issuerid > MAX_PLAYERS || !IsPlayerConnected(issuerid)) {
+	if (issuerid < 0 || issuerid >= MAX_PLAYERS || !IsPlayerConnected(issuerid)) {
 		issuerid = INVALID_PLAYER_ID;
 	}
 
@@ -1581,7 +1593,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:
 
 stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 {
-	if (idx >= WC_MAX_REJECTED_HITS) {
+	if (playerid < 0 || playerid >= MAX_PLAYERS || idx >= WC_MAX_REJECTED_HITS) {
 		return 0;
 	}
 
@@ -2841,18 +2853,18 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 	stock WC_EditPlayerClass(classid, team, skin, Float:spawnX, Float:spawnY, Float:spawnZ, Float:angle, WEAPON:weapon1 = WEAPON_FIST, ammo1 = 0, WEAPON:weapon2 = WEAPON_FIST, ammo2 = 0, WEAPON:weapon3 = WEAPON_FIST, ammo3 = 0)
 	{
 		if (EditPlayerClass(classid, team, skin, spawnX, spawnY, spawnZ, angle, weapon1, ammo1, weapon2, ammo2, weapon3, ammo3)) {
-			s_ClassSpawnInfo[classid][e_Skin] = modelid;
-			s_ClassSpawnInfo[classid][e_Team] = teamid;
-			s_ClassSpawnInfo[classid][e_PosX] = spawn_x;
-			s_ClassSpawnInfo[classid][e_PosY] = spawn_y;
-			s_ClassSpawnInfo[classid][e_PosZ] = spawn_z;
-			s_ClassSpawnInfo[classid][e_Rot] = z_angle;
+			s_ClassSpawnInfo[classid][e_Skin] = skin;
+			s_ClassSpawnInfo[classid][e_Team] = team;
+			s_ClassSpawnInfo[classid][e_PosX] = spawnX;
+			s_ClassSpawnInfo[classid][e_PosY] = spawnY;
+			s_ClassSpawnInfo[classid][e_PosZ] = spawnZ;
+			s_ClassSpawnInfo[classid][e_Rot] = angle;
 			s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
-			s_ClassSpawnInfo[classid][e_Ammo1] = weapon1_ammo;
+			s_ClassSpawnInfo[classid][e_Ammo1] = ammo1;
 			s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
-			s_ClassSpawnInfo[classid][e_Ammo2] = weapon2_ammo;
+			s_ClassSpawnInfo[classid][e_Ammo2] = ammo2;
 			s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
-			s_ClassSpawnInfo[classid][e_Ammo3] = weapon3_ammo;
+			s_ClassSpawnInfo[classid][e_Ammo3] = ammo3;
 
 			return 1;
 		}
@@ -3893,9 +3905,9 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 		return 0;
 	}
 
-	if (!s_LagCompMode) {
-		new npc = IsPlayerNPC(damagedid);
+	new npc = IsPlayerNPC(damagedid);
 
+	if (!s_LagCompMode) {
 		if (weaponid == WEAPON_KNIFE && _:amount == _:0.0) {
 			if (damagedid == playerid) {
 				return 0;
@@ -3935,8 +3947,6 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 
 		return 0;
 	}
-
-	new npc = IsPlayerNPC(damagedid);
 
 	// From stealth knife, can be any weapon
 	if (_:amount == _:1833.33154296875) {
@@ -4009,7 +4019,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			DebugMessage(damagedid, "being knifed by %d", playerid);
 			DebugMessage(playerid, "knifing %d", damagedid);
 
-			new Float:angle, forcesync = 2;
+			new anim = GetPlayerAnimationIndex(playerid), Float:angle, forcesync = 2;
 
 			GetPlayerFacingAngle(damagedid, angle);
 			SetPlayerFacingAngle(playerid, angle);
@@ -4017,8 +4027,8 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 			SetPlayerVelocity(damagedid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
 
-			if (747 < GetPlayerAnimationIndex(playerid) > 748) {
-				DebugMessageRed(playerid, "applying knife anim for you too (current: %d)", GetPlayerAnimationIndex(playerid));
+			if (anim != 747 && anim != 748) {
+				DebugMessageRed(playerid, "applying knife anim for you too (current: %d)", anim);
 
 				forcesync = 1;
 			}
@@ -4264,7 +4274,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 			DebugMessage(playerid, "being knifed by %d", issuerid);
 			DebugMessage(issuerid, "knifing %d", playerid);
 
-			new Float:a, forcesync = 2;
+			new anim = GetPlayerAnimationIndex(issuerid), Float:a, forcesync = 2;
 
 			GetPlayerFacingAngle(playerid, a);
 			SetPlayerFacingAngle(issuerid, a);
@@ -4272,8 +4282,8 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 			SetPlayerVelocity(playerid, 0.0, 0.0, 0.0);
 			SetPlayerVelocity(issuerid, 0.0, 0.0, 0.0);
 
-			if (GetPlayerAnimationIndex(issuerid) != 747) {
-				DebugMessageRed(issuerid, "applying knife anim for you too (current: %d)", GetPlayerAnimationIndex(issuerid));
+			if (anim != 747) {
+				DebugMessageRed(issuerid, "applying knife anim for you too (current: %d)", anim);
 
 				forcesync = 1;
 			}
@@ -4307,7 +4317,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 	}
 
 	// Should still be damaged by grenades or fire after someone has died
-	if (issuerid != INVALID_PLAYER_ID && IsPlayerConnected(issuerid)) {
+	if (IsPlayerConnected(issuerid)) {
 		if (HasSameTeam(playerid, issuerid)) {
 			return 0;
 		}
@@ -4347,6 +4357,9 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 				return 0;
 			}
 		}
+	} else if (issuerid != INVALID_PLAYER_ID) {
+		// Probably fake damage, so let's just reset issuerid
+		issuerid = INVALID_PLAYER_ID;
 	}
 
 	new Float:bullets = 0.0, err;
@@ -4559,7 +4572,7 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 
 	// Destroy vehicles with passengers in them
 	if (hittype == BULLET_HIT_TYPE_VEHICLE) {
-		if (hitid < 0 || hitid > MAX_VEHICLES || !WC_IsValidVehicle(hitid)) {
+		if (hitid <= 0 || hitid >= MAX_VEHICLES || !WC_IsValidVehicle(hitid)) {
 			AddRejectedHit(playerid, damagedid, HIT_INVALID_VEHICLE, weaponid, hitid);
 			return 0;
 		}
@@ -5868,13 +5881,15 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 		     DAMAGE_TYPE_RANGE_MULTIPLIER: {
 			new Float:length = 0.0;
 
-			if (s_LagCompMode) {
-				length = s_LastShot[issuerid][e_Length];
-			} else {
-				new Float:X, Float:Y, Float:Z;
-				GetPlayerPos(issuerid, X, Y, Z);
+			if (issuerid != INVALID_PLAYER_ID) {
+				if (s_LagCompMode) {
+					length = s_LastShot[issuerid][e_Length];
+				} else {
+					new Float:X, Float:Y, Float:Z;
+					GetPlayerPos(issuerid, X, Y, Z);
 
-				length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
+					length = GetPlayerDistanceFromPoint(playerid, X, Y, Z);
+				}
 			}
 
 			for (new i = s_DamageRangeSteps[weaponid] - 1; i >= 0; i--) {
@@ -5990,10 +6005,9 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 	}
 
 	OnPlayerDamageDone(playerid, amount, issuerid, weaponid, bodypart);
-	new animlib[32] = "PED", animname[32];
 
 	if (s_PlayerHealth[playerid] <= 0.0005) {
-		new vehicleid = GetPlayerVehicleID(playerid);
+		new vehicleid = GetPlayerVehicleID(playerid), animlib[32] = "PED", animname[32];
 
 		if (vehicleid) {
 			TogglePlayerControllable(playerid, false);
@@ -6552,7 +6566,9 @@ static DamageFeedAddHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], playerid, issuer
 	arr[idx][e_Issuer] = issuerid;
 	arr[idx][e_Weapon] = weapon;
 
-	GetPlayerName(issuerid, arr[idx][e_Name], MAX_PLAYER_NAME);
+	if (0 <= issuerid < MAX_PLAYERS) {
+		GetPlayerName(issuerid, arr[idx][e_Name], MAX_PLAYER_NAME);
+	}
 
 	DamageFeedUpdate(playerid, true);
 }
