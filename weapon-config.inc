@@ -1437,7 +1437,7 @@ stock SetDamageFeedForPlayer(playerid, toggle = -1)
 	return 0;
 }
 
-stock IsDamageFeedActive(playerid = -1)
+stock IsDamageFeedActive(playerid = INVALID_PLAYER_ID)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		return s_DamageFeedPlayer[playerid] == 1 || s_DamageFeed && s_DamageFeedPlayer[playerid] != 0;
