@@ -296,9 +296,9 @@ SetDamageFeedForPlayer(playerid, toggle = -1);
 Toggle damage feed for player
 
 ```pawn
-IsDamageFeedActive(playerid = -1);
+IsDamageFeedActive(playerid = INVALID_PLAYER_ID);
 ```
-Returns true if damage feed is active for player (for all, if `playerid` passed as -1)
+Returns true if damage feed is active for player (for all, if `playerid` passed as INVALID_PLAYER_ID)
 
 ```pawn
 SetDamageSounds(taken, given);

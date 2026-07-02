@@ -1149,6 +1149,10 @@ stock IsMeleeWeapon(WEAPON:weaponid)
 
 stock WC_IsPlayerSpawned(playerid)
 {
+	if (playerid < 0 || playerid >= MAX_PLAYERS) {
+		return false;
+	}
+
 	if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
 		return false;
 	}
@@ -1437,7 +1441,7 @@ stock SetDamageFeedForPlayer(playerid, toggle = -1)
 	return 0;
 }
 
-stock IsDamageFeedActive(playerid = -1)
+stock IsDamageFeedActive(playerid = INVALID_PLAYER_ID)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		return s_DamageFeedPlayer[playerid] == 1 || s_DamageFeed && s_DamageFeedPlayer[playerid] != 0;
@@ -1702,6 +1706,10 @@ stock WC_SpawnPlayer(playerid)
 
 stock PLAYER_STATE:WC_GetPlayerState(playerid)
 {
+	if (playerid < 0 || playerid >= MAX_PLAYERS) {
+		return PLAYER_STATE_NONE;
+	}
+
 	if (s_IsDying[playerid]) {
 		return PLAYER_STATE_WASTED;
 	}
@@ -5774,8 +5782,10 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 		GetPlayerPos(issuerid, x, y, z);
 		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
-		if (_:WEAPON_UNARMED <= _:weaponid < sizeof(s_WeaponRange) && dist > s_WeaponRange[weaponid] + 2.0) {
-			AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, WEAPON:weaponid, _:dist, _:s_WeaponRange[weaponid]);
+		new WEAPON:reason = (weaponid == WEAPON_PISTOLWHIP) ? WEAPON_UNARMED : weaponid;
+
+		if (_:WEAPON_UNARMED <= _:reason < sizeof(s_WeaponRange) && dist > s_WeaponRange[reason] + 2.0) {
+			AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, WEAPON:weaponid, _:dist, _:s_WeaponRange[reason]);
 			return WC_INVALID_DISTANCE;
 		}
 	}
