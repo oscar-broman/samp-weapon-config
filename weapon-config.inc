@@ -5609,6 +5609,18 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 	// Car parking
 	if (weaponid == WEAPON_HELIBLADES && _:amount != _:330.0) {
 		weaponid = WEAPON_CARPARK;
+	} else if (WEAPON_VEHICLE <= weaponid <= WEAPON_HELIBLADES) {
+		if (issuerid != INVALID_PLAYER_ID) {
+			new Float:x, Float:y, Float:z, Float:dist;
+
+			GetPlayerPos(issuerid, x, y, z);
+			dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
+
+			if (dist > 15.0) {
+				AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, WEAPON:weaponid, _:dist);
+				return WC_INVALID_DISTANCE;
+			}
+		}
 	}
 
 	// Only torso from non-bullet weapons
