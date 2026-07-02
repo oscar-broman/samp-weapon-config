@@ -1149,6 +1149,10 @@ stock IsMeleeWeapon(WEAPON:weaponid)
 
 stock WC_IsPlayerSpawned(playerid)
 {
+	if (playerid < 0 || playerid >= MAX_PLAYERS) {
+		return false;
+	}
+
 	if (s_IsDying[playerid] || s_BeingResynced[playerid]) {
 		return false;
 	}
@@ -1702,6 +1706,10 @@ stock WC_SpawnPlayer(playerid)
 
 stock PLAYER_STATE:WC_GetPlayerState(playerid)
 {
+	if (playerid < 0 || playerid >= MAX_PLAYERS) {
+		return PLAYER_STATE_NONE;
+	}
+
 	if (s_IsDying[playerid]) {
 		return PLAYER_STATE_WASTED;
 	}
