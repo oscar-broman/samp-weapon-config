@@ -5782,8 +5782,10 @@ static ProcessDamage(&playerid, &issuerid, &Float:amount, &WEAPON:weaponid, &bod
 		GetPlayerPos(issuerid, x, y, z);
 		dist = GetPlayerDistanceFromPoint(playerid, x, y, z);
 
-		if (_:WEAPON_UNARMED <= _:weaponid < sizeof(s_WeaponRange) && dist > s_WeaponRange[weaponid] + 2.0) {
-			AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, WEAPON:weaponid, _:dist, _:s_WeaponRange[weaponid]);
+		new WEAPON:reason = (weaponid == WEAPON_PISTOLWHIP) ? WEAPON_UNARMED : weaponid;
+
+		if (_:WEAPON_UNARMED <= _:reason < sizeof(s_WeaponRange) && dist > s_WeaponRange[reason] + 2.0) {
+			AddRejectedHit(issuerid, playerid, HIT_TOO_FAR_FROM_ORIGIN, WEAPON:weaponid, _:dist, _:s_WeaponRange[reason]);
 			return WC_INVALID_DISTANCE;
 		}
 	}
