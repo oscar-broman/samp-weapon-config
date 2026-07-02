@@ -3128,7 +3128,7 @@ public OnPlayerSpawn(playerid)
 	if (s_BeingResynced[playerid]) {
 		s_BeingResynced[playerid] = false;
 
-		UpdateHealthBar(playerid);
+		UpdateHealthBar(playerid, true);
 
 		SetPlayerPos(playerid, s_SyncData[playerid][e_PosX], s_SyncData[playerid][e_PosY], s_SyncData[playerid][e_PosZ]);
 		SetPlayerFacingAngle(playerid, s_SyncData[playerid][e_PosA]);
