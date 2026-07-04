@@ -1011,6 +1011,12 @@ static Float:s_PlayerHealthBarPositionY[MAX_PLAYERS];
 static Float:s_PlayerHealthBarSizeX[MAX_PLAYERS];
 static Float:s_PlayerHealthBarSizeY[MAX_PLAYERS];
 static Float:s_PlayerHealthBarPadding[MAX_PLAYERS][4];
+static s_HealthBarBorderColor = 255;
+static s_HealthBarBGColor = WC_HEALTH_BAR_BG_COLOR;
+static s_HealthBarFGColor = WC_HEALTH_BAR_FG_COLOR;
+static s_PlayerHealthBarBorderColor[MAX_PLAYERS];
+static s_PlayerHealthBarBGColor[MAX_PLAYERS];
+static s_PlayerHealthBarFGColor[MAX_PLAYERS];
 
 static s_DamageFeed = true;
 static s_DamageFeedPlayer[MAX_PLAYERS] = {-1, ...};
@@ -1290,7 +1296,7 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	return false;
 }
 
-stock GetPlayerHealthBarPosition(playerid = -1, &Float:x, &Float:y)
+stock GetPlayerHealthBarPosition(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		x = s_PlayerHealthBarPositionX[playerid] == s_PlayerHealthBarPositionX[playerid] ? s_PlayerHealthBarPositionX[playerid] : s_HealthBarPositionX;
@@ -1303,7 +1309,7 @@ stock GetPlayerHealthBarPosition(playerid = -1, &Float:x, &Float:y)
 	y = s_HealthBarPositionY;
 }
 
-stock GetPlayerHealthBarSize(playerid = -1, &Float:x, &Float:y)
+stock GetPlayerHealthBarSize(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		x = s_PlayerHealthBarSizeX[playerid] == s_PlayerHealthBarSizeX[playerid] ? s_PlayerHealthBarSizeX[playerid] : s_HealthBarSizeX;
@@ -1316,7 +1322,7 @@ stock GetPlayerHealthBarSize(playerid = -1, &Float:x, &Float:y)
 	y = s_HealthBarSizeY;
 }
 
-stock GetPlayerHealthBarPadding(playerid = -1, Float:padding[4])
+stock GetPlayerHealthBarPadding(playerid = INVALID_PLAYER_ID, Float:padding[4])
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		for (new i = 0; i < sizeof(padding); i++) {
@@ -1339,7 +1345,7 @@ stock SetHealthBarPosition(Float:x, Float:y)
 	#else
 	for (new i = 0; i != MAX_PLAYERS; i++) {
 	#endif
-		if (s_HealthBarVisible[i] && s_PlayerHealthBarPositionX[i] != s_PlayerHealthBarPositionX[i] && s_PlayerHealthBarPositionY[i] != s_PlayerHealthBarPositionY[i]) {
+		if (s_HealthBarVisible[i] && (s_PlayerHealthBarPositionX[i] != s_PlayerHealthBarPositionX[i] || s_PlayerHealthBarPositionY[i] != s_PlayerHealthBarPositionY[i])) {
 			SetHealthBarVisible(i, false);
 			SetHealthBarVisible(i, true);
 		}
@@ -1356,7 +1362,7 @@ stock SetHealthBarSize(Float:x, Float:y)
 	#else
 	for (new i = 0; i != MAX_PLAYERS; i++) {
 	#endif
-		if (s_HealthBarVisible[i] && s_PlayerHealthBarSizeX[i] != s_PlayerHealthBarSizeX[i] && s_PlayerHealthBarSizeY[i] != s_PlayerHealthBarSizeY[i]) {
+		if (s_HealthBarVisible[i] && (s_PlayerHealthBarSizeX[i] != s_PlayerHealthBarSizeX[i] || s_PlayerHealthBarSizeY[i] != s_PlayerHealthBarSizeY[i])) {
 			UpdateHealthBarSize(i);
 		}
 	}
@@ -1429,6 +1435,71 @@ stock SetHealthBarPaddingForPlayer(playerid, const Float:padding[4] = {Float:0x7
 			SetHealthBarVisible(playerid, true);
 		}
 
+		return 1;
+	}
+	return 0;
+}
+
+stock GetPlayerHealthBarColor(playerid = INVALID_PLAYER_ID, &borderColor = 0, &bgColor = 0, &fgColor = 0)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		borderColor = s_PlayerHealthBarBorderColor[playerid] != 0 ? s_PlayerHealthBarBorderColor[playerid] : s_HealthBarBorderColor;
+		bgColor = s_PlayerHealthBarBGColor[playerid] != 0 ? s_PlayerHealthBarBGColor[playerid] : s_HealthBarBGColor;
+		fgColor = s_PlayerHealthBarFGColor[playerid] != 0 ? s_PlayerHealthBarFGColor[playerid] : s_HealthBarFGColor;
+
+		return;	
+	}
+
+	borderColor = s_HealthBarBorderColor;
+	bgColor = s_HealthBarBGColor;
+	fgColor = s_HealthBarFGColor;
+}
+
+stock SetHealthBarColor(borderColor = 0, bgColor = 0, fgColor = 0)
+{
+	if (borderColor != 0) {
+		s_HealthBarBorderColor = borderColor;
+	}
+
+	if (fgColor != 0) {
+		s_HealthBarFGColor = fgColor;
+	}
+
+	if (bgColor != 0) {
+		s_HealthBarBGColor = bgColor;
+	} else if (fgColor != 0) {
+		s_HealthBarBGColor = DarkenRGBA(s_HealthBarFGColor);
+	}
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	foreach (new i : Player) {
+	#else
+	for (new i = 0; i != MAX_PLAYERS; i++) {
+	#endif
+		if (s_HealthBarVisible[i] && (s_PlayerHealthBarBorderColor[i] == 0 || s_PlayerHealthBarBGColor[i] == 0 || s_PlayerHealthBarFGColor[i] == 0)) {
+			SetHealthBarVisible(i, false);
+			SetHealthBarVisible(i, true);
+		}
+	}
+}
+
+stock SetHealthBarColorForPlayer(playerid, borderColor = 0, bgColor = 0, fgColor = 0)
+{
+	if (IsPlayerConnected(playerid))
+	{
+		s_PlayerHealthBarBorderColor[playerid] = borderColor;
+		s_PlayerHealthBarFGColor[playerid] = fgColor;
+
+		if (bgColor == 0 && s_PlayerHealthBarFGColor[playerid] != 0) {
+			s_PlayerHealthBarBGColor[playerid] = DarkenRGBA(s_PlayerHealthBarFGColor[playerid]);
+		} else {
+			s_PlayerHealthBarBGColor[playerid] = bgColor;
+		}
+
+		if (s_HealthBarVisible[playerid]) {
+			SetHealthBarVisible(playerid, false);
+			SetHealthBarVisible(playerid, true);
+		}
 		return 1;
 	}
 	return 0;
@@ -2774,6 +2845,9 @@ public OnPlayerConnect(playerid)
 	s_PlayerHealthBarPadding[playerid][1] = Float:0x7FFFFFFF;
 	s_PlayerHealthBarPadding[playerid][2] = Float:0x7FFFFFFF;
 	s_PlayerHealthBarPadding[playerid][3] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarBorderColor[playerid] = 0;
+	s_PlayerHealthBarBGColor[playerid] = 0;
+	s_PlayerHealthBarFGColor[playerid] = 0;
 
 	#if !defined _INC_SKY
 		s_FakeHealth{playerid} = 255;
@@ -5069,11 +5143,13 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false)
 		if (s_HealthBarVisible[playerid] && !s_IsDying[playerid]) {
 
 			new
+				fgColor,
 				Float:sizeX, Float:sizeY,
 				Float:padding[4];
 
 			GetPlayerHealthBarSize(playerid, sizeX, sizeY);
 			GetPlayerHealthBarPadding(playerid, padding);
+			GetPlayerHealthBarColor(playerid, .fgColor = fgColor);
 
 			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 
@@ -5101,7 +5177,7 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false)
 						sizeY - padding[0] - padding[2]
 					);
 
-					PlayerTextDrawColour(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
+					PlayerTextDrawColour(playerid, 			s_HealthBarForeground[playerid], fgColor);
 					PlayerTextDrawFont(playerid, 			s_HealthBarForeground[playerid], TEXT_DRAW_FONT_SPRITE_DRAW);
 					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
 				}
@@ -5145,6 +5221,7 @@ static SetHealthBarVisible(playerid, bool:toggle)
 	if (toggle) {
 
 		new
+			borderColor, bgColor,
 			Float:positionX, Float:positionY,
 			Float:sizeX, Float:sizeY,
 			Float:padding[4];
@@ -5152,6 +5229,7 @@ static SetHealthBarVisible(playerid, bool:toggle)
 		GetPlayerHealthBarPosition(playerid, positionX, positionY);
 		GetPlayerHealthBarSize(playerid, sizeX, sizeY);
 		GetPlayerHealthBarPadding(playerid, padding);
+		GetPlayerHealthBarColor(playerid, borderColor, bgColor);
 
 		if (s_HealthBarBorder[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 
@@ -5173,7 +5251,7 @@ static SetHealthBarVisible(playerid, bool:toggle)
 					sizeY
 				);
 
-				PlayerTextDrawColour(playerid, 			s_HealthBarBorder[playerid], 255);
+				PlayerTextDrawColour(playerid, 			s_HealthBarBorder[playerid], borderColor);
 				PlayerTextDrawFont(playerid, 			s_HealthBarBorder[playerid], TEXT_DRAW_FONT_SPRITE_DRAW);
 				PlayerTextDrawShow(playerid,			s_HealthBarBorder[playerid]);
 			}
@@ -5201,7 +5279,7 @@ static SetHealthBarVisible(playerid, bool:toggle)
 					sizeY - padding[0] - padding[2]
 				);
 
-				PlayerTextDrawColour(playerid, 			s_HealthBarBackground[playerid], WC_HEALTH_BAR_BG_COLOR);
+				PlayerTextDrawColour(playerid, 			s_HealthBarBackground[playerid], bgColor);
 				PlayerTextDrawFont(playerid, 			s_HealthBarBackground[playerid], TEXT_DRAW_FONT_SPRITE_DRAW);
 				PlayerTextDrawShow(playerid,			s_HealthBarBackground[playerid]);
 			}
@@ -5231,7 +5309,7 @@ static SetHealthBarVisible(playerid, bool:toggle)
 	}
 }
 
-static UpdateHealthBarSize(playerid)
+static stock UpdateHealthBarSize(playerid)
 {
 	if (!IsPlayerConnected(playerid)) {
 		return;
@@ -5270,6 +5348,17 @@ static UpdateHealthBarSize(playerid)
 	if (!s_IsDying[playerid]) {
 		UpdateHealthBar(playerid, true);
 	}
+}
+
+static stock DarkenRGBA(color)
+{
+	new
+		r = ((color >>> 24) & 0xFF) / 2,
+		g = ((color >>> 16) & 0xFF) / 2,
+		b = ((color >>> 8) & 0xFF) / 2,
+		a = color & 0xFF;
+
+	return (r << 24) | (g << 16) | (b << 8) | a;
 }
 
 static SpawnPlayerInPlace(playerid) {

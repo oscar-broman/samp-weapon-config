@@ -397,25 +397,32 @@ EnableHealthBarForPlayer(playerid, bool:enable);
 Show or hide health bar for player
 
 ```pawn
-GetPlayerHealthBarPosition(playerid = -1, &Float:x, &Float:y);
+GetPlayerHealthBarPosition(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y);
 ```
 Get the effective health bar position for a player
-* `playerid` - The player whose position to get. Use `-1` to get the global position
+* `playerid` - The player whose position to get. Use `INVALID_PLAYER_ID` to get the global position
 * `x` and `y` - Variables in which to store the position
 
 ```pawn
-GetPlayerHealthBarSize(playerid = -1, &Float:x, &Float:y);
+GetPlayerHealthBarSize(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y);
 ```
 Get the effective health bar size for a player
-* `playerid` - The player whose size to get. Use `-1` to get the global size
+* `playerid` - The player whose size to get. Use `INVALID_PLAYER_ID` to get the global size
 * `x` and `y` - Variables in which to store the width and height
 
 ```pawn
-GetPlayerHealthBarPadding(playerid = -1, Float:padding[4]);
+GetPlayerHealthBarPadding(playerid = INVALID_PLAYER_ID, Float:padding[4]);
 ```
 Get the effective health bar padding for a player
-* `playerid` - The player whose padding to get. Use `-1` to get the global padding
+* `playerid` - The player whose padding to get. Use `INVALID_PLAYER_ID` to get the global padding
 * `padding` - An array in which to store the top, right, bottom, and left padding
+
+```pawn
+GetPlayerHealthBarColor(playerid = INVALID_PLAYER_ID, &borderColor = 0, &bgColor = 0, &fgColor = 0);
+```
+Get the effective health bar colors for a player
+* `playerid` - The player whose colors to get. Use `INVALID_PLAYER_ID` to get the global colors
+* `borderColor`, `bgColor`, and `fgColor` - Variables in which to store the border, background, and foreground colors in RGBA format
 
 ```pawn
 SetHealthBarPosition(Float:x, Float:y);
@@ -442,6 +449,16 @@ Set the global padding between the health bar border and its contents
 * Players with custom padding are not affected
 
 ```pawn
+SetHealthBarColor(borderColor = 0, bgColor = 0, fgColor = 0);
+```
+Set the global health bar colors
+* `borderColor` - The border color in RGBA format. Use `0` to leave it unchanged
+* `bgColor` - The background color in RGBA format. Use `0` to generate a darker version of the foreground color
+* `fgColor` - The foreground color in RGBA format. Use `0` to leave it unchanged
+* The default colors are `0x000000FF`, `WC_HEALTH_BAR_BG_COLOR`, and `WC_HEALTH_BAR_FG_COLOR`
+* Players with custom colors are not affected
+
+```pawn
 SetHealthBarPositionForPlayer(playerid, Float:x = Float:0x7FFFFFFF, Float:y = Float:0x7FFFFFFF);
 ```
 Set the health bar position for a player
@@ -464,6 +481,15 @@ Set the health bar padding for a player
 * `playerid` - The player whose padding to set
 * `padding` - The top, right, bottom, and left padding
 * Omit `padding` to reset the player to the global padding
+
+```pawn
+SetHealthBarColorForPlayer(playerid, borderColor = 0, bgColor = 0, fgColor = 0);
+```
+Set the health bar colors for a player
+* `playerid` - The player whose colors to set
+* `borderColor`, `bgColor`, and `fgColor` - The border, background, and foreground colors in RGBA format
+* Use `0` to reset a color to its global value
+* If `bgColor` is `0` and `fgColor` is set, a darker version of the foreground color is used for the background
 
 
 ```pawn
