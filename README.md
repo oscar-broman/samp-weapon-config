@@ -397,6 +397,102 @@ EnableHealthBarForPlayer(playerid, bool:enable);
 Show or hide health bar for player
 
 ```pawn
+GetPlayerHealthBarPosition(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y);
+```
+Get the effective health bar position for a player
+* `playerid` - The player whose position to get. Use `INVALID_PLAYER_ID` to get the global position
+* `x` and `y` - Variables in which to store the position
+
+```pawn
+GetPlayerHealthBarSize(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y);
+```
+Get the effective health bar size for a player
+* `playerid` - The player whose size to get. Use `INVALID_PLAYER_ID` to get the global size
+* `x` and `y` - Variables in which to store the width and height
+
+```pawn
+GetPlayerHealthBarPadding(playerid = INVALID_PLAYER_ID, Float:padding[4]);
+```
+Get the effective health bar padding for a player
+* `playerid` - The player whose padding to get. Use `INVALID_PLAYER_ID` to get the global padding
+* `padding` - An array in which to store the top, right, bottom, and left padding
+
+```pawn
+GetPlayerHealthBarColor(playerid = INVALID_PLAYER_ID, &borderColor = 0, &bgColor = 0, &fgColor = 0);
+```
+Get the effective health bar colors for a player
+* `playerid` - The player whose colors to get. Use `INVALID_PLAYER_ID` to get the global colors
+* `borderColor`, `bgColor`, and `fgColor` - Variables in which to store the border, background, and foreground colors in RGBA format
+
+```pawn
+SetHealthBarPosition(Float:x, Float:y);
+```
+Set the global health bar position
+* `x` and `y` - The position of the top-left corner of the health bar border
+* The default position is `546.0, 66.7`
+* Players with a custom position are not affected
+
+```pawn
+SetHealthBarSize(Float:x, Float:y);
+```
+Set the global health bar size
+* `x` and `y` - The width and height of the health bar border
+* The default size is `61.7, 8.4`
+* Players with a custom size are not affected
+
+```pawn
+SetHealthBarPadding(const Float:padding[4]);
+```
+Set the global padding between the health bar border and its contents
+* `padding` - The top, right, bottom, and left padding
+* The default padding is `{2.1, 1.9, 1.6, 2.0}`
+* Players with custom padding are not affected
+
+```pawn
+SetHealthBarColor(borderColor = 0, bgColor = 0, fgColor = 0);
+```
+Set the global health bar colors
+* `borderColor` - The border color in RGBA format. Use `0` to leave it unchanged
+* `bgColor` - The background color in RGBA format. Use `0` to generate a darker version of the foreground color
+* `fgColor` - The foreground color in RGBA format. Use `0` to leave it unchanged
+* The default colors are `0x000000FF`, `WC_HEALTH_BAR_BG_COLOR`, and `WC_HEALTH_BAR_FG_COLOR`
+* Players with custom colors are not affected
+
+```pawn
+SetHealthBarPositionForPlayer(playerid, Float:x = Float:0x7FFFFFFF, Float:y = Float:0x7FFFFFFF);
+```
+Set the health bar position for a player
+* `playerid` - The player whose position to set
+* `x` and `y` - The position of the top-left corner of the health bar border
+* Omit `x` and `y` to reset the player to the global position
+
+```pawn
+SetHealthBarSizeForPlayer(playerid, Float:x = Float:0x7FFFFFFF, Float:y = Float:0x7FFFFFFF);
+```
+Set the health bar size for a player
+* `playerid` - The player whose size to set
+* `x` and `y` - The width and height of the health bar border
+* Omit `x` and `y` to reset the player to the global size
+
+```pawn
+SetHealthBarPaddingForPlayer(playerid, const Float:padding[4] = {Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF});
+```
+Set the health bar padding for a player
+* `playerid` - The player whose padding to set
+* `padding` - The top, right, bottom, and left padding
+* Omit `padding` to reset the player to the global padding
+
+```pawn
+SetHealthBarColorForPlayer(playerid, borderColor = 0, bgColor = 0, fgColor = 0);
+```
+Set the health bar colors for a player
+* `playerid` - The player whose colors to set
+* `borderColor`, `bgColor`, and `fgColor` - The border, background, and foreground colors in RGBA format
+* Use `0` to reset a color to its global value
+* If `bgColor` is `0` and `fgColor` is set, a darker version of the foreground color is used for the background
+
+
+```pawn
 SetCbugDeathDelay(bool:toggle);
 ```
 

@@ -996,11 +996,27 @@ static s_LastUpdateTick[MAX_PLAYERS];
 static s_LastVehicleEnterTime[MAX_PLAYERS];
 static s_LastVehicleTick[MAX_PLAYERS];
 
+static Float:s_HealthBarPositionX = 546.0;
+static Float:s_HealthBarPositionY = 66.7;
+static Float:s_HealthBarSizeX = 61.7;
+static Float:s_HealthBarSizeY = 8.4;
+static Float:s_HealthBarPadding[4] = {2.1, 1.9, 1.6, 2.0};
 static bool:s_EnableHealthBar[MAX_PLAYERS] = {true, ...};
 static bool:s_HealthBarVisible[MAX_PLAYERS] = {false, ...};
-static Text:s_HealthBarBorder = Text:INVALID_TEXT_DRAW;
-static Text:s_HealthBarBackground = Text:INVALID_TEXT_DRAW;
+static PlayerText:s_HealthBarBorder[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
+static PlayerText:s_HealthBarBackground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static PlayerText:s_HealthBarForeground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
+static Float:s_PlayerHealthBarPositionX[MAX_PLAYERS];
+static Float:s_PlayerHealthBarPositionY[MAX_PLAYERS];
+static Float:s_PlayerHealthBarSizeX[MAX_PLAYERS];
+static Float:s_PlayerHealthBarSizeY[MAX_PLAYERS];
+static Float:s_PlayerHealthBarPadding[MAX_PLAYERS][4];
+static s_HealthBarBorderColor = 255;
+static s_HealthBarBGColor = WC_HEALTH_BAR_BG_COLOR;
+static s_HealthBarFGColor = WC_HEALTH_BAR_FG_COLOR;
+static s_PlayerHealthBarBorderColor[MAX_PLAYERS];
+static s_PlayerHealthBarBGColor[MAX_PLAYERS];
+static s_PlayerHealthBarFGColor[MAX_PLAYERS];
 
 static s_DamageFeed = true;
 static s_DamageFeedPlayer[MAX_PLAYERS] = {-1, ...};
@@ -1013,7 +1029,6 @@ static s_DamageFeedHitsTaken[MAX_PLAYERS][WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT];
 static s_DamageFeedUpdateTick[MAX_PLAYERS];
 static s_DamageFeedTimer[MAX_PLAYERS];
 
-static bool:s_InternalTextDraw[Text:MAX_TEXT_DRAWS];
 static bool:s_InternalPlayerTextDraw[MAX_PLAYERS][PlayerText:MAX_PLAYER_TEXT_DRAWS];
 
 static s_DamageTakenSound = 1190;
@@ -1283,6 +1298,215 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 		return true;
 	}
 	return false;
+}
+
+stock GetPlayerHealthBarPosition(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		x = s_PlayerHealthBarPositionX[playerid] == s_PlayerHealthBarPositionX[playerid] ? s_PlayerHealthBarPositionX[playerid] : s_HealthBarPositionX;
+		y = s_PlayerHealthBarPositionY[playerid] == s_PlayerHealthBarPositionY[playerid] ? s_PlayerHealthBarPositionY[playerid] : s_HealthBarPositionY;
+
+		return;	
+	}
+
+	x = s_HealthBarPositionX;
+	y = s_HealthBarPositionY;
+}
+
+stock GetPlayerHealthBarSize(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		x = s_PlayerHealthBarSizeX[playerid] == s_PlayerHealthBarSizeX[playerid] ? s_PlayerHealthBarSizeX[playerid] : s_HealthBarSizeX;
+		y = s_PlayerHealthBarSizeY[playerid] == s_PlayerHealthBarSizeY[playerid] ? s_PlayerHealthBarSizeY[playerid] : s_HealthBarSizeY;
+
+		return;	
+	}
+
+	x = s_HealthBarSizeX;
+	y = s_HealthBarSizeY;
+}
+
+stock GetPlayerHealthBarPadding(playerid = INVALID_PLAYER_ID, Float:padding[4])
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		for (new i = 0; i < sizeof(padding); i++) {
+			padding[i] = s_PlayerHealthBarPadding[playerid][i] == s_PlayerHealthBarPadding[playerid][i] ? s_PlayerHealthBarPadding[playerid][i] : s_HealthBarPadding[i];
+		}
+
+		return;
+	}
+
+	padding = s_HealthBarPadding;
+}
+
+stock SetHealthBarPosition(Float:x, Float:y)
+{
+	s_HealthBarPositionX = x;
+	s_HealthBarPositionY = y;
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	foreach (new i : Player) {
+	#else
+	for (new i = 0; i != MAX_PLAYERS; i++) {
+	#endif
+		if (s_HealthBarVisible[i] && (s_PlayerHealthBarPositionX[i] != s_PlayerHealthBarPositionX[i] || s_PlayerHealthBarPositionY[i] != s_PlayerHealthBarPositionY[i])) {
+			SetHealthBarVisible(i, false);
+			SetHealthBarVisible(i, true);
+		}
+	}
+}
+
+stock SetHealthBarSize(Float:x, Float:y)
+{
+	s_HealthBarSizeX = x;
+	s_HealthBarSizeY = y;
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	foreach (new i : Player) {
+	#else
+	for (new i = 0; i != MAX_PLAYERS; i++) {
+	#endif
+		if (s_HealthBarVisible[i] && (s_PlayerHealthBarSizeX[i] != s_PlayerHealthBarSizeX[i] || s_PlayerHealthBarSizeY[i] != s_PlayerHealthBarSizeY[i])) {
+			UpdateHealthBarSize(i);
+		}
+	}
+}
+
+stock SetHealthBarPadding(const Float:padding[4])
+{
+	s_HealthBarPadding = padding;
+
+	new j = 0;
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	foreach (new i : Player) {
+	#else
+	for (new i = 0; i != MAX_PLAYERS; i++) {
+	#endif
+		if (s_HealthBarVisible[i]) {
+			for (j = 0; j < sizeof(padding); j++) {
+				if (s_PlayerHealthBarPadding[i][j] != s_PlayerHealthBarPadding[i][j]) {
+					SetHealthBarVisible(i, false);
+					SetHealthBarVisible(i, true);
+					break;
+				}
+			}
+		}
+	}
+}
+
+stock SetHealthBarPositionForPlayer(playerid, Float:x = Float:0x7FFFFFFF, Float:y = Float:0x7FFFFFFF)
+{
+	if (IsPlayerConnected(playerid))
+	{
+		s_PlayerHealthBarPositionX[playerid] = x;
+		s_PlayerHealthBarPositionY[playerid] = y;
+
+		if (s_HealthBarVisible[playerid]) {
+			SetHealthBarVisible(playerid, false);
+			SetHealthBarVisible(playerid, true);
+		}
+
+		return 1;
+	}
+	return 0;
+}
+
+stock SetHealthBarSizeForPlayer(playerid, Float:x = Float:0x7FFFFFFF, Float:y = Float:0x7FFFFFFF)
+{
+	if (IsPlayerConnected(playerid))
+	{
+		s_PlayerHealthBarSizeX[playerid] = x;
+		s_PlayerHealthBarSizeY[playerid] = y;
+
+		if (s_HealthBarVisible[playerid]) {
+			UpdateHealthBarSize(playerid);
+		}
+
+		return 1;
+	}
+	return 0;
+}
+
+stock SetHealthBarPaddingForPlayer(playerid, const Float:padding[4] = {Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF, Float:0x7FFFFFFF})
+{
+	if (IsPlayerConnected(playerid))
+	{
+		s_PlayerHealthBarPadding[playerid] = padding;
+
+		if (s_HealthBarVisible[playerid]) {
+			SetHealthBarVisible(playerid, false);
+			SetHealthBarVisible(playerid, true);
+		}
+
+		return 1;
+	}
+	return 0;
+}
+
+stock GetPlayerHealthBarColor(playerid = INVALID_PLAYER_ID, &borderColor = 0, &bgColor = 0, &fgColor = 0)
+{
+	if (0 <= playerid < MAX_PLAYERS) {
+		borderColor = s_PlayerHealthBarBorderColor[playerid] != 0 ? s_PlayerHealthBarBorderColor[playerid] : s_HealthBarBorderColor;
+		bgColor = s_PlayerHealthBarBGColor[playerid] != 0 ? s_PlayerHealthBarBGColor[playerid] : s_HealthBarBGColor;
+		fgColor = s_PlayerHealthBarFGColor[playerid] != 0 ? s_PlayerHealthBarFGColor[playerid] : s_HealthBarFGColor;
+
+		return;	
+	}
+
+	borderColor = s_HealthBarBorderColor;
+	bgColor = s_HealthBarBGColor;
+	fgColor = s_HealthBarFGColor;
+}
+
+stock SetHealthBarColor(borderColor = 0, bgColor = 0, fgColor = 0)
+{
+	if (borderColor != 0) {
+		s_HealthBarBorderColor = borderColor;
+	}
+
+	if (fgColor != 0) {
+		s_HealthBarFGColor = fgColor;
+	}
+
+	if (bgColor != 0) {
+		s_HealthBarBGColor = bgColor;
+	} else if (fgColor != 0) {
+		s_HealthBarBGColor = DarkenRGBA(s_HealthBarFGColor);
+	}
+
+	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
+	foreach (new i : Player) {
+	#else
+	for (new i = 0; i != MAX_PLAYERS; i++) {
+	#endif
+		if (s_HealthBarVisible[i] && (s_PlayerHealthBarBorderColor[i] == 0 || s_PlayerHealthBarBGColor[i] == 0 || s_PlayerHealthBarFGColor[i] == 0)) {
+			SetHealthBarVisible(i, false);
+			SetHealthBarVisible(i, true);
+		}
+	}
+}
+
+stock SetHealthBarColorForPlayer(playerid, borderColor = 0, bgColor = 0, fgColor = 0)
+{
+	if (IsPlayerConnected(playerid))
+	{
+		s_PlayerHealthBarBorderColor[playerid] = borderColor;
+		s_PlayerHealthBarFGColor[playerid] = fgColor;
+
+		if (bgColor == 0 && s_PlayerHealthBarFGColor[playerid] != 0) {
+			s_PlayerHealthBarBGColor[playerid] = DarkenRGBA(s_PlayerHealthBarFGColor[playerid]);
+		} else {
+			s_PlayerHealthBarBGColor[playerid] = bgColor;
+		}
+
+		if (s_HealthBarVisible[playerid]) {
+			SetHealthBarVisible(playerid, false);
+			SetHealthBarVisible(playerid, true);
+		}
+		return 1;
+	}
+	return 0;
 }
 
 stock SetWeaponDamage(WEAPON:weaponid, damage_type, Float:amount, Float:...)
@@ -2158,167 +2382,6 @@ stock WC_SetPlayerSpecialAction(playerid, SPECIAL_ACTION:actionid)
 
 #if defined _INC_y_va
 #if defined _INC_open_mp
-stock Text:WC_TextDrawCreate(Float:x, Float:y, const text[], OPEN_MP_TAGS:...)
-#else
-stock Text:WC_TextDrawCreate(Float:x, Float:y, WC_CONST text[], GLOBAL_TAG_TYPES:...)
-#endif
-#else
-stock Text:WC_TextDrawCreate(Float:x, Float:y, WC_CONST text[])
-#endif
-{
-	#if defined _INC_y_va
-		new Text:td = TextDrawCreate(x, y, text, ___(3));
-	#else
-		new Text:td = TextDrawCreate(x, y, text);
-	#endif
-
-	if (td != Text:INVALID_TEXT_DRAW) {
-		s_InternalTextDraw[td] = false;
-	}
-
-	return td;
-}
-
-stock WC_TextDrawDestroy(Text:text)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawDestroy(text);
-}
-
-stock WC_TextDrawLetterSize(Text:text, Float:x, Float:y)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawLetterSize(text, x, y);
-}
-
-stock WC_TextDrawTextSize(Text:text, Float:x, Float:y)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawTextSize(text, x, y);
-}
-
-stock WC_TextDrawAlignment(Text:text, TEXT_DRAW_ALIGN:alignment)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawAlignment(text, alignment);
-}
-
-stock WC_TextDrawColor(Text:text, color)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawColor(text, color);
-}
-
-stock WC_TextDrawUseBox(Text:text, use)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawUseBox(text, !!use);
-}
-
-stock WC_TextDrawBoxColor(Text:text, color)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawBoxColor(text, color);
-}
-
-stock WC_TextDrawSetShadow(Text:text, size)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawSetShadow(text, size);
-}
-
-stock WC_TextDrawSetOutline(Text:text, size)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawSetOutline(text, size);
-}
-
-stock WC_TextDrawBackgroundColor(Text:text, color)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawBackgroundColor(text, color);
-}
-
-stock WC_TextDrawFont(Text:text, TEXT_DRAW_FONT:font)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawFont(text, font);
-}
-
-stock WC_TextDrawSetProportional(Text:text, set)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawSetProportional(text, !!set);
-}
-
-stock WC_TextDrawSetSelectable(Text:text, set)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawSetSelectable(text, !!set);
-}
-
-stock WC_TextDrawShowForPlayer(playerid, Text:text)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawShowForPlayer(playerid, text);
-}
-
-stock WC_TextDrawHideForPlayer(playerid, Text:text)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawHideForPlayer(playerid, text);
-}
-
-stock WC_TextDrawShowForAll(Text:text)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawShowForAll(text);
-}
-
-stock WC_TextDrawHideForAll(Text:text)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawHideForAll(text);
-}
-
-#if defined _INC_y_va
-#if defined _INC_open_mp
-stock WC_TextDrawSetString(Text:text, const string[], OPEN_MP_TAGS:...)
-#else
-stock WC_TextDrawSetString(Text:text, WC_CONST string[], GLOBAL_TAG_TYPES:...)
-#endif
-#else
-stock WC_TextDrawSetString(Text:text, WC_CONST string[])
-#endif
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	#if defined _INC_y_va
-		return TextDrawSetString(text, string, ___(2));
-	#else
-		return TextDrawSetString(text, string);
-	#endif
-}
-
-stock WC_TextDrawSetPreviewModel(Text:text, modelindex)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawSetPreviewModel(text, modelindex);
-}
-
-stock WC_TextDrawSetPreviewRot(Text:text, Float:fRotX, Float:fRotY, Float:fRotZ, Float:fZoom = 1.0)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawSetPreviewRot(text, fRotX, fRotY, fRotZ, fZoom);
-}
-
-stock WC_TextDrawSetPreviewVehCol(Text:text, color1, color2)
-{
-	if (_:text < 0 || text >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[text]) return 0;
-	return TextDrawSetPreviewVehCol(text, color1, color2);
-}
-
-#if defined _INC_y_va
-#if defined _INC_open_mp
 stock PlayerText:WC_CreatePlayerTextDraw(playerid, Float:x, Float:y, const text[], OPEN_MP_TAGS:...)
 #else
 stock PlayerText:WC_CreatePlayerTextDraw(playerid, Float:x, Float:y, WC_CONST text[], GLOBAL_TAG_TYPES:...)
@@ -2508,152 +2571,6 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 	}
 
 	#if __namemax > 31
-		stock bool:WC_TextDrawSetPreviewVehicleColours(Text:textid, colour1, colour2)
-		{
-			if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-			return TextDrawSetPreviewVehicleColours(textid, colour1, colour2);
-		}
-	#endif
-
-	stock bool:WC_IsValidTextDraw(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return IsValidTextDraw(textid);
-	}
-
-	stock bool:WC_IsTextDrawVisibleForPlayer(playerid, Text:textid)
-	{
-		if (playerid < 0 || playerid >= MAX_PLAYERS) return false;
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return IsTextDrawVisibleForPlayer(playerid, textid);
-	}
-
-	stock bool:WC_TextDrawGetString(Text:textid, string[], stringSize = sizeof(string))
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawGetString(textid, string, stringSize);
-	}
-
-	stock bool:WC_TextDrawSetPos(Text:textid, Float:x, Float:y)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawSetPos(textid, x, y);
-	}
-
-	stock bool:WC_TextDrawGetLetterSize(Text:textid, &Float:width, &Float:height)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawGetLetterSize(textid, width, height);
-	}
-
-	stock bool:WC_TextDrawGetTextSize(Text:textid, &Float:width, &Float:height)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawGetTextSize(textid, width, height);
-	}
-
-	stock bool:WC_TextDrawGetPos(Text:textid, &Float:x, &Float:y)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawGetPos(textid, x, y);
-	}
-
-	stock WC_TextDrawGetColour(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetColour(textid);
-	}
-
-	stock WC_TextDrawGetBoxColour(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetBoxColour(textid);
-	}
-
-	stock WC_TextDrawGetBackgroundColour(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetBackgroundColour(textid);
-	}
-
-	stock WC_TextDrawGetShadow(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetShadow(textid);
-	}
-
-	stock WC_TextDrawGetOutline(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetOutline(textid);
-	}
-
-	stock TEXT_DRAW_FONT:WC_TextDrawGetFont(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return UNKNOWN_TEXT_DRAW_FONT;
-		return TextDrawGetFont(textid);
-	}
-
-	stock bool:WC_TextDrawIsBox(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawIsBox(textid);
-	}
-
-	stock bool:WC_TextDrawIsProportional(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawIsProportional(textid);
-	}
-
-	stock bool:WC_TextDrawIsSelectable(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawIsSelectable(textid);
-	}
-
-	stock TEXT_DRAW_ALIGN:WC_TextDrawGetAlignment(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return UNKNOWN_TEXT_DRAW_ALIGN;
-		return TextDrawGetAlignment(textid);
-	}
-
-	stock WC_TextDrawGetPreviewModel(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetPreviewModel(textid);
-	}
-
-	stock bool:WC_TextDrawGetPreviewRot(Text:textid, &Float:rotationX, &Float:rotationY, &Float:rotationZ, &Float:zoom)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawGetPreviewRot(textid, rotationX, rotationY, rotationZ, zoom);
-	}
-
-	#if __namemax > 31
-		stock bool:WC_TextDrawGetPreviewVehicleColours(Text:textid, &colour1, &colour2)
-		{
-			if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-			return TextDrawGetPreviewVehicleColours(textid, colour1, colour2);
-		}
-	#endif
-
-	#if defined _INC_y_va
-	stock bool:WC_TextDrawSetStringForPlayer(Text:textid, playerid, const format[], OPEN_MP_TAGS:...)
-	#else
-	stock bool:WC_TextDrawSetStringForPlayer(Text:textid, playerid, const format[])
-	#endif
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		if (playerid < 0 || playerid >= MAX_PLAYERS) return false;
-		#if defined _INC_y_va
-			return TextDrawSetStringForPlayer(textid, playerid, format, ___(3));
-		#else
-			return TextDrawSetStringForPlayer(textid, playerid, format);
-		#endif
-	}
-
-	#if __namemax > 31
 		stock bool:WC_PlayerTextDrawSetPreviewVehicleColours(playerid, PlayerText:textid, colour1, colour2)
 		{
 			if (playerid < 0 || playerid >= MAX_PLAYERS) return false;
@@ -2806,30 +2723,6 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 		}
 	#endif
 
-	stock WC_TextDrawGetColor(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetColor(textid);
-	}
-
-	stock WC_TextDrawGetBoxColor(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetBoxColor(textid);
-	}
-
-	stock WC_TextDrawGetBackgroundColor(Text:textid)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return 0;
-		return TextDrawGetBackgroundColor(textid);
-	}
-
-	stock bool:WC_TextDrawGetPreviewVehCol(Text:textid, &colour1, &colour2)
-	{
-		if (_:textid < 0 || textid >= Text:MAX_TEXT_DRAWS || s_InternalTextDraw[textid]) return false;
-		return TextDrawGetPreviewVehCol(textid, colour1, colour2);
-	}
-
 	stock WC_PlayerTextDrawGetColor(playerid, PlayerText:textid)
 	{
 		if (playerid < 0 || playerid >= MAX_PLAYERS) return 0;
@@ -2964,6 +2857,17 @@ public OnPlayerConnect(playerid)
 	s_DelayedDeathTimer[playerid] = 0;
 	s_DamageFeedPlayer[playerid] = -1;
 	s_EnableHealthBar[playerid] = true; // enable by default
+	s_PlayerHealthBarPositionX[playerid] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarPositionY[playerid] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarSizeX[playerid] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarSizeY[playerid] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarPadding[playerid][0] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarPadding[playerid][1] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarPadding[playerid][2] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarPadding[playerid][3] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarBorderColor[playerid] = 0;
+	s_PlayerHealthBarBGColor[playerid] = 0;
+	s_PlayerHealthBarFGColor[playerid] = 0;
 
 	#if !defined _INC_SKY
 		s_FakeHealth{playerid} = 255;
@@ -2980,6 +2884,16 @@ public OnPlayerConnect(playerid)
 			s_BlockAdminTeleport[playerid] = false;
 		#endif
 	#endif
+
+	if (s_HealthBarBorder[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_HealthBarBorder[playerid]] = false;
+		s_HealthBarBorder[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = false;
+		s_HealthBarBackground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 		s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
@@ -3050,6 +2964,16 @@ public OnPlayerDisconnect(playerid, reason)
 	if (s_KnifeTimeout[playerid]) {
 		KillTimer(s_KnifeTimeout[playerid]);
 		s_KnifeTimeout[playerid] = 0;
+	}
+
+	if (s_HealthBarBorder[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		PlayerTextDrawDestroy(playerid, s_HealthBarBorder[playerid]);
+		s_HealthBarBorder[playerid] = PlayerText:INVALID_TEXT_DRAW;
+	}
+
+	if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+		PlayerTextDrawDestroy(playerid, s_HealthBarBackground[playerid]);
+		s_HealthBarBackground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 	}
 
 	if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
@@ -5020,30 +4944,6 @@ static ScriptInit()
 		s_ClassSpawnInfo[i][e_Skin] = -1;
 	}
 
-	s_HealthBarBorder = TextDrawCreate(546.0, 66.7, "LD_SPAC:white");
-
-	if (s_HealthBarBorder == Text:INVALID_TEXT_DRAW) {
-		printf("(wc) WARN: Unable to create healthbar border textdraw");
-	} else {
-		s_InternalTextDraw[s_HealthBarBorder] = true;
-
-		TextDrawTextSize	(s_HealthBarBorder, 61.7, 8.4);
-		TextDrawColour		(s_HealthBarBorder, 255);
-		TextDrawFont		(s_HealthBarBorder, TEXT_DRAW_FONT_SPRITE_DRAW);
-	}
-
-	s_HealthBarBackground = TextDrawCreate(548.0, 68.8, "LD_SPAC:white");
-
-	if (s_HealthBarBackground == Text:INVALID_TEXT_DRAW) {
-		printf("(wc) WARN: Unable to create healthbar background textdraw");
-	} else {
-		s_InternalTextDraw[s_HealthBarBackground] = true;
-
-		TextDrawTextSize	(s_HealthBarBackground, 57.8, 4.7);
-		TextDrawColour		(s_HealthBarBackground, WC_HEALTH_BAR_BG_COLOR);
-		TextDrawFont		(s_HealthBarBackground, TEXT_DRAW_FONT_SPRITE_DRAW);
-	}
-
 	#if WC_CUSTOM_VENDING_MACHINES
 		if (s_CustomVendingMachines) {
 			CreateVendingMachines();
@@ -5153,6 +5053,18 @@ static ScriptExit()
 		SetFakeFacingAngle(playerid, _);
 		SetHealthBarVisible(playerid, false);
 
+		if (s_HealthBarBorder[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_HealthBarBorder[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_HealthBarBorder[playerid]] = false;
+			s_HealthBarBorder[playerid] = PlayerText:INVALID_TEXT_DRAW;
+		}
+
+		if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_HealthBarBackground[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = false;
+			s_HealthBarBackground[playerid] = PlayerText:INVALID_TEXT_DRAW;
+		}
+
 		if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
 			PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
 			s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
@@ -5170,16 +5082,6 @@ static ScriptExit()
 			s_InternalPlayerTextDraw[playerid][s_DamageFeedTaken[playerid]] = false;
 			s_DamageFeedTaken[playerid] = PlayerText:INVALID_TEXT_DRAW;
 		}
-	}
-
-	if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
-		TextDrawDestroy(s_HealthBarBorder);
-		s_InternalTextDraw[s_HealthBarBorder] = false;
-	}
-
-	if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-		TextDrawDestroy(s_HealthBarBackground);
-		s_InternalTextDraw[s_HealthBarBackground] = false;
 	}
 }
 
@@ -5260,12 +5162,25 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false)
 		SetPlayerHealth(playerid, 8000000.0 + float(health));
 
 		if (s_HealthBarVisible[playerid] && !s_IsDying[playerid]) {
+
+			new
+				fgColor,
+				Float:sizeX, Float:sizeY,
+				Float:padding[4];
+
+			GetPlayerHealthBarSize(playerid, sizeX, sizeY);
+			GetPlayerHealthBarPadding(playerid, padding);
+			GetPlayerHealthBarColor(playerid, .fgColor = fgColor);
+
 			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+
+				new Float:positionX, Float:positionY;
+				GetPlayerHealthBarPosition(playerid, positionX, positionY);
 
 				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
 					playerid,
-					548.0,
-					68.8,
+					positionX + padding[3],
+					positionY + padding[0],
 					"LD_SPAC:white"
 				);
 
@@ -5277,13 +5192,13 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false)
 					PlayerTextDrawTextSize(playerid,
 						s_HealthBarForeground[playerid],
 						WC_CalculateBar(
-						57.8,
+						sizeX - padding[1] - padding[3],
 						100.0,
 						float(health)),
-						4.7
+						sizeY - padding[0] - padding[2]
 					);
 
-					PlayerTextDrawColour(playerid, 			s_HealthBarForeground[playerid], WC_HEALTH_BAR_FG_COLOR);
+					PlayerTextDrawColour(playerid, 			s_HealthBarForeground[playerid], fgColor);
 					PlayerTextDrawFont(playerid, 			s_HealthBarForeground[playerid], TEXT_DRAW_FONT_SPRITE_DRAW);
 					PlayerTextDrawShow(playerid, 			s_HealthBarForeground[playerid]);
 				}
@@ -5291,10 +5206,10 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false)
 				PlayerTextDrawTextSize(playerid,
 					s_HealthBarForeground[playerid],
 					WC_CalculateBar(
-					57.8,
+					sizeX - padding[1] - padding[3],
 					100.0,
 					float(health)),
-					4.7
+					sizeY - padding[0] - padding[2]
 				);
 				PlayerTextDrawShow(playerid, s_HealthBarForeground[playerid]);
 			}
@@ -5325,28 +5240,146 @@ static SetHealthBarVisible(playerid, bool:toggle)
 	s_HealthBarVisible[playerid] = toggle;
 
 	if (toggle) {
-		if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
-			TextDrawShowForPlayer(playerid, s_HealthBarBorder);
+
+		new
+			borderColor, bgColor,
+			Float:positionX, Float:positionY,
+			Float:sizeX, Float:sizeY,
+			Float:padding[4];
+
+		GetPlayerHealthBarPosition(playerid, positionX, positionY);
+		GetPlayerHealthBarSize(playerid, sizeX, sizeY);
+		GetPlayerHealthBarPadding(playerid, padding);
+		GetPlayerHealthBarColor(playerid, borderColor, bgColor);
+
+		if (s_HealthBarBorder[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+
+			s_HealthBarBorder[playerid] = CreatePlayerTextDraw(
+				playerid,
+				positionX,
+				positionY,
+				"LD_SPAC:white"
+			);
+
+			if (s_HealthBarBorder[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+				printf("(wc) WARN: Unable to create player healthbar border");
+			} else {
+				s_InternalPlayerTextDraw[playerid][s_HealthBarBorder[playerid]] = true;
+
+				PlayerTextDrawTextSize(playerid,
+					s_HealthBarBorder[playerid],
+					sizeX,
+					sizeY
+				);
+
+				PlayerTextDrawColour(playerid, 			s_HealthBarBorder[playerid], borderColor);
+				PlayerTextDrawFont(playerid, 			s_HealthBarBorder[playerid], TEXT_DRAW_FONT_SPRITE_DRAW);
+				PlayerTextDrawShow(playerid,			s_HealthBarBorder[playerid]);
+			}
+		} else if (s_InternalPlayerTextDraw[playerid][s_HealthBarBorder[playerid]]) {
+			PlayerTextDrawShow(playerid, s_HealthBarBorder[playerid]);
 		}
 
-		if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-			TextDrawShowForPlayer(playerid, s_HealthBarBackground);
+		if (s_HealthBarBackground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+
+			s_HealthBarBackground[playerid] = CreatePlayerTextDraw(
+				playerid,
+				positionX + padding[3],
+				positionY + padding[0],
+				"LD_SPAC:white"
+			);
+
+			if (s_HealthBarBackground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
+				printf("(wc) WARN: Unable to create player healthbar foreground");
+			} else {
+				s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = true;
+
+				PlayerTextDrawTextSize(playerid,
+					s_HealthBarBackground[playerid],
+					sizeX - padding[1] - padding[3],
+					sizeY - padding[0] - padding[2]
+				);
+
+				PlayerTextDrawColour(playerid, 			s_HealthBarBackground[playerid], bgColor);
+				PlayerTextDrawFont(playerid, 			s_HealthBarBackground[playerid], TEXT_DRAW_FONT_SPRITE_DRAW);
+				PlayerTextDrawShow(playerid,			s_HealthBarBackground[playerid]);
+			}
+		} else if (s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]]) {
+			PlayerTextDrawShow(playerid, s_HealthBarBackground[playerid]);
 		}
 
 		UpdateHealthBar(playerid, true);
 	} else {
 		if (s_HealthBarForeground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
-			PlayerTextDrawHide(playerid, s_HealthBarForeground[playerid]);
+			PlayerTextDrawDestroy(playerid, s_HealthBarForeground[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_HealthBarForeground[playerid]] = false;
+			s_HealthBarForeground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 		}
 
-		if (s_HealthBarBorder != Text:INVALID_TEXT_DRAW) {
-			TextDrawHideForPlayer(playerid, s_HealthBarBorder);
+		if (s_HealthBarBorder[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_HealthBarBorder[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_HealthBarBorder[playerid]] = false;
+			s_HealthBarBorder[playerid] = PlayerText:INVALID_TEXT_DRAW;
 		}
 
-		if (s_HealthBarBackground != Text:INVALID_TEXT_DRAW) {
-			TextDrawHideForPlayer(playerid, s_HealthBarBackground);
+		if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW) {
+			PlayerTextDrawDestroy(playerid, s_HealthBarBackground[playerid]);
+			s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]] = false;
+			s_HealthBarBackground[playerid] = PlayerText:INVALID_TEXT_DRAW;
 		}
 	}
+}
+
+static stock UpdateHealthBarSize(playerid)
+{
+	if (!IsPlayerConnected(playerid)) {
+		return;
+	}
+	if (!s_HealthBarVisible[playerid]) {
+		return;
+	}
+
+	new
+		Float:sizeX, Float:sizeY,
+		Float:padding[4];
+
+	GetPlayerHealthBarSize(playerid, sizeX, sizeY);
+	GetPlayerHealthBarPadding(playerid, padding);
+
+	if (s_HealthBarBorder[playerid] != PlayerText:INVALID_TEXT_DRAW && s_InternalPlayerTextDraw[playerid][s_HealthBarBorder[playerid]]) {
+		PlayerTextDrawTextSize(playerid,
+			s_HealthBarBorder[playerid],
+			sizeX,
+			sizeY
+		);
+
+		PlayerTextDrawShow(playerid, s_HealthBarBorder[playerid]);
+	}
+
+	if (s_HealthBarBackground[playerid] != PlayerText:INVALID_TEXT_DRAW && s_InternalPlayerTextDraw[playerid][s_HealthBarBackground[playerid]]) {
+		PlayerTextDrawTextSize(playerid,
+			s_HealthBarBackground[playerid],
+			sizeX - padding[1] - padding[3],
+			sizeY - padding[0] - padding[2]
+		);
+
+		PlayerTextDrawShow(playerid, s_HealthBarBackground[playerid]);
+	}
+
+	if (!s_IsDying[playerid]) {
+		UpdateHealthBar(playerid, true);
+	}
+}
+
+static stock DarkenRGBA(color)
+{
+	new
+		r = ((color >>> 24) & 0xFF) / 2,
+		g = ((color >>> 16) & 0xFF) / 2,
+		b = ((color >>> 8) & 0xFF) / 2,
+		a = color & 0xFF;
+
+	return (r << 24) | (g << 16) | (b << 8) | a;
 }
 
 static SpawnPlayerInPlace(playerid) {
@@ -7546,194 +7579,6 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 #define SetPlayerSpecialAction WC_SetPlayerSpecialAction
 
 
-#if defined _ALS_TextDrawCreate
-	#undef TextDrawCreate
-#else
-	#define _ALS_TextDrawCreate
-#endif
-#define TextDrawCreate WC_TextDrawCreate
-
-
-#if defined _ALS_TextDrawDestroy
-	#undef TextDrawDestroy
-#else
-	#define _ALS_TextDrawDestroy
-#endif
-#define TextDrawDestroy WC_TextDrawDestroy
-
-
-#if defined _ALS_TextDrawLetterSize
-	#undef TextDrawLetterSize
-#else
-	#define _ALS_TextDrawLetterSize
-#endif
-#define TextDrawLetterSize WC_TextDrawLetterSize
-
-
-#if defined _ALS_TextDrawTextSize
-	#undef TextDrawTextSize
-#else
-	#define _ALS_TextDrawTextSize
-#endif
-#define TextDrawTextSize WC_TextDrawTextSize
-
-
-#if defined _ALS_TextDrawAlignment
-	#undef TextDrawAlignment
-#else
-	#define _ALS_TextDrawAlignment
-#endif
-#define TextDrawAlignment WC_TextDrawAlignment
-
-
-#if defined _ALS_TextDrawColor
-	#undef TextDrawColor
-#else
-	#define _ALS_TextDrawColor
-#endif
-#define TextDrawColor WC_TextDrawColor
-#if !defined _INC_open_mp
-	#undef TextDrawColour
-	#define TextDrawColour WC_TextDrawColor
-#endif
-
-
-#if defined _ALS_TextDrawUseBox
-	#undef TextDrawUseBox
-#else
-	#define _ALS_TextDrawUseBox
-#endif
-#define TextDrawUseBox WC_TextDrawUseBox
-
-
-#if defined _ALS_TextDrawBoxColor
-	#undef TextDrawBoxColor
-#else
-	#define _ALS_TextDrawBoxColor
-#endif
-#define TextDrawBoxColor WC_TextDrawBoxColor
-#if !defined _INC_open_mp
-	#undef TextDrawBoxColour
-	#define TextDrawBoxColour WC_TextDrawBoxColor
-#endif
-
-
-#if defined _ALS_TextDrawSetShadow
-	#undef TextDrawSetShadow
-#else
-	#define _ALS_TextDrawSetShadow
-#endif
-#define TextDrawSetShadow WC_TextDrawSetShadow
-
-
-#if defined _ALS_TextDrawSetOutline
-	#undef TextDrawSetOutline
-#else
-	#define _ALS_TextDrawSetOutline
-#endif
-#define TextDrawSetOutline WC_TextDrawSetOutline
-
-
-#if defined _ALS_TextDrawBackgroundColor
-	#undef TextDrawBackgroundColor
-#else
-	#define _ALS_TextDrawBackgroundColor
-#endif
-#define TextDrawBackgroundColor WC_TextDrawBackgroundColor
-#if !defined _INC_open_mp
-	#undef TextDrawBackgroundColour
-	#define TextDrawBackgroundColour WC_TextDrawBackgroundColor
-#endif
-
-
-#if defined _ALS_TextDrawFont
-	#undef TextDrawFont
-#else
-	#define _ALS_TextDrawFont
-#endif
-#define TextDrawFont WC_TextDrawFont
-
-
-#if defined _ALS_TextDrawSetProportional
-	#undef TextDrawSetProportional
-#else
-	#define _ALS_TextDrawSetProportional
-#endif
-#define TextDrawSetProportional WC_TextDrawSetProportional
-
-
-#if defined _ALS_TextDrawSetSelectable
-	#undef TextDrawSetSelectable
-#else
-	#define _ALS_TextDrawSetSelectable
-#endif
-#define TextDrawSetSelectable WC_TextDrawSetSelectable
-
-
-#if defined _ALS_TextDrawShowForPlayer
-	#undef TextDrawShowForPlayer
-#else
-	#define _ALS_TextDrawShowForPlayer
-#endif
-#define TextDrawShowForPlayer WC_TextDrawShowForPlayer
-
-
-#if defined _ALS_TextDrawHideForPlayer
-	#undef TextDrawHideForPlayer
-#else
-	#define _ALS_TextDrawHideForPlayer
-#endif
-#define TextDrawHideForPlayer WC_TextDrawHideForPlayer
-
-
-#if defined _ALS_TextDrawShowForAll
-	#undef TextDrawShowForAll
-#else
-	#define _ALS_TextDrawShowForAll
-#endif
-#define TextDrawShowForAll WC_TextDrawShowForAll
-
-
-#if defined _ALS_TextDrawHideForAll
-	#undef TextDrawHideForAll
-#else
-	#define _ALS_TextDrawHideForAll
-#endif
-#define TextDrawHideForAll WC_TextDrawHideForAll
-
-
-#if defined _ALS_TextDrawSetString
-	#undef TextDrawSetString
-#else
-	#define _ALS_TextDrawSetString
-#endif
-#define TextDrawSetString WC_TextDrawSetString
-
-
-#if defined _ALS_TextDrawSetPreviewModel
-	#undef TextDrawSetPreviewModel
-#else
-	#define _ALS_TextDrawSetPreviewModel
-#endif
-#define TextDrawSetPreviewModel WC_TextDrawSetPreviewModel
-
-
-#if defined _ALS_TextDrawSetPreviewRot
-	#undef TextDrawSetPreviewRot
-#else
-	#define _ALS_TextDrawSetPreviewRot
-#endif
-#define TextDrawSetPreviewRot WC_TextDrawSetPreviewRot
-
-
-#if defined _ALS_TextDrawSetPreviewVehCol
-	#undef TextDrawSetPreviewVehCol
-#else
-	#define _ALS_TextDrawSetPreviewVehCol
-#endif
-#define TextDrawSetPreviewVehCol WC_TextDrawSetPreviewVehCol
-
-
 #if defined _ALS_CreatePlayerTextDraw
 	#undef CreatePlayerTextDraw
 #else
@@ -7923,186 +7768,6 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 
 
 	#if __namemax > 31
-		#if defined _ALS_TextDrawSetPreviewVehicleColours
-			#undef TextDrawSetPreviewVehicleColours
-		#else
-			#define _ALS_TextDrawSetPreviewVehicleColours
-		#endif
-		#define TextDrawSetPreviewVehicleColours WC_TextDrawSetPreviewVehicleColours
-	#endif
-
-
-	#if defined _ALS_IsValidTextDraw
-		#undef IsValidTextDraw
-	#else
-		#define _ALS_IsValidTextDraw
-	#endif
-	#define IsValidTextDraw WC_IsValidTextDraw
-
-
-	#if defined _ALS_IsTextDrawVisibleForPlayer
-		#undef IsTextDrawVisibleForPlayer
-	#else
-		#define _ALS_IsTextDrawVisibleForPlayer
-	#endif
-	#define IsTextDrawVisibleForPlayer WC_IsTextDrawVisibleForPlayer
-
-
-	#if defined _ALS_TextDrawGetString
-		#undef TextDrawGetString
-	#else
-		#define _ALS_TextDrawGetString
-	#endif
-	#define TextDrawGetString WC_TextDrawGetString
-
-
-	#if defined _ALS_TextDrawSetPos
-		#undef TextDrawSetPos
-	#else
-		#define _ALS_TextDrawSetPos
-	#endif
-	#define TextDrawSetPos WC_TextDrawSetPos
-
-
-	#if defined _ALS_TextDrawGetLetterSize
-		#undef TextDrawGetLetterSize
-	#else
-		#define _ALS_TextDrawGetLetterSize
-	#endif
-	#define TextDrawGetLetterSize WC_TextDrawGetLetterSize
-
-
-	#if defined _ALS_TextDrawGetTextSize
-		#undef TextDrawGetTextSize
-	#else
-		#define _ALS_TextDrawGetTextSize
-	#endif
-	#define TextDrawGetTextSize WC_TextDrawGetTextSize
-
-
-	#if defined _ALS_TextDrawGetPos
-		#undef TextDrawGetPos
-	#else
-		#define _ALS_TextDrawGetPos
-	#endif
-	#define TextDrawGetPos WC_TextDrawGetPos
-
-
-	#if defined _ALS_TextDrawGetColour
-		#undef TextDrawGetColour
-	#else
-		#define _ALS_TextDrawGetColour
-	#endif
-	#define TextDrawGetColour WC_TextDrawGetColour
-
-
-	#if defined _ALS_TextDrawGetBoxColour
-		#undef TextDrawGetBoxColour
-	#else
-		#define _ALS_TextDrawGetBoxColour
-	#endif
-	#define TextDrawGetBoxColour WC_TextDrawGetBoxColour
-
-
-	#if defined _ALS_TextDrawGetBackgroundColou
-		#undef TextDrawGetBackgroundColour
-	#else
-		#define _ALS_TextDrawGetBackgroundColou
-	#endif
-	#define TextDrawGetBackgroundColour WC_TextDrawGetBackgroundColour
-
-
-	#if defined _ALS_TextDrawGetShadow
-		#undef TextDrawGetShadow
-	#else
-		#define _ALS_TextDrawGetShadow
-	#endif
-	#define TextDrawGetShadow WC_TextDrawGetShadow
-
-
-	#if defined _ALS_TextDrawGetOutline
-		#undef TextDrawGetOutline
-	#else
-		#define _ALS_TextDrawGetOutline
-	#endif
-	#define TextDrawGetOutline WC_TextDrawGetOutline
-
-
-	#if defined _ALS_TextDrawGetFont
-		#undef TextDrawGetFont
-	#else
-		#define _ALS_TextDrawGetFont
-	#endif
-	#define TextDrawGetFont WC_TextDrawGetFont
-
-
-	#if defined _ALS_TextDrawIsBox
-		#undef TextDrawIsBox
-	#else
-		#define _ALS_TextDrawIsBox
-	#endif
-	#define TextDrawIsBox WC_TextDrawIsBox
-
-
-	#if defined _ALS_TextDrawIsProportional
-		#undef TextDrawIsProportional
-	#else
-		#define _ALS_TextDrawIsProportional
-	#endif
-	#define TextDrawIsProportional WC_TextDrawIsProportional
-
-
-	#if defined _ALS_TextDrawIsSelectable
-		#undef TextDrawIsSelectable
-	#else
-		#define _ALS_TextDrawIsSelectable
-	#endif
-	#define TextDrawIsSelectable WC_TextDrawIsSelectable
-
-
-	#if defined _ALS_TextDrawGetAlignment
-		#undef TextDrawGetAlignment
-	#else
-		#define _ALS_TextDrawGetAlignment
-	#endif
-	#define TextDrawGetAlignment WC_TextDrawGetAlignment
-
-
-	#if defined _ALS_TextDrawGetPreviewModel
-		#undef TextDrawGetPreviewModel
-	#else
-		#define _ALS_TextDrawGetPreviewModel
-	#endif
-	#define TextDrawGetPreviewModel WC_TextDrawGetPreviewModel
-
-
-	#if defined _ALS_TextDrawGetPreviewRot
-		#undef TextDrawGetPreviewRot
-	#else
-		#define _ALS_TextDrawGetPreviewRot
-	#endif
-	#define TextDrawGetPreviewRot WC_TextDrawGetPreviewRot
-
-
-	#if __namemax > 31
-		#if defined _ALS_TextDrawGetPreviewVehicleColours
-			#undef TextDrawGetPreviewVehicleColours
-		#else
-			#define _ALS_TextDrawGetPreviewVehicleColours
-		#endif
-		#define TextDrawGetPreviewVehicleColours WC_TextDrawGetPreviewVehicleColours
-	#endif
-
-
-	#if defined _ALS_TextDrawSetStringForPlayer
-		#undef TextDrawSetStringForPlayer
-	#else
-		#define _ALS_TextDrawSetStringForPlayer
-	#endif
-	#define TextDrawSetStringForPlayer WC_TextDrawSetStringForPlayer
-
-
-	#if __namemax > 31
 		#if defined _ALS_PlayerTextDrawSetPreviewVehicleColours
 			#undef PlayerTextDrawSetPreviewVehicleColours
 		#else
@@ -8274,38 +7939,6 @@ CHAIN_FORWARD:WC_OnPlayerDeathFinished(playerid, bool:cancelable) = 1;
 		#endif
 		#define PlayerTextDrawGetPreviewVehicleColours WC_PlayerTextDrawGetPreviewVehicleColours
 	#endif
-
-
-	#if defined _ALS_TextDrawGetColor
-		#undef TextDrawGetColor
-	#else
-		#define _ALS_TextDrawGetColor
-	#endif
-	#define TextDrawGetColor WC_TextDrawGetColor
-
-
-	#if defined _ALS_TextDrawGetBoxColor
-		#undef TextDrawGetBoxColor
-	#else
-		#define _ALS_TextDrawGetBoxColor
-	#endif
-	#define TextDrawGetBoxColor WC_TextDrawGetBoxColor
-
-
-	#if defined _ALS_TextDrawGetBackgroundColor
-		#undef TextDrawGetBackgroundColor
-	#else
-		#define _ALS_TextDrawGetBackgroundColor
-	#endif
-	#define TextDrawGetBackgroundColor WC_TextDrawGetBackgroundColor
-
-
-	#if defined _ALS_TextDrawGetPreviewVehCol
-		#undef TextDrawGetPreviewVehCol
-	#else
-		#define _ALS_TextDrawGetPreviewVehCol
-	#endif
-	#define TextDrawGetPreviewVehCol WC_TextDrawGetPreviewVehCol
 
 
 	#if defined _ALS_PlayerTextDrawGetColor
