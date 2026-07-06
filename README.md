@@ -397,32 +397,32 @@ EnableHealthBarForPlayer(playerid, bool:enable);
 Show or hide health bar for player
 
 ```pawn
-GetPlayerHealthBarPosition(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y);
+GetHealthBarPosition(&Float:x, &Float:y, playerid = INVALID_PLAYER_ID);
 ```
 Get the effective health bar position for a player
-* `playerid` - The player whose position to get. Use `INVALID_PLAYER_ID` to get the global position
 * `x` and `y` - Variables in which to store the position
+* `playerid` - The player whose position to get. Use `INVALID_PLAYER_ID` to get the global position
 
 ```pawn
-GetPlayerHealthBarSize(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y);
+GetHealthBarSize(&Float:x, &Float:y, playerid = INVALID_PLAYER_ID);
 ```
 Get the effective health bar size for a player
-* `playerid` - The player whose size to get. Use `INVALID_PLAYER_ID` to get the global size
 * `x` and `y` - Variables in which to store the width and height
+* `playerid` - The player whose size to get. Use `INVALID_PLAYER_ID` to get the global size
 
 ```pawn
-GetPlayerHealthBarPadding(playerid = INVALID_PLAYER_ID, Float:padding[4]);
+GetHealthBarPadding(Float:padding[4], playerid = INVALID_PLAYER_ID);
 ```
 Get the effective health bar padding for a player
-* `playerid` - The player whose padding to get. Use `INVALID_PLAYER_ID` to get the global padding
 * `padding` - An array in which to store the top, right, bottom, and left padding
+* `playerid` - The player whose padding to get. Use `INVALID_PLAYER_ID` to get the global padding
 
 ```pawn
-GetPlayerHealthBarColor(playerid = INVALID_PLAYER_ID, &borderColor = 0, &bgColor = 0, &fgColor = 0);
+GetHealthBarColor(&borderColor = 0, &bgColor = 0, &fgColor = 0, playerid = INVALID_PLAYER_ID);
 ```
 Get the effective health bar colors for a player
-* `playerid` - The player whose colors to get. Use `INVALID_PLAYER_ID` to get the global colors
 * `borderColor`, `bgColor`, and `fgColor` - Variables in which to store the border, background, and foreground colors in RGBA format
+* `playerid` - The player whose colors to get. Use `INVALID_PLAYER_ID` to get the global colors
 
 ```pawn
 SetHealthBarPosition(Float:x, Float:y);

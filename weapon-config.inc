@@ -996,8 +996,8 @@ static s_LastUpdateTick[MAX_PLAYERS];
 static s_LastVehicleEnterTime[MAX_PLAYERS];
 static s_LastVehicleTick[MAX_PLAYERS];
 
-static Float:s_HealthBarPositionX = 546.0;
-static Float:s_HealthBarPositionY = 66.7;
+static Float:s_HealthBarPosX = 546.0;
+static Float:s_HealthBarPosY = 66.7;
 static Float:s_HealthBarSizeX = 61.7;
 static Float:s_HealthBarSizeY = 8.4;
 static Float:s_HealthBarPadding[4] = {2.1, 1.9, 1.6, 2.0};
@@ -1006,8 +1006,8 @@ static bool:s_HealthBarVisible[MAX_PLAYERS] = {false, ...};
 static PlayerText:s_HealthBarBorder[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static PlayerText:s_HealthBarBackground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
 static PlayerText:s_HealthBarForeground[MAX_PLAYERS] = {PlayerText:INVALID_TEXT_DRAW, ...};
-static Float:s_PlayerHealthBarPositionX[MAX_PLAYERS];
-static Float:s_PlayerHealthBarPositionY[MAX_PLAYERS];
+static Float:s_PlayerHealthBarPosX[MAX_PLAYERS];
+static Float:s_PlayerHealthBarPosY[MAX_PLAYERS];
 static Float:s_PlayerHealthBarSizeX[MAX_PLAYERS];
 static Float:s_PlayerHealthBarSizeY[MAX_PLAYERS];
 static Float:s_PlayerHealthBarPadding[MAX_PLAYERS][4];
@@ -1300,20 +1300,20 @@ stock EnableHealthBarForPlayer(playerid, bool:enable)
 	return false;
 }
 
-stock GetPlayerHealthBarPosition(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y)
+stock GetHealthBarPosition(&Float:x, &Float:y, playerid = INVALID_PLAYER_ID)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
-		x = s_PlayerHealthBarPositionX[playerid] == s_PlayerHealthBarPositionX[playerid] ? s_PlayerHealthBarPositionX[playerid] : s_HealthBarPositionX;
-		y = s_PlayerHealthBarPositionY[playerid] == s_PlayerHealthBarPositionY[playerid] ? s_PlayerHealthBarPositionY[playerid] : s_HealthBarPositionY;
+		x = s_PlayerHealthBarPosX[playerid] == s_PlayerHealthBarPosX[playerid] ? s_PlayerHealthBarPosX[playerid] : s_HealthBarPosX;
+		y = s_PlayerHealthBarPosY[playerid] == s_PlayerHealthBarPosY[playerid] ? s_PlayerHealthBarPosY[playerid] : s_HealthBarPosY;
 
 		return;	
 	}
 
-	x = s_HealthBarPositionX;
-	y = s_HealthBarPositionY;
+	x = s_HealthBarPosX;
+	y = s_HealthBarPosY;
 }
 
-stock GetPlayerHealthBarSize(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y)
+stock GetHealthBarSize(&Float:x, &Float:y, playerid = INVALID_PLAYER_ID)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		x = s_PlayerHealthBarSizeX[playerid] == s_PlayerHealthBarSizeX[playerid] ? s_PlayerHealthBarSizeX[playerid] : s_HealthBarSizeX;
@@ -1326,7 +1326,7 @@ stock GetPlayerHealthBarSize(playerid = INVALID_PLAYER_ID, &Float:x, &Float:y)
 	y = s_HealthBarSizeY;
 }
 
-stock GetPlayerHealthBarPadding(playerid = INVALID_PLAYER_ID, Float:padding[4])
+stock GetHealthBarPadding(Float:padding[4], playerid = INVALID_PLAYER_ID)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		for (new i = 0; i < sizeof(padding); i++) {
@@ -1341,15 +1341,15 @@ stock GetPlayerHealthBarPadding(playerid = INVALID_PLAYER_ID, Float:padding[4])
 
 stock SetHealthBarPosition(Float:x, Float:y)
 {
-	s_HealthBarPositionX = x;
-	s_HealthBarPositionY = y;
+	s_HealthBarPosX = x;
+	s_HealthBarPosY = y;
 
 	#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 	foreach (new i : Player) {
 	#else
 	for (new i = 0; i != MAX_PLAYERS; i++) {
 	#endif
-		if (s_HealthBarVisible[i] && (s_PlayerHealthBarPositionX[i] != s_PlayerHealthBarPositionX[i] || s_PlayerHealthBarPositionY[i] != s_PlayerHealthBarPositionY[i])) {
+		if (s_HealthBarVisible[i] && (s_PlayerHealthBarPosX[i] != s_PlayerHealthBarPosX[i] || s_PlayerHealthBarPosY[i] != s_PlayerHealthBarPosY[i])) {
 			SetHealthBarVisible(i, false);
 			SetHealthBarVisible(i, true);
 		}
@@ -1399,8 +1399,8 @@ stock SetHealthBarPositionForPlayer(playerid, Float:x = Float:0x7FFFFFFF, Float:
 {
 	if (IsPlayerConnected(playerid))
 	{
-		s_PlayerHealthBarPositionX[playerid] = x;
-		s_PlayerHealthBarPositionY[playerid] = y;
+		s_PlayerHealthBarPosX[playerid] = x;
+		s_PlayerHealthBarPosY[playerid] = y;
 
 		if (s_HealthBarVisible[playerid]) {
 			SetHealthBarVisible(playerid, false);
@@ -1444,7 +1444,7 @@ stock SetHealthBarPaddingForPlayer(playerid, const Float:padding[4] = {Float:0x7
 	return 0;
 }
 
-stock GetPlayerHealthBarColor(playerid = INVALID_PLAYER_ID, &borderColor = 0, &bgColor = 0, &fgColor = 0)
+stock GetHealthBarColor(&borderColor = 0, &bgColor = 0, &fgColor = 0, playerid = INVALID_PLAYER_ID)
 {
 	if (0 <= playerid < MAX_PLAYERS) {
 		borderColor = s_PlayerHealthBarBorderColor[playerid] != 0 ? s_PlayerHealthBarBorderColor[playerid] : s_HealthBarBorderColor;
@@ -2857,8 +2857,8 @@ public OnPlayerConnect(playerid)
 	s_DelayedDeathTimer[playerid] = 0;
 	s_DamageFeedPlayer[playerid] = -1;
 	s_EnableHealthBar[playerid] = true; // enable by default
-	s_PlayerHealthBarPositionX[playerid] = Float:0x7FFFFFFF;
-	s_PlayerHealthBarPositionY[playerid] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarPosX[playerid] = Float:0x7FFFFFFF;
+	s_PlayerHealthBarPosY[playerid] = Float:0x7FFFFFFF;
 	s_PlayerHealthBarSizeX[playerid] = Float:0x7FFFFFFF;
 	s_PlayerHealthBarSizeY[playerid] = Float:0x7FFFFFFF;
 	s_PlayerHealthBarPadding[playerid][0] = Float:0x7FFFFFFF;
@@ -5168,19 +5168,19 @@ static UpdateHealthBar(playerid, bool:force = false, bool:forcesync = false)
 				Float:sizeX, Float:sizeY,
 				Float:padding[4];
 
-			GetPlayerHealthBarSize(playerid, sizeX, sizeY);
-			GetPlayerHealthBarPadding(playerid, padding);
-			GetPlayerHealthBarColor(playerid, .fgColor = fgColor);
+			GetHealthBarSize(sizeX, sizeY, playerid);
+			GetHealthBarPadding(padding, playerid);
+			GetHealthBarColor(.fgColor = fgColor, .playerid = playerid);
 
 			if (s_HealthBarForeground[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 
-				new Float:positionX, Float:positionY;
-				GetPlayerHealthBarPosition(playerid, positionX, positionY);
+				new Float:posX, Float:posY;
+				GetHealthBarPosition(posX, posY, playerid);
 
 				s_HealthBarForeground[playerid] = CreatePlayerTextDraw(
 					playerid,
-					positionX + padding[3],
-					positionY + padding[0],
+					posX + padding[3],
+					posY + padding[0],
 					"LD_SPAC:white"
 				);
 
@@ -5233,6 +5233,7 @@ static SetHealthBarVisible(playerid, bool:toggle)
 	if (!s_EnableHealthBar[playerid]) {
 		toggle = false;
 	}
+
 	if (s_HealthBarVisible[playerid] == toggle) {
 		return;
 	}
@@ -5243,21 +5244,21 @@ static SetHealthBarVisible(playerid, bool:toggle)
 
 		new
 			borderColor, bgColor,
-			Float:positionX, Float:positionY,
+			Float:posX, Float:posY,
 			Float:sizeX, Float:sizeY,
 			Float:padding[4];
 
-		GetPlayerHealthBarPosition(playerid, positionX, positionY);
-		GetPlayerHealthBarSize(playerid, sizeX, sizeY);
-		GetPlayerHealthBarPadding(playerid, padding);
-		GetPlayerHealthBarColor(playerid, borderColor, bgColor);
+		GetHealthBarPosition(posX, posY, playerid);
+		GetHealthBarSize(sizeX, sizeY, playerid);
+		GetHealthBarPadding(padding, playerid);
+		GetHealthBarColor(borderColor, bgColor, .playerid = playerid);
 
 		if (s_HealthBarBorder[playerid] == PlayerText:INVALID_TEXT_DRAW) {
 
 			s_HealthBarBorder[playerid] = CreatePlayerTextDraw(
 				playerid,
-				positionX,
-				positionY,
+				posX,
+				posY,
 				"LD_SPAC:white"
 			);
 
@@ -5284,8 +5285,8 @@ static SetHealthBarVisible(playerid, bool:toggle)
 
 			s_HealthBarBackground[playerid] = CreatePlayerTextDraw(
 				playerid,
-				positionX + padding[3],
-				positionY + padding[0],
+				posX + padding[3],
+				posY + padding[0],
 				"LD_SPAC:white"
 			);
 
@@ -5332,10 +5333,7 @@ static SetHealthBarVisible(playerid, bool:toggle)
 
 static stock UpdateHealthBarSize(playerid)
 {
-	if (!IsPlayerConnected(playerid)) {
-		return;
-	}
-	if (!s_HealthBarVisible[playerid]) {
+	if (!IsPlayerConnected(playerid) || !s_HealthBarVisible[playerid]) {
 		return;
 	}
 
@@ -5343,8 +5341,8 @@ static stock UpdateHealthBarSize(playerid)
 		Float:sizeX, Float:sizeY,
 		Float:padding[4];
 
-	GetPlayerHealthBarSize(playerid, sizeX, sizeY);
-	GetPlayerHealthBarPadding(playerid, padding);
+	GetHealthBarSize(sizeX, sizeY, playerid);
+	GetHealthBarPadding(padding, playerid);
 
 	if (s_HealthBarBorder[playerid] != PlayerText:INVALID_TEXT_DRAW && s_InternalPlayerTextDraw[playerid][s_HealthBarBorder[playerid]]) {
 		PlayerTextDrawTextSize(playerid,
