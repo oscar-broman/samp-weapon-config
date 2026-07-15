@@ -1188,6 +1188,10 @@ stock WC_IsPlayerSpawned(playerid)
 
 stock WC_IsPlayerPaused(playerid)
 {
+	if (playerid < 0 || playerid >= MAX_PLAYERS) {
+		return false;
+	}
+
 	return (GetTickCount() - s_LastUpdateTick[playerid] > 2000);
 }
 
@@ -1798,11 +1802,7 @@ stock Float:GetLastDamageArmour(playerid)
 
 stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:weaponid = WEAPON_UNKNOWN, bodypart = BODY_PART_UNKNOWN, bool:ignore_armour = false)
 {
-	if (playerid < 0 || playerid >= MAX_PLAYERS || !IsPlayerConnected(playerid)) {
-		return 0;
-	}
-
-	if (amount < 0.0) {
+	if (!IsPlayerConnected(playerid) || amount < 0.0) {
 		return 0;
 	}
 
@@ -1810,7 +1810,7 @@ stock DamagePlayer(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPON:
 		weaponid = WEAPON_UNKNOWN;
 	}
 
-	if (issuerid < 0 || issuerid >= MAX_PLAYERS || !IsPlayerConnected(issuerid)) {
+	if (!IsPlayerConnected(issuerid)) {
 		issuerid = INVALID_PLAYER_ID;
 	}
 
@@ -1881,11 +1881,13 @@ stock GetRejectedHit(playerid, idx, output[], maxlength = sizeof(output))
 
 stock ResyncPlayer(playerid)
 {
-	SaveSyncData(playerid);
+	if (0 <= playerid < MAX_PLAYERS) {
+		SaveSyncData(playerid);
 
-	s_BeingResynced[playerid] = true;
+		s_BeingResynced[playerid] = true;
 
-	SpawnPlayerInPlace(playerid);
+		SpawnPlayerInPlace(playerid);
+	}
 }
 
 stock SetCbugDeathDelay(bool:toggle)
@@ -2754,18 +2756,20 @@ stock WC_PlayerTextDrawSetPreviewVehC(playerid, PlayerText:text, color1, color2)
 	stock WC_EditPlayerClass(classid, team, skin, Float:spawnX, Float:spawnY, Float:spawnZ, Float:angle, WEAPON:weapon1 = WEAPON_FIST, ammo1 = 0, WEAPON:weapon2 = WEAPON_FIST, ammo2 = 0, WEAPON:weapon3 = WEAPON_FIST, ammo3 = 0)
 	{
 		if (EditPlayerClass(classid, team, skin, spawnX, spawnY, spawnZ, angle, weapon1, ammo1, weapon2, ammo2, weapon3, ammo3)) {
-			s_ClassSpawnInfo[classid][e_Skin] = skin;
-			s_ClassSpawnInfo[classid][e_Team] = team;
-			s_ClassSpawnInfo[classid][e_PosX] = spawnX;
-			s_ClassSpawnInfo[classid][e_PosY] = spawnY;
-			s_ClassSpawnInfo[classid][e_PosZ] = spawnZ;
-			s_ClassSpawnInfo[classid][e_Rot] = angle;
-			s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
-			s_ClassSpawnInfo[classid][e_Ammo1] = ammo1;
-			s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
-			s_ClassSpawnInfo[classid][e_Ammo2] = ammo2;
-			s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
-			s_ClassSpawnInfo[classid][e_Ammo3] = ammo3;
+			if (0 <= classid < WC_MAX_CLASSES) {
+				s_ClassSpawnInfo[classid][e_Skin] = skin;
+				s_ClassSpawnInfo[classid][e_Team] = team;
+				s_ClassSpawnInfo[classid][e_PosX] = spawnX;
+				s_ClassSpawnInfo[classid][e_PosY] = spawnY;
+				s_ClassSpawnInfo[classid][e_PosZ] = spawnZ;
+				s_ClassSpawnInfo[classid][e_Rot] = angle;
+				s_ClassSpawnInfo[classid][e_Weapon1] = weapon1;
+				s_ClassSpawnInfo[classid][e_Ammo1] = ammo1;
+				s_ClassSpawnInfo[classid][e_Weapon2] = weapon2;
+				s_ClassSpawnInfo[classid][e_Ammo2] = ammo2;
+				s_ClassSpawnInfo[classid][e_Weapon3] = weapon3;
+				s_ClassSpawnInfo[classid][e_Ammo3] = ammo3;
+			}
 
 			return 1;
 		}
