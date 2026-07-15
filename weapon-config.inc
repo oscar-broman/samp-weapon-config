@@ -6386,7 +6386,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 	if (tick == 0) tick = 1;
 	new lowest_tick = tick + 1;
 
-	for (new i = 0, j = 0; i < sizeof(s_DamageFeedHitsGiven[]) - 1; i++) {
+	for (new i = 0, j = 0; i < sizeof(s_DamageFeedHitsGiven[]); i++) {
 		if (!s_DamageFeedHitsGiven[playerid][i][e_Tick]) {
 			break;
 		}
@@ -6394,7 +6394,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		if (tick - s_DamageFeedHitsGiven[playerid][i][e_Tick] >= s_DamageFeedHideDelay) {
 			modified = true;
 
-			for (j = i; j < sizeof(s_DamageFeedHitsGiven[]) - 1; j++) {
+			for (j = i; j < sizeof(s_DamageFeedHitsGiven[]); j++) {
 				s_DamageFeedHitsGiven[playerid][j][e_Tick] = 0;
 			}
 
@@ -6406,7 +6406,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		}
 	}
 
-	for (new i = 0, j = 0; i < sizeof(s_DamageFeedHitsTaken[]) - 1; i++) {
+	for (new i = 0, j = 0; i < sizeof(s_DamageFeedHitsTaken[]); i++) {
 		if (!s_DamageFeedHitsTaken[playerid][i][e_Tick]) {
 			break;
 		}
@@ -6414,7 +6414,7 @@ static DamageFeedUpdate(playerid, bool:modified = false)
 		if (tick - s_DamageFeedHitsTaken[playerid][i][e_Tick] >= s_DamageFeedHideDelay) {
 			modified = true;
 
-			for (j = i; j < sizeof(s_DamageFeedHitsTaken[]) - 1; j++) {
+			for (j = i; j < sizeof(s_DamageFeedHitsTaken[]); j++) {
 				s_DamageFeedHitsTaken[playerid][j][e_Tick] = 0;
 			}
 
@@ -6452,7 +6452,7 @@ static DamageFeedUpdateText(playerid)
 {
 	new buf[64 * WC_FEED_HEIGHT] = "";
 
-	for (new i = 0, weapon[32]; i < sizeof(s_DamageFeedHitsGiven[]) - 1; i++) {
+	for (new i = 0, weapon[32]; i < sizeof(s_DamageFeedHitsGiven[]); i++) {
 		if (!s_DamageFeedHitsGiven[playerid][i][e_Tick]) {
 			break;
 		}
@@ -6499,7 +6499,7 @@ static DamageFeedUpdateText(playerid)
 
 	buf = "";
 
-	for (new i = 0, weapon[32]; i < sizeof(s_DamageFeedHitsTaken[]) - 1; i++) {
+	for (new i = 0, weapon[32]; i < sizeof(s_DamageFeedHitsTaken[]); i++) {
 		if (!s_DamageFeedHitsTaken[playerid][i][e_Tick]) {
 			break;
 		}
@@ -6586,7 +6586,7 @@ static DamageFeedAddHit(arr[WC_FEED_HEIGHT][E_DAMAGE_FEED_HIT], playerid, issuer
 	if (tick == 0) tick = 1;
 	new idx = -1;
 
-	for (new i = 0; i < sizeof(arr) - 1; i++) {
+	for (new i = 0; i < sizeof(arr); i++) {
 		if (!arr[i][e_Tick]) {
 			break;
 		}
