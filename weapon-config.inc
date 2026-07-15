@@ -4531,8 +4531,8 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 			return 0;
 		}
 
-		if (s_VehiclePassengerDamage) {
-			new has_driver = false, has_passenger = false, seat;
+		if (s_VehiclePassengerDamage || s_VehicleUnoccupiedDamage) {
+			new has_driver = false, has_passenger = false;
 
 			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
 			foreach (new otherid : Player) {
@@ -4547,64 +4547,38 @@ public OnPlayerWeaponShot(playerid, WEAPON:weaponid, BULLET_HIT_TYPE:hittype, hi
 					continue;
 				}
 
-				seat = GetPlayerVehicleSeat(otherid);
-
-				if (seat == 0) {
-					has_driver = true;
-				} else {
+				if (GetPlayerVehicleSeat(otherid) != 0) {
 					has_passenger = true;
-				}
-			}
-
-			if (!has_driver && has_passenger) {
-				new Float:health;
-				GetVehicleHealth(hitid, health);
-
-				if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
-					health -= 120.0;
 				} else {
-					health -= s_WeaponDamage[weaponid] * 3.0;
+					has_driver = true;
+					break;
 				}
-
-				if (health <= 0.0) {
-					health = 0.0;
-				}
-
-				SetVehicleHealth(hitid, health);
-			}
-		}
-
-		if (s_VehicleUnoccupiedDamage) {
-			new has_occupant = false;
-
-			#if defined _Y_ITERATE_LOCAL_VERSION || defined _FOREACH_LOCAL_VERSION
-			foreach (new otherid : Player) {
-			#else
-			for (new otherid = 0; otherid != MAX_PLAYERS; otherid++) {
-			#endif
-				if (otherid == playerid) {
-					continue;
-				}
-
-				if (GetPlayerVehicleID(otherid) != hitid) {
-					continue;
-				}
-
-				has_occupant = true;
 			}
 
-			if (!has_occupant) {
-				new Float:health;
+			if (!has_driver) {
+				new Float:health, apply_damage = false;
 				GetVehicleHealth(hitid, health);
 
-				if (health >= 250.0) { // vehicles start on fire below 250 hp
+				if (s_VehiclePassengerDamage && has_passenger) {
+					apply_damage = true;
+				} else if (s_VehicleUnoccupiedDamage && !has_passenger) {
+					if (health >= 250.0) { // vehicles start on fire below 250 hp
+						apply_damage = true;
+					}
+				}
+
+				if (apply_damage) {
 					if (WEAPON_SHOTGUN <= weaponid <= WEAPON_SHOTGSPA) {
 						health -= 120.0;
 					} else {
 						health -= s_WeaponDamage[weaponid] * 3.0;
 					}
 
-					if (health < 250.0) {
+					if (has_passenger) {
+						if (health <= 0.0) {
+							health = 0.0;
+						}
+					} else if (health < 250.0) {
 						if (!s_VehicleRespawnTimer[hitid]) {
 							health = 249.0;
 							s_VehicleRespawnTimer[hitid] = SetTimerEx("WC_KillVehicle", 6000, false, "ii", hitid, playerid);
