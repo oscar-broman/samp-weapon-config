@@ -3320,28 +3320,33 @@ public OnPlayerDeath(playerid, killerid, WEAPON:reason)
 			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
 		}
 
-		if (reason == WEAPON_COLLISION || reason == WEAPON_DROWN || reason == WEAPON_CARPARK) {
-			if (amount <= 0.0) {
-				amount = s_PlayerHealth[playerid];
-			}
+		new bool:hit_armour = (reason != WEAPON_COLLISION && reason != WEAPON_DROWN && reason != WEAPON_CARPARK);
 
-			s_PlayerHealth[playerid] -= amount;
-		} else {
+		if (hit_armour) {
 			if (amount <= 0.0) {
 				amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
 			}
 
 			s_PlayerArmour[playerid] -= amount;
+		} else {
+			if (amount <= 0.0) {
+				amount = s_PlayerHealth[playerid];
+			}
+
+			s_PlayerHealth[playerid] -= amount;
 		}
 
-		if (s_PlayerArmour[playerid] < 0.0) {
+		if (hit_armour && s_PlayerArmour[playerid] < 0.0) {
 			s_DamageDoneArmour[playerid] = amount + s_PlayerArmour[playerid];
 			s_DamageDoneHealth[playerid] = -s_PlayerArmour[playerid];
 			s_PlayerHealth[playerid] += s_PlayerArmour[playerid];
 			s_PlayerArmour[playerid] = 0.0;
-		} else {
+		} else if (hit_armour) {
 			s_DamageDoneArmour[playerid] = amount;
 			s_DamageDoneHealth[playerid] = 0.0;
+		} else {
+			s_DamageDoneArmour[playerid] = 0.0;
+			s_DamageDoneHealth[playerid] = amount;
 		}
 
 		if (s_PlayerHealth[playerid] <= 0.0) {
@@ -3938,8 +3943,8 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, WEAPON:weaponid, bo
 				return 0;
 			}
 
-			s_DamageDoneHealth[playerid] = s_PlayerHealth[playerid];
-			s_DamageDoneArmour[playerid] = s_PlayerArmour[playerid];
+			s_DamageDoneHealth[damagedid] = s_PlayerHealth[damagedid];
+			s_DamageDoneArmour[damagedid] = s_PlayerArmour[damagedid];
 
 			OnPlayerDamageDone(damagedid, s_PlayerHealth[damagedid] + s_PlayerArmour[damagedid], playerid, weaponid, bodypart);
 
@@ -6030,8 +6035,10 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 		}
 	#endif
 
-	if (!ignore_armour && weaponid != WEAPON_COLLISION && weaponid != WEAPON_DROWN && weaponid != WEAPON_CARPARK && weaponid != WEAPON_UNKNOWN
-	&& (!s_DamageArmourToggle[0] || (s_DamageArmour[weaponid][0] && (!s_DamageArmourToggle[1] || ((s_DamageArmour[weaponid][1] && bodypart == 3) || (!s_DamageArmour[weaponid][1])))))) {
+	new bool:hit_armour = (!ignore_armour && weaponid != WEAPON_COLLISION && weaponid != WEAPON_DROWN && weaponid != WEAPON_CARPARK && weaponid != WEAPON_UNKNOWN
+	&& (!s_DamageArmourToggle[0] || s_DamageArmour[weaponid][0] && (!s_DamageArmourToggle[1] || s_DamageArmour[weaponid][1] && bodypart == 3 || !s_DamageArmour[weaponid][1])));
+
+	if (hit_armour) {
 		if (amount <= 0.0) {
 			amount = s_PlayerHealth[playerid] + s_PlayerArmour[playerid];
 		}
@@ -6045,14 +6052,17 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 		s_PlayerHealth[playerid] -= amount;
 	}
 
-	if (s_PlayerArmour[playerid] < 0.0) {
+	if (hit_armour && s_PlayerArmour[playerid] < 0.0) {
 		s_DamageDoneArmour[playerid] = amount + s_PlayerArmour[playerid];
 		s_DamageDoneHealth[playerid] = -s_PlayerArmour[playerid];
 		s_PlayerHealth[playerid] += s_PlayerArmour[playerid];
 		s_PlayerArmour[playerid] = 0.0;
-	} else {
+	} else if (hit_armour) {
 		s_DamageDoneArmour[playerid] = amount;
 		s_DamageDoneHealth[playerid] = 0.0;
+	} else {
+		s_DamageDoneArmour[playerid] = 0.0;
+		s_DamageDoneHealth[playerid] = amount;
 	}
 
 	if (s_PlayerHealth[playerid] <= 0.0) {
