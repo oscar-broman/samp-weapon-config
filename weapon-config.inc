@@ -1744,8 +1744,12 @@ stock SetPlayerMaxHealth(playerid, Float:value)
 {
 	if (0 <= playerid < MAX_PLAYERS && value > 0.0) {
 		s_PlayerMaxHealth[playerid] = value;
-		UpdateHealthBar(playerid, true);
 
+		if (s_PlayerHealth[playerid] > value) {
+			s_PlayerHealth[playerid] = value;
+		}
+
+		UpdateHealthBar(playerid, true);
 		return 1;
 	}
 
@@ -1756,8 +1760,12 @@ stock SetPlayerMaxArmour(playerid, Float:value)
 {
 	if (0 <= playerid < MAX_PLAYERS && value > 0.0) {
 		s_PlayerMaxArmour[playerid] = value;
-		UpdateHealthBar(playerid, true);
 
+		if (s_PlayerArmour[playerid] > value) {
+			s_PlayerArmour[playerid] = value;
+		}
+
+		UpdateHealthBar(playerid, true);
 		return 1;
 	}
 
@@ -1972,7 +1980,7 @@ stock WC_SetPlayerHealth(playerid, Float:health, Float:armour = -1.0)
 			InflictDamage(playerid, 0.0);
 		}
 	} else {
-		if (armour != -1.0) {
+		if (armour >= 0.0) {
 			if (armour > s_PlayerMaxArmour[playerid]) {
 				armour = s_PlayerMaxArmour[playerid];
 			}
@@ -2008,12 +2016,14 @@ stock WC_SetPlayerArmour(playerid, Float:armour)
 		return 0;
 	}
 
-	if (armour > s_PlayerMaxArmour[playerid]) {
-		armour = s_PlayerMaxArmour[playerid];
+	if (armour >= 0.0) {
+		if (armour > s_PlayerMaxArmour[playerid]) {
+			armour = s_PlayerMaxArmour[playerid];
+		}
+		s_PlayerArmour[playerid] = armour;
 	}
-	s_PlayerArmour[playerid] = armour;
-	UpdateHealthBar(playerid, true);
 
+	UpdateHealthBar(playerid, true);
 	return 1;
 }
 
