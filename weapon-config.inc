@@ -2833,6 +2833,7 @@ public OnPlayerConnect(playerid)
 	s_IsDying[playerid] = false;
 	s_BeingResynced[playerid] = false;
 	s_SpawnForStreamedIn[playerid] = false;
+	s_KnifeTimeout[playerid] = 0;
 	s_World[playerid] = 0;
 	s_LastAnim[playerid] = -1;
 	s_LastZVelo[playerid] = 0.0;
@@ -4206,7 +4207,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, WEAPON:weaponid, bod
 			OnPlayerDamageDone(playerid, s_PlayerHealth[playerid] + s_PlayerArmour[playerid], issuerid, weaponid, bodypart);
 
 			new animlib[32] = "KNIFE", animname[32] = "KILL_Knife_Ped_Die";
-			PlayerDeath(playerid, animlib, animname, _, 4000 - GetPlayerPing(playerid));
+			PlayerDeath(playerid, animlib, animname, _, max(4000 - GetPlayerPing(playerid), 3000));
 
 			WC_OnPlayerDeath(playerid, issuerid, weaponid);
 
@@ -5441,7 +5442,7 @@ static WasPlayerInVehicle(playerid, time) {
 		return false;
 	}
 
-	if (GetTickCount() - time < s_LastVehicleTick[playerid]) {
+	if (GetTickCount() - s_LastVehicleTick[playerid] < time) {
 		return true;
 	}
 
@@ -6142,7 +6143,7 @@ static InflictDamage(playerid, Float:amount, issuerid = INVALID_PLAYER_ID, WEAPO
 				KillTimer(s_DelayedDeathTimer[playerid]);
 			}
 
-			s_DelayedDeathTimer[playerid] = SetTimerEx(#WC_DelayedDeath, 1200, false, "iii", playerid, issuerid, weaponid);
+			s_DelayedDeathTimer[playerid] = SetTimerEx("WC_DelayedDeath", 1200, false, "iii", playerid, issuerid, weaponid);
 		}
 	}
 
