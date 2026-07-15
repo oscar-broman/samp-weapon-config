@@ -3057,6 +3057,9 @@ public OnPlayerSpawn(playerid)
 	if (s_BeingResynced[playerid]) {
 		s_BeingResynced[playerid] = false;
 
+		s_PlayerHealth[playerid] = s_SyncData[playerid][e_Health];
+		s_PlayerArmour[playerid] = s_SyncData[playerid][e_Armour];
+
 		UpdateHealthBar(playerid, true);
 
 		SetPlayerPos(playerid, s_SyncData[playerid][e_PosX], s_SyncData[playerid][e_PosY], s_SyncData[playerid][e_PosZ]);
